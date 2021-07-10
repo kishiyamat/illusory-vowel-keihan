@@ -1,0 +1,2 @@
+list:
+	echo hoge
