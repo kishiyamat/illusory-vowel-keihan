@@ -2,6 +2,9 @@
 
 ## セットアップ
 
+元来jsPsychのリスト管理は面倒くさい。
+もうpythonの中にjsを書くか...。
+
 ### ローカル
 
 1. `src/` に `jspsych-html-audio-response_modified.js` を配置
