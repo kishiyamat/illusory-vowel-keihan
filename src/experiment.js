@@ -42,7 +42,7 @@ timeline.push(instructions_prod);
 // このリストを回す
 var record = {
     type: 'html-audio-response_modified',
-    stimulus: jsPsych.timelineVariable('read'),
+    stimulus: jsPsych.timelineVariable('kanji'),
     prompt: `<br>
     標準語で上の単語を2回読み上げたらspaceキーを押してください。<br>
     再生ボタンを押して確認し、上手く録音できた場合は Sounds good! で次に進み、<br>
@@ -53,15 +53,15 @@ var record = {
     manually_end_recording_key: ['space'],
     data: {
         item_id: jsPsych.timelineVariable('item_id'),
-        read:  jsPsych.timelineVariable('read'),
+        kanji:  jsPsych.timelineVariable('kanji'),
     },
     on_finish: function(data){
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
     },
 };
 var practice_prod_list = [
-  { read: "銀河", item_id: "-1"},
-  { read: "アップル", item_id: "-2"},
+  { kanji: "銀河", item_id: "-1"},
+  { kanji: "アップル", item_id: "-2"},
 ];
 var practice_prod = {
   timeline: [record],
