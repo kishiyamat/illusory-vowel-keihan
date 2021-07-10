@@ -8,23 +8,23 @@ var timeline = [];
 // https://www.jspsych.org/plugins/jspsych-external-html/
 
 // TODO: オンラインに載せるときは以下も実行
-// var check_consent = function(elem) {
-//   if (document.getElementById('consent_checkbox').checked) {
-//     return true;
-//   }
-//   else {
-//     alert("同意して実験に参加していただける場合はチェックボックスをクリックしてください。");
-//     return false;
-//   }
-//   return false;
-// };
-// var informed_consent = {
-//   type:'external-html',
-//   url: "informed_consent.html",
-//   cont_btn: "start",
-//   check_fn: check_consent
-// };
-// timeline.push(informed_consent);
+var check_consent = function(elem) {
+  if (document.getElementById('consent_checkbox').checked) {
+    return true;
+  }
+  else {
+    alert("同意して実験に参加していただける場合はチェックボックスをクリックしてください。");
+    return false;
+  }
+  return false;
+};
+var informed_consent = {
+  type:'external-html',
+  url: "informed_consent.html",
+  cont_btn: "start",
+  check_fn: check_consent
+};
+timeline.push(informed_consent);
 
 var instructions_prod = {
   type: "html-keyboard-response",
@@ -69,8 +69,10 @@ var practice_prod = {
 }
 timeline.push(practice_prod);
 
-// REPLACE 
+// REPLACE and randomize
 var target_prod_list = [prod_list_to_be_replaced];
+var target_prod_list = jsPsych.randomization.repeat(target_prod_list, 1);
+
 var practice_prod = {
   timeline: [record],
   timeline_variables: target_prod_list
