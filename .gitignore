@@ -1,2 +1,5 @@
 src/jspsych-6.3.1/
 src/jspsych-html-audio-response_modified.js
+venv
+**/.DS_Store
+.vscode/

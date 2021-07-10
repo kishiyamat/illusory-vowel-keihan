@@ -14,3 +14,6 @@
 
 1. `src/` に `jspsych-html-audio-response_modified.js` をアップロード
 1. 音声をアップロード
+
+assert を上手く使って想定内の挙動であることを保証し続ける。
+一つのpyですべて変換させる。

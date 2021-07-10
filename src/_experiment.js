@@ -6,23 +6,25 @@ var timeline = [];
 // 1. thank you
 
 // https://www.jspsych.org/plugins/jspsych-external-html/
-var check_consent = function(elem) {
-  if (document.getElementById('consent_checkbox').checked) {
-    return true;
-  }
-  else {
-    alert("同意して実験に参加していただける場合はチェックボックスをクリックしてください。");
-    return false;
-  }
-  return false;
-};
-var informed_consent = {
-  type:'external-html',
-  url: "informed_consent.html",
-  cont_btn: "start",
-  check_fn: check_consent
-};
-timeline.push(informed_consent);
+
+// TODO: オンラインに載せるときは以下も実行
+// var check_consent = function(elem) {
+//   if (document.getElementById('consent_checkbox').checked) {
+//     return true;
+//   }
+//   else {
+//     alert("同意して実験に参加していただける場合はチェックボックスをクリックしてください。");
+//     return false;
+//   }
+//   return false;
+// };
+// var informed_consent = {
+//   type:'external-html',
+//   url: "informed_consent.html",
+//   cont_btn: "start",
+//   check_fn: check_consent
+// };
+// timeline.push(informed_consent);
 
 var instructions_prod = {
   type: "html-keyboard-response",
@@ -38,11 +40,7 @@ var instructions_prod = {
 timeline.push(instructions_prod);
 
 // このリストを回す
-var practice_prod = [
-  { read: "銀河", item_id: "-1"},
-  { read: "アップル", item_id: "-2"},
-];
-var practice_record = {
+var record = {
     type: 'html-audio-response_modified',
     stimulus: jsPsych.timelineVariable('read'),
     prompt: `<br>
@@ -61,10 +59,21 @@ var practice_record = {
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
     },
 };
-
+var practice_prod_list = [
+  { read: "銀河", item_id: "-1"},
+  { read: "アップル", item_id: "-2"},
+];
 var practice_prod = {
-  timeline: [practice_record],
-  timeline_variables: practice_prod
+  timeline: [record],
+  timeline_variables: practice_prod_list
+}
+timeline.push(practice_prod);
+
+// REPLACE 
+var target_prod_list = [prod_list_to_be_replaced];
+var practice_prod = {
+  timeline: [record],
+  timeline_variables: target_prod_list
 }
 timeline.push(practice_prod);
 
@@ -78,15 +87,6 @@ var finish_prod = {
   `,
 };
 timeline.push(finish_prod);
-
-// TODO: 
-//timeline.push({
-//    type: 'html-audio-response_modified',
-//    stimulus: '刺激',
-//    prompt: "指示", 
-//    buffer_length: 10000,
-//    manually_end_recording_key: ['space'],
-//});
 
 jsPsych.init({
     timeline: timeline,

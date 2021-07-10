@@ -1,2 +1,2 @@
-list:
-	echo hoge
+init:
+	python compile.py
