@@ -26,7 +26,7 @@ var informed_consent = {
 };
 timeline.push(informed_consent);
 
-var instructions_prod = {
+var instructions_practice = {
   type: "html-keyboard-response",
   stimulus: `
     <p>キーを押すと練習課題に移ってしまうので、<br>
@@ -37,16 +37,19 @@ var instructions_prod = {
     必要に応じてマイクの許可をお願いいたします。</p>
     `,
 };
-timeline.push(instructions_prod);
+timeline.push(instructions_practice);
 
 // このリストを回す
 var record = {
     type: 'html-audio-response_modified',
     stimulus: jsPsych.timelineVariable('read'),
     prompt: `<br>
+    大きな声ではっきりと、<br>
     標準語で上の単語を2回読み上げたらspaceキーを押してください。<br>
     再生ボタンを押して確認し、上手く録音できた場合は Sounds good! で次に進み、<br>
     上手く録音できなかった場合は Retry を押してください。<br>
+    小さな声しか出せない環境での実施は想定されておらず、<br>
+    その後の分析で非常に困りますので場所が不適切な場合は移動をお願いいたします。<br>
     ※丸が赤で満たされている時、録音しています。
     `, 
     buffer_length: 60000,
@@ -69,6 +72,20 @@ var practice_prod = {
   timeline_variables: practice_prod_list
 }
 timeline.push(practice_prod);
+
+var instructions_target = {
+  type: "html-keyboard-response",
+  stimulus: `
+    <p>以上で練習は終わりです。もしもう一度練習を希望される場合は<br>
+    本画面を閉じてから再度同じURLを開いてください。<br><br>
+    キーを押すと2セットの本番の産出課題に移ります。<br>
+    丸が赤で満たされているときは録音しています。<br>
+    ※途中で間違えて次に進んでしまったとしても、<br>
+    そこまで致命的な問題にはなりません。<br>
+    </p>
+    `,
+};
+timeline.push(instructions_target);
 
 // REPLACE and randomize
 var target_prod_list = [prod_list_to_be_replaced];
