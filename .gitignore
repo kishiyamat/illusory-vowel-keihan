@@ -3,3 +3,5 @@ src/jspsych-html-audio-response_modified.js
 venv
 **/.DS_Store
 .vscode/
+**/*.wav
+**/*.webm
