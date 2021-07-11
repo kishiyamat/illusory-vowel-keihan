@@ -42,7 +42,7 @@ timeline.push(instructions_prod);
 // このリストを回す
 var record = {
     type: 'html-audio-response_modified',
-    stimulus: jsPsych.timelineVariable('kanji'),
+    stimulus: jsPsych.timelineVariable('read'),
     prompt: `<br>
     標準語で上の単語を2回読み上げたらspaceキーを押してください。<br>
     再生ボタンを押して確認し、上手く録音できた場合は Sounds good! で次に進み、<br>
@@ -52,16 +52,17 @@ var record = {
     buffer_length: 60000,
     manually_end_recording_key: ['space'],
     data: {
+        type:  jsPsych.timelineVariable('type'),
         item_id: jsPsych.timelineVariable('item_id'),
-        kanji:  jsPsych.timelineVariable('kanji'),
+        read:  jsPsych.timelineVariable('read'),
     },
     on_finish: function(data){
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
     },
 };
 var practice_prod_list = [
-  { kanji: "銀河", item_id: "-1"},
-  { kanji: "アップル", item_id: "-2"},
+  {type: "production", item_id: -1, read: "銀河", },
+  {type: "production", item_id: -2, read: "アップル"},
 ];
 var practice_prod = {
   timeline: [record],
@@ -70,7 +71,7 @@ var practice_prod = {
 timeline.push(practice_prod);
 
 // REPLACE and randomize
-var target_prod_list = [{'id': 1, 'kanji': '北上'},{'id': 2, 'kanji': '効き目'},{'id': 3, 'kanji': 'くたびれる'},{'id': 4, 'kanji': '括る'},{'id': 5, 'kanji': '地下'},{'id': 6, 'kanji': '竹輪'},{'id': 7, 'kanji': 'お使い'},{'id': 8, 'kanji': '付き合い'},{'id': 9, 'kanji': '市会'},{'id': 10, 'kanji': '意識'},{'id': 11, 'kanji': '双子'},{'id': 12, 'kanji': '衣服'},{'id': 13, 'kanji': '空き地'},{'id': 14, 'kanji': '狐'},{'id': 15, 'kanji': '唇'},{'id': 16, 'kanji': '退屈'},{'id': 17, 'kanji': '父'},{'id': 18, 'kanji': '秩序'},{'id': 19, 'kanji': '土'},{'id': 20, 'kanji': '五つ'},{'id': 21, 'kanji': '七五'},{'id': 22, 'kanji': '質問'},{'id': 23, 'kanji': 'スチーム'},{'id': 24, 'kanji': '普通'},{'id': 25, 'kanji': '既成'},{'id': 26, 'kanji': '着過ぎる'},{'id': 27, 'kanji': '鎖'},{'id': 28, 'kanji': '薬'},{'id': 29, 'kanji': 'ご馳走'},{'id': 30, 'kanji': '致死量'},{'id': 31, 'kanji': '初日の出'},{'id': 32, 'kanji': '写し'},{'id': 33, 'kanji': '視察'},{'id': 34, 'kanji': '獅子舞'},{'id': 35, 'kanji': '不正'},{'id': 36, 'kanji': '不思議'},{'id': 37, 'kanji': '怪我'},{'id': 38, 'kanji': '毛嫌い'},{'id': 39, 'kanji': '心'},{'id': 40, 'kanji': '小瓶'},{'id': 41, 'kanji': 'チェコ'},{'id': 42, 'kanji': 'チェキア'},{'id': 43, 'kanji': 'おちょこ'},{'id': 44, 'kanji': '貯金'},{'id': 45, 'kanji': 'セブ'},{'id': 46, 'kanji': '背取り'},{'id': 47, 'kanji': 'ソビエト'},{'id': 48, 'kanji': '蕎麦'},{'id': 49, 'kanji': '蹴散らす'},{'id': 50, 'kanji': '鉄'},{'id': 51, 'kanji': 'こち亀'},{'id': 52, 'kanji': 'コチュジャン'},{'id': 53, 'kanji': 'チェチェン'},{'id': 54, 'kanji': 'じぇじぇ'},{'id': 55, 'kanji': '貯蓄'},{'id': 56, 'kanji': 'ジョジョ'},{'id': 57, 'kanji': 'へちま'},{'id': 58, 'kanji': '説明'},{'id': 59, 'kanji': '措置'},{'id': 60, 'kanji': 'ほつれ'},{'id': 61, 'kanji': 'テスト'},{'id': 62, 'kanji': '手相'},{'id': 63, 'kanji': '都市'},{'id': 64, 'kanji': 'コスト'},{'id': 65, 'kanji': 'チェス'},{'id': 66, 'kanji': 'チェシャ猫'},{'id': 67, 'kanji': '貯水'},{'id': 68, 'kanji': '著者'},{'id': 69, 'kanji': 'へそ曲がり'},{'id': 70, 'kanji': 'せせらぎ'},{'id': 71, 'kanji': '細さ'},{'id': 72, 'kanji': '舗装'}];
+var target_prod_list = [{'type': 'production', 'item_id': 1, 'read': '北上 (きたかみ)'},{'type': 'production', 'item_id': 2, 'read': '効き目 (ききめ)'},{'type': 'production', 'item_id': 3, 'read': 'くたびれる (くたびれる)'},{'type': 'production', 'item_id': 4, 'read': '括る (くくる)'},{'type': 'production', 'item_id': 5, 'read': '地下 (ちか)'},{'type': 'production', 'item_id': 6, 'read': '竹輪 (ちくわ)'},{'type': 'production', 'item_id': 7, 'read': 'お使い (おつかい)'},{'type': 'production', 'item_id': 8, 'read': '付き合い (つきあい)'},{'type': 'production', 'item_id': 9, 'read': '市会 (しかい)'},{'type': 'production', 'item_id': 10, 'read': '意識 (いしき)'},{'type': 'production', 'item_id': 11, 'read': '双子 (ふたご)'},{'type': 'production', 'item_id': 12, 'read': '衣服 (いふく)'},{'type': 'production', 'item_id': 13, 'read': '空き地 (あきち)'},{'type': 'production', 'item_id': 14, 'read': '狐 (きつね)'},{'type': 'production', 'item_id': 15, 'read': '唇 (くちびる)'},{'type': 'production', 'item_id': 16, 'read': '退屈 (たいくつ)'},{'type': 'production', 'item_id': 17, 'read': '父 (ちち)'},{'type': 'production', 'item_id': 18, 'read': '秩序 (ちつじょ)'},{'type': 'production', 'item_id': 19, 'read': '土 (つち)'},{'type': 'production', 'item_id': 20, 'read': '五つ (いつつ)'},{'type': 'production', 'item_id': 21, 'read': '七五 (しちご)'},{'type': 'production', 'item_id': 22, 'read': '質問 (しつもん)'},{'type': 'production', 'item_id': 23, 'read': 'スチーム (すちーむ)'},{'type': 'production', 'item_id': 24, 'read': '普通 (ふつう)'},{'type': 'production', 'item_id': 25, 'read': '既成 (きせい)'},{'type': 'production', 'item_id': 26, 'read': '着過ぎる (きすぎる)'},{'type': 'production', 'item_id': 27, 'read': '鎖 (くさり)'},{'type': 'production', 'item_id': 28, 'read': '薬 (くすり)'},{'type': 'production', 'item_id': 29, 'read': 'ご馳走 (ごちそう)'},{'type': 'production', 'item_id': 30, 'read': '致死量 (ちしりょう)'},{'type': 'production', 'item_id': 31, 'read': '初日の出 (はつひので)'},{'type': 'production', 'item_id': 32, 'read': '写し (うつし)'},{'type': 'production', 'item_id': 33, 'read': '視察 (しさつ)'},{'type': 'production', 'item_id': 34, 'read': '獅子舞 (ししまい)'},{'type': 'production', 'item_id': 35, 'read': '不正 (ふせい)'},{'type': 'production', 'item_id': 36, 'read': '不思議 (ふしぎ)'},{'type': 'production', 'item_id': 37, 'read': '怪我 (けが)'},{'type': 'production', 'item_id': 38, 'read': '毛嫌い (けぎらい)'},{'type': 'production', 'item_id': 39, 'read': '心 (こころ)'},{'type': 'production', 'item_id': 40, 'read': '小瓶 (こびん)'},{'type': 'production', 'item_id': 41, 'read': 'チェコ (ちぇこ)'},{'type': 'production', 'item_id': 42, 'read': 'チェキア (ちぇきあ)'},{'type': 'production', 'item_id': 43, 'read': 'おちょこ (おちょこ)'},{'type': 'production', 'item_id': 44, 'read': '貯金 (ちょきん)'},{'type': 'production', 'item_id': 45, 'read': 'セブ (せぶ)'},{'type': 'production', 'item_id': 46, 'read': '背取り (せどり)'},{'type': 'production', 'item_id': 47, 'read': 'ソビエト (そびえと)'},{'type': 'production', 'item_id': 48, 'read': '蕎麦 (そば)'},{'type': 'production', 'item_id': 49, 'read': '蹴散らす (けちらす)'},{'type': 'production', 'item_id': 50, 'read': '鉄 (てつ)'},{'type': 'production', 'item_id': 51, 'read': 'こち亀 (こちかめ)'},{'type': 'production', 'item_id': 52, 'read': 'コチュジャン (こちゅじゃん)'},{'type': 'production', 'item_id': 53, 'read': 'チェチェン (ちぇちぇん)'},{'type': 'production', 'item_id': 54, 'read': 'じぇじぇ (じぇじぇ)'},{'type': 'production', 'item_id': 55, 'read': '貯蓄 (ちょちく)'},{'type': 'production', 'item_id': 56, 'read': 'ジョジョ (じょじょ)'},{'type': 'production', 'item_id': 57, 'read': 'へちま (へちま)'},{'type': 'production', 'item_id': 58, 'read': '説明 (せつめい)'},{'type': 'production', 'item_id': 59, 'read': '措置 (そち)'},{'type': 'production', 'item_id': 60, 'read': 'ほつれ (ほつれ)'},{'type': 'production', 'item_id': 61, 'read': 'テスト (てすと)'},{'type': 'production', 'item_id': 62, 'read': '手相 (てそう)'},{'type': 'production', 'item_id': 63, 'read': '都市 (とし)'},{'type': 'production', 'item_id': 64, 'read': 'コスト (こすと)'},{'type': 'production', 'item_id': 65, 'read': 'チェス (ちぇす)'},{'type': 'production', 'item_id': 66, 'read': 'チェシャ猫 (ちぇしゃねこ)'},{'type': 'production', 'item_id': 67, 'read': '貯水 (ちょすい)'},{'type': 'production', 'item_id': 68, 'read': '著者 (ちょしゃ)'},{'type': 'production', 'item_id': 69, 'read': 'へそ曲がり (へそまがり)'},{'type': 'production', 'item_id': 70, 'read': 'せせらぎ (せせらぎ)'},{'type': 'production', 'item_id': 71, 'read': '細さ (ほそさ)'},{'type': 'production', 'item_id': 72, 'read': '舗装 (ほそう)'}];
 var target_prod_list = jsPsych.randomization.repeat(target_prod_list, 1);
 
 var practice_prod = {
