@@ -1,4 +1,4 @@
-var timeline = [];
+var production_list = [{'task': 'production', 'item_id': 1, 'read': '句読点 (くとうてん)', 'type': 'target'},{'task': 'production', 'item_id': 2, 'read': '悪天候 (あくてんこう)', 'type': 'target'},{'task': 'production', 'item_id': 3, 'read': 'エスペラント (えすぺらんと)', 'type': 'target'},{'task': 'production', 'item_id': 4, 'read': 'スポーツ (すぽーつ)', 'type': 'target'},{'task': 'production', 'item_id': 5, 'read': 'エプソン (えぷそん)', 'type': 'target'},{'task': 'production', 'item_id': 6, 'read': '釜山名物 (ぷさんめいぶつ)', 'type': 'target'},{'task': 'production', 'item_id': 7, 'read': 'お使い (おつかい)', 'type': 'target'},{'task': 'production', 'item_id': 8, 'read': 'ツケ払い (つけばらい)', 'type': 'target'},{'task': 'production', 'item_id': 9, 'read': '北上 (きたかみ)', 'type': 'filler'},{'task': 'production', 'item_id': 10, 'read': '効き目 (ききめ)', 'type': 'filler'},{'task': 'production', 'item_id': 11, 'read': '鹿 (しか)', 'type': 'filler'},{'task': 'production', 'item_id': 12, 'read': '意識 (いしき)', 'type': 'filler'},{'task': 'production', 'item_id': 13, 'read': '既成 (きせい)', 'type': 'filler'},{'task': 'production', 'item_id': 14, 'read': '着過ぎる (きすぎる)', 'type': 'filler'},{'task': 'production', 'item_id': 15, 'read': '遅刻 (ちこく)', 'type': 'filler'},{'task': 'production', 'item_id': 16, 'read': '竹輪 (ちくわ)', 'type': 'filler'},{'task': 'production', 'item_id': 17, 'read': '心 (こころ)', 'type': 'filler'},{'task': 'production', 'item_id': 18, 'read': '小瓶 (こびん)', 'type': 'filler'},{'task': 'production', 'item_id': 19, 'read': '磯辺焼き (いそべやき)', 'type': 'filler'},{'task': 'production', 'item_id': 20, 'read': 'お蕎麦 (おそば)', 'type': 'filler'},{'task': 'production', 'item_id': 21, 'read': '大都市 (だいとし)', 'type': 'filler'},{'task': 'production', 'item_id': 22, 'read': 'コスト (こすと)', 'type': 'filler'},{'task': 'production', 'item_id': 23, 'read': 'おちょこ (おちょこ)', 'type': 'filler'},{'task': 'production', 'item_id': 24, 'read': '貯金 (ちょきん)', 'type': 'filler'}]var timeline = [];
 // 1. informed concent 
 // 1. instructions_prod
 // 1. practice
@@ -63,13 +63,13 @@ var record = {
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
     },
 };
-var practice_prod_list = [
+var practice_production_list = [
   {type: "production", item_id: -1, read: "銀河", },
   {type: "production", item_id: -2, read: "アップル"},
 ];
 var practice_prod = {
   timeline: [record],
-  timeline_variables: practice_prod_list
+  timeline_variables: practice_production_list
 }
 timeline.push(practice_prod);
 
@@ -87,13 +87,11 @@ var instructions_target = {
 };
 timeline.push(instructions_target);
 
-// REPLACE and randomize
-var target_prod_list = [prod_list_to_be_replaced];
-var target_prod_list = jsPsych.randomization.repeat(target_prod_list, 1);
+var production_list = jsPsych.randomization.repeat(production_list, 1);
 
 var practice_prod = {
   timeline: [record],
-  timeline_variables: target_prod_list
+  timeline_variables: production_list
 }
 timeline.push(practice_prod);
 

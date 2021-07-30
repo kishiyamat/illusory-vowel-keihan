@@ -1,0 +1,25 @@
+task,item_id,type,read,face,kana,pre,tgt,post,pitch,not_HL_keihan,c1,c1,c1_manner,c2_manner,vowel
+production,1,target,句読点 (くとうてん),句読点,くとうてん,,くと,うてん,LH,,k,t,破裂,破裂,u
+production,2,target,悪天候 (あくてんこう),悪天候,あくてんこう,あ,くて,んこう,HH,,k,t,破裂,破裂,u
+production,3,target,エスペラント (えすぺらんと),エスペラント,えすぺらんと,え,すぺ,らんと,HH,,s,p,摩擦,破裂,u
+production,4,target,スポーツ (すぽーつ),スポーツ,すぽーつ,,すぽ,ーつ,LH,,s,p,摩擦,破裂,u
+production,5,target,エプソン (えぷそん),エプソン,えぷそん,え,ぷそ,ん,LL,,p,s,破裂,摩擦,u
+production,6,target,釜山名物 (ぷさんめいぶつ),釜山名物,ぷさんめいぶつ,,ぷさ,んめいぶつ,LH,,p,s,破裂,摩擦,u
+production,7,target,お使い (おつかい),お使い,おつかい,お,つか,い,HH,,ts,k,破擦,破裂,u
+production,8,target,ツケ払い (つけばらい),ツケ払い,つけばらい,,つけ,ばらい,LH,,ts,k,破擦,破裂,u
+production,9,filler,北上 (きたかみ),北上,きたかみ,,きた,かみ,LH,,k,t,破裂,破裂,i
+production,10,filler,効き目 (ききめ),効き目,ききめ,,きき,め,LH,,k,k,破裂,破裂,i
+production,11,filler,鹿 (しか),鹿,しか,,しか,,LH,,sh,k,摩擦,破裂,i
+production,12,filler,意識 (いしき),意識,いしき,い,しき,,LL,,sh,k,摩擦,破裂,i
+production,13,filler,既成 (きせい),既成,きせい,,きせ,い,LH,,k,s,破裂,摩擦,i
+production,14,filler,着過ぎる (きすぎる),着過ぎる,きすぎる,,きす,ぎる,LH,,k,s,破裂,摩擦,i
+production,15,filler,遅刻 (ちこく),遅刻,ちこく,,ちこ,く,LH,,ch,k,破擦,破裂,i
+production,16,filler,竹輪 (ちくわ),竹輪,ちくわ,,ちく,わ,LH,,ch,k,破擦,破裂,i
+production,17,filler,心 (こころ),心,こころ,,ここ,ろ,LH,,k,k,破裂,破裂,o
+production,18,filler,小瓶 (こびん),小瓶,こびん,,こび,ん,LH,,k,b,破裂,破裂,o
+production,19,filler,磯辺焼き (いそべやき),磯辺焼き,いそべやき,い,そべ,やき,HH,,s,b,摩擦,破裂,o
+production,20,filler,お蕎麦 (おそば),お蕎麦,おそば,お,そば,,HL,,s,b,摩擦,破裂,o
+production,21,filler,大都市 (だいとし),大都市,だいとし,だい,とし,,HL,,t,sh,破裂,摩擦,o
+production,22,filler,コスト (こすと),コスト,こすと,,こす,と,HL,,k,s,破裂,摩擦,o
+production,23,filler,おちょこ (おちょこ),おちょこ,おちょこ,お,ちょこ,,HL,,ch,k,破擦,破裂,o
+production,24,filler,貯金 (ちょきん),貯金,ちょきん,,ちょき,ん,LH,,ch,k,破擦,破裂,o
