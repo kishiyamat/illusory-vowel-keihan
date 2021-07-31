@@ -1,4 +1,4 @@
-// TODO: オンラインに載せるときは以下も実行
+// PRODUCTION EXPERIMENT
 var production_instructions_practice = {
   type: "html-keyboard-response",
   stimulus: `

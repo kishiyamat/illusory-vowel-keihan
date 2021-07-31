@@ -1,4 +1,4 @@
-task,item_id,type,pair,condition,base,correct,item_a,item_x,item_b,v1,c1,v2-a,v2-x,v2-b,c2,v3,pitch_a,pitch_x,pitch_b,speaker_1,speaker_2,speaker_3,request_1,request_2,request_3,request_to_1,request_to_2,request_to_3
+task,item_id,type,pair,condition,base,correct,item_a,item_x,item_b,v1,c1,v2-a,v2-x,v2-b,c2,v3,pitch_a,pitch_x,pitch_b,speaker_1,speaker_2,speaker_3,a,x,b,request_to_1,request_to_2,request_to_3
 perception,1,target,1,devoiced,,a,espo,espo,esupo,e,s,,,u,p,o,,,,1,1,1,espo-1.wav,espo-1.wav,esupo-1.wav,espo-1.wav,espo-2.wav,esupo-3.wav
 perception,2,target,1,devoiced,,b,esupo,espo,espo,e,s,u,,,p,o,,,,1,1,1,esupo-1.wav,espo-1.wav,espo-1.wav,esupo-1.wav,esupo-2.wav,espo-3.wav
 perception,3,target,1,devoiced,u,a,esupo,esupo,espo,e,s,u,u,,p,o,,,,1,1,1,esupo-1.wav,esupo-1.wav,espo-1.wav,ezbo-1.wav,ezbo-2.wav,ezubo-3.wav
