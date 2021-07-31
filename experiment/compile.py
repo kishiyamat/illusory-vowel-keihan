@@ -2,6 +2,10 @@
 import pandas as pd
 
 def csv2json(var_name, target_cols):
+    """
+    var_name: csvはjs内での変数名にする。変数名かぶりが発生しない。
+    target_cols: csvの中からjsonに吐き出す列を指定する。
+    """
     csv_df = pd.read_csv(f"{var_name}.csv")[target_cols]
     list_json = ",".join([str(dict(row_i)) for _, row_i in csv_df.iterrows()])
 
