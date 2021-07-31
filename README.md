@@ -1,5 +1,7 @@
 # illusory-vowel-keihan
 
+* 知覚実験は6分程度
+
 ## 実験の作り方
 
 1. srcに言ってmake jsする

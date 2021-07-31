@@ -1,0 +1,38 @@
+---
+title: "axb"
+output: html_notebook
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+illusory_vowel_keihan <- read_csv("csv/illusory-vowel-keihan_1.csv")
+head(illusory_vowel_keihan)
+illusory_vowel_keihan <- illusory_vowel_keihan %>%
+  filter(task == "perception") %>%
+  # filter(type=="target") %>%
+  select(c(item_id, is_correct, rt)) %>%
+  mutate(item_id = as.numeric(item_id)) %>%
+  mutate(rt = as.numeric(rt)) %>%
+  mutate(item_id = as.numeric(item_id)) %>%
+  mutate(is_correct = is_correct == "true")
+illusory_vowel_keihan
+```
+```{r}
+# 文脈などのカラムをひっぱるのも可能
+item_list <- read_csv("../src/list/perception_list.csv") %>% select(c(item_id, condition))
+results <- merge(illusory_vowel_keihan, item_list, on = "item_id")
+head(results)
+```
+
+```{r}
+results %>%
+  ggplot() +
+  geom_boxplot(aes(x = condition, y = rt))
+```
+```{r}
+results %>%
+  ggplot() +
+  geom_histogram(aes(x = is_correct, color = condition, fill = condition), stat = "count")
+```

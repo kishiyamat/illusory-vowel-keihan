@@ -12,11 +12,9 @@ var axb_instructions_practice = {
   stimulus: `
     <p>スペースキーを押すと練習課題に移ってしまうので、
     <u>以下のお願いを全て読んでから</u>キーを押してください。</p>
-    <p>この実験の各課題では A->X->B という順序で
-    3つの音を聞いてもらいます。
-    2つ目の音、つまりXが似ているのはAかBかを答えていただきます。
-    もし1つ目(A)に似ているなら a、
-    2つ目(B)に似ているなら b のキーを押してください。</p>
+    <p>この実験の各課題では a -> x -> b という順序で 3つの音を聞いてもらい、
+    2つ目の音(x)が似ているのが
+    (a)1つ目の音か (b)3つ目の音か を a か b のキーで答えてもらいます。</p>
     <p>スペースキーを押すと練習課題を2問呈示いたします。</p>
   `,
 };
@@ -53,9 +51,9 @@ var trial_b = {
 
 var question = {
     type: 'html-keyboard-response',
-    stimulus: '音声呈示は A->X->B の順でした。',
+    stimulus: '音声呈示は a -> x -> b の順でした。',
     choices: ['a', 'b'],
-    prompt: "<p>Xの音がAと同じなら'a'を押し、Bと同じなら'b'を押してください。</p>",
+    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音のどちらに似ていますか。</p>",
     data: {
         task:  jsPsych.timelineVariable('task'),
         item_id: jsPsych.timelineVariable('item_id'),
