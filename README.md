@@ -1,5 +1,14 @@
 # illusory-vowel-keihan
 
+## 実験の作り方
+
+1. srcに言ってmake jsする
+1. cognition.run にアップロードする
+    1. hoge
+    1. hoge
+    1. hoge
+1. URLを発行
+
 ## セットアップ
 
 元来jsPsychのリスト管理は面倒くさい。
@@ -21,6 +30,7 @@ assert を上手く使って想定内の挙動であることを保証し続け�
 ### ソフトウェア
 
 - brew install git-lfs
+
 
 ### ライブラリー
 
