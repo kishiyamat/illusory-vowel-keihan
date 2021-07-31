@@ -1,5 +1,134 @@
-var perception_list = [{'task': 'perception', 'item_id': 1, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'espo', 'item_x': 'espo', 'item_b': 'esupo'},{'task': 'perception', 'item_id': 2, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esupo', 'item_x': 'espo', 'item_b': 'espo'},{'task': 'perception', 'item_id': 3, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'esupo', 'item_x': 'esupo', 'item_b': 'espo'},{'task': 'perception', 'item_id': 4, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'espo', 'item_x': 'esupo', 'item_b': 'esupo'},{'task': 'perception', 'item_id': 5, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ezbo', 'item_x': 'ezbo', 'item_b': 'ezubo'},{'task': 'perception', 'item_id': 6, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ezubo', 'item_x': 'ezbo', 'item_b': 'ezbo'},{'task': 'perception', 'item_id': 7, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ezubo', 'item_x': 'ezubo', 'item_b': 'ezbo'},{'task': 'perception', 'item_id': 8, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ezbo', 'item_x': 'ezubo', 'item_b': 'ezubo'},{'task': 'perception', 'item_id': 9, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ekto', 'item_x': 'ekto', 'item_b': 'ekuto'},{'task': 'perception', 'item_id': 10, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ekuto', 'item_x': 'ekto', 'item_b': 'ekto'},{'task': 'perception', 'item_id': 11, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ekuto', 'item_x': 'ekuto', 'item_b': 'ekto'},{'task': 'perception', 'item_id': 12, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ekto', 'item_x': 'ekuto', 'item_b': 'ekuto'},{'task': 'perception', 'item_id': 13, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'egdo', 'item_x': 'egdo', 'item_b': 'egudo'},{'task': 'perception', 'item_id': 14, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'egudo', 'item_x': 'egdo', 'item_b': 'egdo'},{'task': 'perception', 'item_id': 15, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'egudo', 'item_x': 'egudo', 'item_b': 'egdo'},{'task': 'perception', 'item_id': 16, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'egdo', 'item_x': 'egudo', 'item_b': 'egudo'},{'task': 'perception', 'item_id': 17, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'epso', 'item_x': 'epso', 'item_b': 'epuso'},{'task': 'perception', 'item_id': 18, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'epuso', 'item_x': 'epso', 'item_b': 'epso'},{'task': 'perception', 'item_id': 19, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'epuso', 'item_x': 'epuso', 'item_b': 'epso'},{'task': 'perception', 'item_id': 20, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'epso', 'item_x': 'epuso', 'item_b': 'epuso'},{'task': 'perception', 'item_id': 21, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ebzo', 'item_x': 'ebzo', 'item_b': 'ebuzo'},{'task': 'perception', 'item_id': 22, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ebuzo', 'item_x': 'ebzo', 'item_b': 'ebzo'},{'task': 'perception', 'item_id': 23, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ebuzo', 'item_x': 'ebuzo', 'item_b': 'ebzo'},{'task': 'perception', 'item_id': 24, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'ebzo', 'item_x': 'ebuzo', 'item_b': 'ebuzo'},{'task': 'perception', 'item_id': 25, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsko', 'item_x': 'etsko', 'item_b': 'etsuko'},{'task': 'perception', 'item_id': 26, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsuko', 'item_x': 'etsko', 'item_b': 'etsko'},{'task': 'perception', 'item_id': 27, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsuko', 'item_x': 'etsuko', 'item_b': 'etsko'},{'task': 'perception', 'item_id': 28, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsko', 'item_x': 'etsuko', 'item_b': 'etsuko'},{'task': 'perception', 'item_id': 29, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'edzgo', 'item_x': 'edzgo', 'item_b': 'edzugo'},{'task': 'perception', 'item_id': 30, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'edzugo', 'item_x': 'edzgo', 'item_b': 'edzgo'},{'task': 'perception', 'item_id': 31, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'edzugo', 'item_x': 'edzugo', 'item_b': 'edzgo'},{'task': 'perception', 'item_id': 32, 'type': 'target', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'edzgo', 'item_x': 'edzugo', 'item_b': 'edzugo'},{'task': 'perception', 'item_id': 33, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ets-L_', 'item_x': 'ets-L_', 'item_b': 'etsu-HL'},{'task': 'perception', 'item_id': 34, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsu-HL', 'item_x': 'ets-L_', 'item_b': 'ets-L_'},{'task': 'perception', 'item_id': 35, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'ets-L_', 'item_x': 'ets-L_', 'item_b': 'etsu-LL'},{'task': 'perception', 'item_id': 36, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsu-LL', 'item_x': 'ets-L_', 'item_b': 'ets-L_'},{'task': 'perception', 'item_id': 37, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsto-H_L', 'item_x': 'etsto-H_L', 'item_b': 'etsuto-HLL'},{'task': 'perception', 'item_id': 38, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsuto-HLL', 'item_x': 'etsto-H_L', 'item_b': 'etsto-H_L'},{'task': 'perception', 'item_id': 39, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsto-H_L', 'item_x': 'etsto-H_L', 'item_b': 'etsuto-HHL'},{'task': 'perception', 'item_id': 40, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsuto-HHL', 'item_x': 'etsto-H_L', 'item_b': 'etsto-H_L'},{'task': 'perception', 'item_id': 41, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsto-L_H', 'item_x': 'etsto-L_H', 'item_b': 'etsuto-LLH'},{'task': 'perception', 'item_id': 42, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsuto-LLH', 'item_x': 'etsto-L_H', 'item_b': 'etsto-L_H'},{'task': 'perception', 'item_id': 43, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'etsto-L_H', 'item_x': 'etsto-L_H', 'item_b': 'etsuto-LHH'},{'task': 'perception', 'item_id': 44, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'etsuto-LHH', 'item_x': 'etsto-L_H', 'item_b': 'etsto-L_H'},{'task': 'perception', 'item_id': 45, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'es-L_', 'item_x': 'es-L_', 'item_b': 'esu-HL'},{'task': 'perception', 'item_id': 46, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esu-HL', 'item_x': 'es-L_', 'item_b': 'es-L_'},{'task': 'perception', 'item_id': 47, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'es-L_', 'item_x': 'es-L_', 'item_b': 'esu-LL'},{'task': 'perception', 'item_id': 48, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esu-LL', 'item_x': 'es-L_', 'item_b': 'es-L_'},{'task': 'perception', 'item_id': 49, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'esko-H_L', 'item_x': 'esko-H_L', 'item_b': 'esuko-HLL'},{'task': 'perception', 'item_id': 50, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esuko-HLL', 'item_x': 'esko-H_L', 'item_b': 'esko-H_L'},{'task': 'perception', 'item_id': 51, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'esko-H_L', 'item_x': 'esko-H_L', 'item_b': 'esuko-HHL'},{'task': 'perception', 'item_id': 52, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esuko-HHL', 'item_x': 'esko-H_L', 'item_b': 'esko-H_L'},{'task': 'perception', 'item_id': 53, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'esko-L_H', 'item_x': 'esko-L_H', 'item_b': 'esuko-LLH'},{'task': 'perception', 'item_id': 54, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esuko-LLH', 'item_x': 'esko-L_H', 'item_b': 'esko-L_H'},{'task': 'perception', 'item_id': 55, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'a', 'item_a': 'esko-L_H', 'item_x': 'esko-L_H', 'item_b': 'esuko-LHH'},{'task': 'perception', 'item_id': 56, 'type': 'filler', 'speaker_1': 1, 'speaker_2': 1, 'speaker_3': 1, 'correct': 'b', 'item_a': 'esuko-LHH', 'item_x': 'esko-L_H', 'item_b': 'esko-L_H'}];
+var perception_list = [{'task': 'perception', 'item_id': 1, 'type': 'target', 'a': 'espo-1.wav', 'x': 'espo-1.wav', 'b': 'esupo-1.wav', 'correct': 'a', 'item_a': 'espo', 'item_x': 'espo', 'item_b': 'esupo'},{'task': 'perception', 'item_id': 2, 'type': 'target', 'a': 'esupo-1.wav', 'x': 'espo-1.wav', 'b': 'espo-1.wav', 'correct': 'b', 'item_a': 'esupo', 'item_x': 'espo', 'item_b': 'espo'},{'task': 'perception', 'item_id': 3, 'type': 'target', 'a': 'esupo-1.wav', 'x': 'esupo-1.wav', 'b': 'espo-1.wav', 'correct': 'a', 'item_a': 'esupo', 'item_x': 'esupo', 'item_b': 'espo'},{'task': 'perception', 'item_id': 4, 'type': 'target', 'a': 'espo-1.wav', 'x': 'esupo-1.wav', 'b': 'esupo-1.wav', 'correct': 'b', 'item_a': 'espo', 'item_x': 'esupo', 'item_b': 'esupo'},{'task': 'perception', 'item_id': 5, 'type': 'target', 'a': 'ezbo-1.wav', 'x': 'ezbo-1.wav', 'b': 'ezubo-1.wav', 'correct': 'a', 'item_a': 'ezbo', 'item_x': 'ezbo', 'item_b': 'ezubo'},{'task': 'perception', 'item_id': 6, 'type': 'target', 'a': 'ezubo-1.wav', 'x': 'ezbo-1.wav', 'b': 'ezbo-1.wav', 'correct': 'b', 'item_a': 'ezubo', 'item_x': 'ezbo', 'item_b': 'ezbo'},{'task': 'perception', 'item_id': 7, 'type': 'target', 'a': 'ezubo-1.wav', 'x': 'ezubo-1.wav', 'b': 'ezbo-1.wav', 'correct': 'a', 'item_a': 'ezubo', 'item_x': 'ezubo', 'item_b': 'ezbo'},{'task': 'perception', 'item_id': 8, 'type': 'target', 'a': 'ezbo-1.wav', 'x': 'ezubo-1.wav', 'b': 'ezubo-1.wav', 'correct': 'b', 'item_a': 'ezbo', 'item_x': 'ezubo', 'item_b': 'ezubo'},{'task': 'perception', 'item_id': 9, 'type': 'target', 'a': 'ekto-1.wav', 'x': 'ekto-1.wav', 'b': 'ekuto-1.wav', 'correct': 'a', 'item_a': 'ekto', 'item_x': 'ekto', 'item_b': 'ekuto'},{'task': 'perception', 'item_id': 10, 'type': 'target', 'a': 'ekuto-1.wav', 'x': 'ekto-1.wav', 'b': 'ekto-1.wav', 'correct': 'b', 'item_a': 'ekuto', 'item_x': 'ekto', 'item_b': 'ekto'},{'task': 'perception', 'item_id': 11, 'type': 'target', 'a': 'ekuto-1.wav', 'x': 'ekuto-1.wav', 'b': 'ekto-1.wav', 'correct': 'a', 'item_a': 'ekuto', 'item_x': 'ekuto', 'item_b': 'ekto'},{'task': 'perception', 'item_id': 12, 'type': 'target', 'a': 'ekto-1.wav', 'x': 'ekuto-1.wav', 'b': 'ekuto-1.wav', 'correct': 'b', 'item_a': 'ekto', 'item_x': 'ekuto', 'item_b': 'ekuto'},{'task': 'perception', 'item_id': 13, 'type': 'target', 'a': 'egdo-1.wav', 'x': 'egdo-1.wav', 'b': 'egudo-1.wav', 'correct': 'a', 'item_a': 'egdo', 'item_x': 'egdo', 'item_b': 'egudo'},{'task': 'perception', 'item_id': 14, 'type': 'target', 'a': 'egudo-1.wav', 'x': 'egdo-1.wav', 'b': 'egdo-1.wav', 'correct': 'b', 'item_a': 'egudo', 'item_x': 'egdo', 'item_b': 'egdo'},{'task': 'perception', 'item_id': 15, 'type': 'target', 'a': 'egudo-1.wav', 'x': 'egudo-1.wav', 'b': 'egdo-1.wav', 'correct': 'a', 'item_a': 'egudo', 'item_x': 'egudo', 'item_b': 'egdo'},{'task': 'perception', 'item_id': 16, 'type': 'target', 'a': 'egdo-1.wav', 'x': 'egudo-1.wav', 'b': 'egudo-1.wav', 'correct': 'b', 'item_a': 'egdo', 'item_x': 'egudo', 'item_b': 'egudo'},{'task': 'perception', 'item_id': 17, 'type': 'target', 'a': 'epso-1.wav', 'x': 'epso-1.wav', 'b': 'epuso-1.wav', 'correct': 'a', 'item_a': 'epso', 'item_x': 'epso', 'item_b': 'epuso'},{'task': 'perception', 'item_id': 18, 'type': 'target', 'a': 'epuso-1.wav', 'x': 'epso-1.wav', 'b': 'epso-1.wav', 'correct': 'b', 'item_a': 'epuso', 'item_x': 'epso', 'item_b': 'epso'},{'task': 'perception', 'item_id': 19, 'type': 'target', 'a': 'epuso-1.wav', 'x': 'epuso-1.wav', 'b': 'epso-1.wav', 'correct': 'a', 'item_a': 'epuso', 'item_x': 'epuso', 'item_b': 'epso'},{'task': 'perception', 'item_id': 20, 'type': 'target', 'a': 'epso-1.wav', 'x': 'epuso-1.wav', 'b': 'epuso-1.wav', 'correct': 'b', 'item_a': 'epso', 'item_x': 'epuso', 'item_b': 'epuso'},{'task': 'perception', 'item_id': 21, 'type': 'target', 'a': 'ebzo-1.wav', 'x': 'ebzo-1.wav', 'b': 'ebuzo-1.wav', 'correct': 'a', 'item_a': 'ebzo', 'item_x': 'ebzo', 'item_b': 'ebuzo'},{'task': 'perception', 'item_id': 22, 'type': 'target', 'a': 'ebuzo-1.wav', 'x': 'ebzo-1.wav', 'b': 'ebzo-1.wav', 'correct': 'b', 'item_a': 'ebuzo', 'item_x': 'ebzo', 'item_b': 'ebzo'},{'task': 'perception', 'item_id': 23, 'type': 'target', 'a': 'ebuzo-1.wav', 'x': 'ebuzo-1.wav', 'b': 'ebzo-1.wav', 'correct': 'a', 'item_a': 'ebuzo', 'item_x': 'ebuzo', 'item_b': 'ebzo'},{'task': 'perception', 'item_id': 24, 'type': 'target', 'a': 'ebzo-1.wav', 'x': 'ebuzo-1.wav', 'b': 'ebuzo-1.wav', 'correct': 'b', 'item_a': 'ebzo', 'item_x': 'ebuzo', 'item_b': 'ebuzo'},{'task': 'perception', 'item_id': 25, 'type': 'target', 'a': 'etsko-1.wav', 'x': 'etsko-1.wav', 'b': 'etsuko-1.wav', 'correct': 'a', 'item_a': 'etsko', 'item_x': 'etsko', 'item_b': 'etsuko'},{'task': 'perception', 'item_id': 26, 'type': 'target', 'a': 'etsuko-1.wav', 'x': 'etsko-1.wav', 'b': 'etsko-1.wav', 'correct': 'b', 'item_a': 'etsuko', 'item_x': 'etsko', 'item_b': 'etsko'},{'task': 'perception', 'item_id': 27, 'type': 'target', 'a': 'etsuko-1.wav', 'x': 'etsuko-1.wav', 'b': 'etsko-1.wav', 'correct': 'a', 'item_a': 'etsuko', 'item_x': 'etsuko', 'item_b': 'etsko'},{'task': 'perception', 'item_id': 28, 'type': 'target', 'a': 'etsko-1.wav', 'x': 'etsuko-1.wav', 'b': 'etsuko-1.wav', 'correct': 'b', 'item_a': 'etsko', 'item_x': 'etsuko', 'item_b': 'etsuko'},{'task': 'perception', 'item_id': 29, 'type': 'target', 'a': 'edzgo-1.wav', 'x': 'edzgo-1.wav', 'b': 'edzugo-1.wav', 'correct': 'a', 'item_a': 'edzgo', 'item_x': 'edzgo', 'item_b': 'edzugo'},{'task': 'perception', 'item_id': 30, 'type': 'target', 'a': 'edzugo-1.wav', 'x': 'edzgo-1.wav', 'b': 'edzgo-1.wav', 'correct': 'b', 'item_a': 'edzugo', 'item_x': 'edzgo', 'item_b': 'edzgo'},{'task': 'perception', 'item_id': 31, 'type': 'target', 'a': 'edzugo-1.wav', 'x': 'edzugo-1.wav', 'b': 'edzgo-1.wav', 'correct': 'a', 'item_a': 'edzugo', 'item_x': 'edzugo', 'item_b': 'edzgo'},{'task': 'perception', 'item_id': 32, 'type': 'target', 'a': 'edzgo-1.wav', 'x': 'edzugo-1.wav', 'b': 'edzugo-1.wav', 'correct': 'b', 'item_a': 'edzgo', 'item_x': 'edzugo', 'item_b': 'edzugo'},{'task': 'perception', 'item_id': 33, 'type': 'filler', 'a': 'ets-L_-1.wav', 'x': 'ets-L_-1.wav', 'b': 'etsu-HL-1.wav', 'correct': 'a', 'item_a': 'ets-L_', 'item_x': 'ets-L_', 'item_b': 'etsu-HL'},{'task': 'perception', 'item_id': 34, 'type': 'filler', 'a': 'etsu-HL-1.wav', 'x': 'ets-L_-1.wav', 'b': 'ets-L_-1.wav', 'correct': 'b', 'item_a': 'etsu-HL', 'item_x': 'ets-L_', 'item_b': 'ets-L_'},{'task': 'perception', 'item_id': 35, 'type': 'filler', 'a': 'ets-L_-1.wav', 'x': 'ets-L_-1.wav', 'b': 'etsu-LL-1.wav', 'correct': 'a', 'item_a': 'ets-L_', 'item_x': 'ets-L_', 'item_b': 'etsu-LL'},{'task': 'perception', 'item_id': 36, 'type': 'filler', 'a': 'etsu-LL-1.wav', 'x': 'ets-L_-1.wav', 'b': 'ets-L_-1.wav', 'correct': 'b', 'item_a': 'etsu-LL', 'item_x': 'ets-L_', 'item_b': 'ets-L_'},{'task': 'perception', 'item_id': 37, 'type': 'filler', 'a': 'etsto-H_L-1.wav', 'x': 'etsto-H_L-1.wav', 'b': 'etsuto-HLL-1.wav', 'correct': 'a', 'item_a': 'etsto-H_L', 'item_x': 'etsto-H_L', 'item_b': 'etsuto-HLL'},{'task': 'perception', 'item_id': 38, 'type': 'filler', 'a': 'etsuto-HLL-1.wav', 'x': 'etsto-H_L-1.wav', 'b': 'etsto-H_L-1.wav', 'correct': 'b', 'item_a': 'etsuto-HLL', 'item_x': 'etsto-H_L', 'item_b': 'etsto-H_L'},{'task': 'perception', 'item_id': 39, 'type': 'filler', 'a': 'etsto-H_L-1.wav', 'x': 'etsto-H_L-1.wav', 'b': 'etsuto-HHL-1.wav', 'correct': 'a', 'item_a': 'etsto-H_L', 'item_x': 'etsto-H_L', 'item_b': 'etsuto-HHL'},{'task': 'perception', 'item_id': 40, 'type': 'filler', 'a': 'etsuto-HHL-1.wav', 'x': 'etsto-H_L-1.wav', 'b': 'etsto-H_L-1.wav', 'correct': 'b', 'item_a': 'etsuto-HHL', 'item_x': 'etsto-H_L', 'item_b': 'etsto-H_L'},{'task': 'perception', 'item_id': 41, 'type': 'filler', 'a': 'etsto-L_H-1.wav', 'x': 'etsto-L_H-1.wav', 'b': 'etsuto-LLH-1.wav', 'correct': 'a', 'item_a': 'etsto-L_H', 'item_x': 'etsto-L_H', 'item_b': 'etsuto-LLH'},{'task': 'perception', 'item_id': 42, 'type': 'filler', 'a': 'etsuto-LLH-1.wav', 'x': 'etsto-L_H-1.wav', 'b': 'etsto-L_H-1.wav', 'correct': 'b', 'item_a': 'etsuto-LLH', 'item_x': 'etsto-L_H', 'item_b': 'etsto-L_H'},{'task': 'perception', 'item_id': 43, 'type': 'filler', 'a': 'etsto-L_H-1.wav', 'x': 'etsto-L_H-1.wav', 'b': 'etsuto-LHH-1.wav', 'correct': 'a', 'item_a': 'etsto-L_H', 'item_x': 'etsto-L_H', 'item_b': 'etsuto-LHH'},{'task': 'perception', 'item_id': 44, 'type': 'filler', 'a': 'etsuto-LHH-1.wav', 'x': 'etsto-L_H-1.wav', 'b': 'etsto-L_H-1.wav', 'correct': 'b', 'item_a': 'etsuto-LHH', 'item_x': 'etsto-L_H', 'item_b': 'etsto-L_H'},{'task': 'perception', 'item_id': 45, 'type': 'filler', 'a': 'es-L_-1.wav', 'x': 'es-L_-1.wav', 'b': 'esu-HL-1.wav', 'correct': 'a', 'item_a': 'es-L_', 'item_x': 'es-L_', 'item_b': 'esu-HL'},{'task': 'perception', 'item_id': 46, 'type': 'filler', 'a': 'esu-HL-1.wav', 'x': 'es-L_-1.wav', 'b': 'es-L_-1.wav', 'correct': 'b', 'item_a': 'esu-HL', 'item_x': 'es-L_', 'item_b': 'es-L_'},{'task': 'perception', 'item_id': 47, 'type': 'filler', 'a': 'es-L_-1.wav', 'x': 'es-L_-1.wav', 'b': 'esu-LL-1.wav', 'correct': 'a', 'item_a': 'es-L_', 'item_x': 'es-L_', 'item_b': 'esu-LL'},{'task': 'perception', 'item_id': 48, 'type': 'filler', 'a': 'esu-LL-1.wav', 'x': 'es-L_-1.wav', 'b': 'es-L_-1.wav', 'correct': 'b', 'item_a': 'esu-LL', 'item_x': 'es-L_', 'item_b': 'es-L_'},{'task': 'perception', 'item_id': 49, 'type': 'filler', 'a': 'esko-H_L-1.wav', 'x': 'esko-H_L-1.wav', 'b': 'esuko-HLL-1.wav', 'correct': 'a', 'item_a': 'esko-H_L', 'item_x': 'esko-H_L', 'item_b': 'esuko-HLL'},{'task': 'perception', 'item_id': 50, 'type': 'filler', 'a': 'esuko-HLL-1.wav', 'x': 'esko-H_L-1.wav', 'b': 'esko-H_L-1.wav', 'correct': 'b', 'item_a': 'esuko-HLL', 'item_x': 'esko-H_L', 'item_b': 'esko-H_L'},{'task': 'perception', 'item_id': 51, 'type': 'filler', 'a': 'esko-H_L-1.wav', 'x': 'esko-H_L-1.wav', 'b': 'esuko-HHL-1.wav', 'correct': 'a', 'item_a': 'esko-H_L', 'item_x': 'esko-H_L', 'item_b': 'esuko-HHL'},{'task': 'perception', 'item_id': 52, 'type': 'filler', 'a': 'esuko-HHL-1.wav', 'x': 'esko-H_L-1.wav', 'b': 'esko-H_L-1.wav', 'correct': 'b', 'item_a': 'esuko-HHL', 'item_x': 'esko-H_L', 'item_b': 'esko-H_L'},{'task': 'perception', 'item_id': 53, 'type': 'filler', 'a': 'esko-L_H-1.wav', 'x': 'esko-L_H-1.wav', 'b': 'esuko-LLH-1.wav', 'correct': 'a', 'item_a': 'esko-L_H', 'item_x': 'esko-L_H', 'item_b': 'esuko-LLH'},{'task': 'perception', 'item_id': 54, 'type': 'filler', 'a': 'esuko-LLH-1.wav', 'x': 'esko-L_H-1.wav', 'b': 'esko-L_H-1.wav', 'correct': 'b', 'item_a': 'esuko-LLH', 'item_x': 'esko-L_H', 'item_b': 'esko-L_H'},{'task': 'perception', 'item_id': 55, 'type': 'filler', 'a': 'esko-L_H-1.wav', 'x': 'esko-L_H-1.wav', 'b': 'esuko-LHH-1.wav', 'correct': 'a', 'item_a': 'esko-L_H', 'item_x': 'esko-L_H', 'item_b': 'esuko-LHH'},{'task': 'perception', 'item_id': 56, 'type': 'filler', 'a': 'esuko-LHH-1.wav', 'x': 'esko-L_H-1.wav', 'b': 'esko-L_H-1.wav', 'correct': 'b', 'item_a': 'esuko-LHH', 'item_x': 'esko-L_H', 'item_b': 'esko-L_H'}];
 var production_list = [{'task': 'production', 'item_id': 1, 'type': 'target', 'read': '句読点 (くとうてん)'},{'task': 'production', 'item_id': 2, 'type': 'target', 'read': '悪天候 (あくてんこう)'},{'task': 'production', 'item_id': 3, 'type': 'target', 'read': 'エスペラント (えすぺらんと)'},{'task': 'production', 'item_id': 4, 'type': 'target', 'read': 'スポーツ (すぽーつ)'},{'task': 'production', 'item_id': 5, 'type': 'target', 'read': 'エプソン (えぷそん)'},{'task': 'production', 'item_id': 6, 'type': 'target', 'read': '釜山名物 (ぷさんめいぶつ)'},{'task': 'production', 'item_id': 7, 'type': 'target', 'read': 'お使い (おつかい)'},{'task': 'production', 'item_id': 8, 'type': 'target', 'read': 'ツケ払い (つけばらい)'},{'task': 'production', 'item_id': 9, 'type': 'filler', 'read': '北上 (きたかみ)'},{'task': 'production', 'item_id': 10, 'type': 'filler', 'read': '効き目 (ききめ)'},{'task': 'production', 'item_id': 11, 'type': 'filler', 'read': '鹿 (しか)'},{'task': 'production', 'item_id': 12, 'type': 'filler', 'read': '意識 (いしき)'},{'task': 'production', 'item_id': 13, 'type': 'filler', 'read': '既成 (きせい)'},{'task': 'production', 'item_id': 14, 'type': 'filler', 'read': '着過ぎる (きすぎる)'},{'task': 'production', 'item_id': 15, 'type': 'filler', 'read': '遅刻 (ちこく)'},{'task': 'production', 'item_id': 16, 'type': 'filler', 'read': '竹輪 (ちくわ)'},{'task': 'production', 'item_id': 17, 'type': 'filler', 'read': '心 (こころ)'},{'task': 'production', 'item_id': 18, 'type': 'filler', 'read': '小瓶 (こびん)'},{'task': 'production', 'item_id': 19, 'type': 'filler', 'read': '磯辺焼き (いそべやき)'},{'task': 'production', 'item_id': 20, 'type': 'filler', 'read': 'お蕎麦 (おそば)'},{'task': 'production', 'item_id': 21, 'type': 'filler', 'read': '大都市 (だいとし)'},{'task': 'production', 'item_id': 22, 'type': 'filler', 'read': 'コスト (こすと)'},{'task': 'production', 'item_id': 23, 'type': 'filler', 'read': 'おちょこ (おちょこ)'},{'task': 'production', 'item_id': 24, 'type': 'filler', 'read': '貯金 (ちょきん)'}];
+var axb_instructions_practice = {
+  type: "html-keyboard-response",
+  stimulus: `
+    <p>キーを押すと練習課題に移ってしまうので、
+    以下のお願いを全て読んでからキーを押してください。</p>
+    <p>この実験の各課題では A->X->B という順序で
+    3つの音を聞いてもらいます。
+    そしてX、つまり2つ目の音が似ているのはAかBかを
+    答えていただきます。</p>
+    <p>キーを押すと練習課題を2問呈示いたします。
+    </p>
+  `,
+};
+
+//Define Procedure for AXB
+var fixation = {
+  type: 'html-keyboard-response',
+  stimulus: '<div style="font-size:60px;">+</div>',
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 1000,
+}
+var trial_a = {
+    type: 'audio-keyboard-response',
+    stimulus: jsPsych.timelineVariable('a'),
+    choices: jsPsych.NO_KEYS,
+    trial_ends_after_audio: true,
+    post_trial_gap: 200,
+};
+var trial_x = {
+    type: 'audio-keyboard-response',
+    stimulus: jsPsych.timelineVariable('x'),
+    choices: jsPsych.NO_KEYS,
+    trial_ends_after_audio: true,
+    post_trial_gap: 200,
+};
+var trial_b = {
+    type: 'audio-keyboard-response',
+    stimulus: jsPsych.timelineVariable('b'),
+    choices: jsPsych.NO_KEYS,
+    trial_ends_after_audio: true,
+};
+var question = {
+    type: 'html-keyboard-response',
+    stimulus: '音声呈示は A->X->B の順でした。',
+    choices: ['a', 'b'],
+    prompt: "<p>Xの音がAと同じなら'a'を押し、Bと同じなら'b'を押してください。</p>",
+    data: {
+        index: jsPsych.timelineVariable('index'),
+        latin: jsPsych.timelineVariable('latin'),
+        task:  jsPsych.timelineVariable('task'),
+        c1_duration:  jsPsych.timelineVariable('c1_duration'),
+        cond_context:  jsPsych.timelineVariable('cond_context'),
+        cond_prev:  jsPsych.timelineVariable('cond_prev'),
+        token_sequence: jsPsych.timelineVariable('token_sequence'),
+        speaker_sequence: jsPsych.timelineVariable('speaker_sequence'),
+        correct_response: jsPsych.timelineVariable('correct_response'),
+    },
+    on_finish: function(data){
+      data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+    },
+};
+var feedback = {
+    type: 'html-keyboard-response',
+    stimulus: function(){
+        let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+        if (last_trial_correct) { return "<p>正解です。</p>"; }
+        else { return "<p>不正解です。</p>"; }
+    },
+    choices: [' '],
+    prompt: "次の問題に進む場合はスペースキーを押してください。",
+};
+var rest = {
+    type: 'html-keyboard-response',
+    // stimulus: '<p>Running</p>',
+    stimulus: function(){
+        var fool_proof = "<p>以下のアイテム情報は本来見えるべきではありません。".concat(
+                         "もし本実験で見えてしまっている場合はお手数ですが実験実施者にご連絡ください。<p>");
+        let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+        var is_correct = last_trial_correct? "正解<br>":  "不正解<br>";
+        var pair = "pair: ".concat(jsPsych.timelineVariable('pair_str'), "<br>");
+        var a = "a: ".concat(jsPsych.timelineVariable('a'), "<br>");
+        var x = "x: ".concat(jsPsych.timelineVariable('x'), "<br>");
+        var b = "b: ".concat(jsPsych.timelineVariable('b'), "<br>");
+        return "".concat(fool_proof, pair, is_correct, a, x, b);
+    },
+    choices: [' '],
+    prompt: "次の問題に進む場合はスペースキーを押してください。",
+};
+
+//Practice
+var practice_stimuli = [
+  { a: "32.mp3", x:"33.mp3", b:"33.mp3", cond_str: "b", correct_response: 'b', task: "axb-practice"},
+  { a: "33.mp3", x:"33.mp3", b:"32.mp3", cond_str: "a", correct_response: 'a', task: "axb-practice"},
+];
+var axb_practice = {
+  timeline: [fixation, trial_a, trial_x, trial_b, question, feedback],
+  timeline_variables: practice_stimuli
+}
+
+var axb_instructions = {
+  type: "html-keyboard-response",
+  stimulus: `
+    <p>今流れたものは機械的な音ですが、
+    実際に流れる音は3人の人が読み上げる音声です。
+    さきほどのものより違いがかなり微細なので、
+    注意して聞き分けてみてください。</p>
+    <p>また、今の練習課題では回答の正誤を表示しましたが、
+    本番では表示しません。</p>
+    <p>キーの押下で本番の呈示を開始いたします。</p>
+  `,
+};
+
+var perception_list = jsPsych.randomization.repeat(perception_list, 1);
+
+var axb = {
+  timeline: [fixation, trial_a, trial_x, trial_b, question, rest],
+  timeline_variables: perception_list
+}
+
+var axb_end = {
+  type: "html-keyboard-response",
+  stimulus: `
+    <p>
+    弁別課題はこれで終了となります。
+    お好きなキーを押して次に進んでください。
+    </p>
+  `,
+};
+
 // informed consent
 // https://www.jspsych.org/plugins/jspsych-external-html/
 var check_consent = function(elem) {
@@ -18,7 +147,444 @@ var informed_consent = {
   cont_btn: "start",
   check_fn: check_consent
 };
-// TODO: オンラインに載せるときは以下も実行
+/**
+ * jspsych-html-audio-response
+ * Matt Jaquiery, Feb 2018 (https://github.com/mjaquiery)
+ * Becky Gilbert, Apr 2020 (https://github.com/becky-gilbert)
+  * Hannah Small, 2020/07/07 (https://github.com/hesmall)
+ * added in browser checking and mic checking using this code: https://experiments.ppls.ed.ac.uk/ -- Hannah Small, 2020/07/07
+ * added option to manually end recording on each trial
+ *
+ * plugin for displaying an html stimulus and getting an audio response
+ *
+ * documentation: docs.jspsych.org
+ *
+ **/
+
+jsPsych.plugins["html-audio-response_modified"] = (function() {
+
+    var plugin = {};
+
+    plugin.info = {
+        name: 'html-audio-response_modified',
+        description: 'Present a string and retrieve an audio response.',
+        parameters: {
+            stimulus: {
+                type: jsPsych.plugins.parameterType.HTML_STRING,
+                pretty_name: 'Stimulus',
+                default: undefined,
+                description: 'The string to be displayed'
+            },
+            buffer_length: {
+                type: jsPsych.plugins.parameterType.INT,
+                pretty_name: 'Buffer length',
+                default: 4000,
+                description: 'Length of the audio buffer.'
+            },
+            postprocessing: {
+                type: jsPsych.plugins.parameterType.FUNCTION,
+                pretty_name: 'Postprocessing function',
+                default: function(data) {
+                    return new Promise(function(resolve) {
+                        const blob = new Blob(data, { type: 'audio/webm' });
+                        // create URL, which is used to replay the audio file (if allow_playback is true)
+                        let url = URL.createObjectURL(blob);
+                        var reader = new window.FileReader();
+                        reader.readAsDataURL(blob);
+                        const readerPromise = new Promise(function(resolveReader) {
+                            reader.onloadend = function() {
+                                // Create base64 string, which is used to save the audio data in JSON/CSV format.
+                                // This has to go inside of a Promise so that the base64 data is converted before the 
+                                // higher-level data processing Promise is resolved (since that will pass the base64
+                                // data to the onRecordingFinish function).
+                                var base64 = reader.result;
+                                base64 = base64.split(',')[1];
+                                resolveReader(base64);
+                            };
+                        });
+                        readerPromise.then(function(base64) {
+                            // After the base64 string has been created we can resolve the higher-level Promise, 
+                            // which pass both the base64 data and the URL to the onRecordingFinish function.
+                            var processed_data = {url: url, str: base64};
+                            resolve(processed_data);
+                        });
+                    });
+                },
+                description: 'Function to execute on the audio data prior to saving. '+
+                    'This function takes the audio data as an argument, '+
+                    'and returns an object with keys called "str" and "url". '+
+                    'The str and url values are saved in the trial data as "audio_data" and "audio_url". '+
+                    'The url value is used as the audio source to replay the recording if allow_playback is true. '+
+                    'By default, the str value is a base64 string which can be saved in the JSON/CSV data and '+
+                    'later converted back into an audio file. '+
+                    'This parameter can be used to pass a custom function that saves the file using a different '+
+                    'method/format and generates an ID that relates this file to the trial data. '+
+                    'The custom postprocessing function must return an object with "str" and "url" keys. '+
+                    'The url value must be a valid audio source, which is used if allow_playback is true. '+
+                    'The str value can be null.'
+            },
+            allow_playback: {
+                type: jsPsych.plugins.parameterType.BOOL,
+                pretty_name: 'Allow playback',
+                default: true,
+                description: 'Whether to allow the participant to play back their '+
+                'recording and re-record if unhappy.'
+            },
+            recording_light: {
+                type: jsPsych.plugins.parameterType.HTML_STRING,
+                pretty_name: 'Recording light',
+                default: '<div id="jspsych-html-audio-response-light" '+
+                    'style="border: 2px solid darkred; background-color: darkred; '+
+                    'width: 50px; height: 50px; border-radius: 50px; margin: 20px auto; '+
+                    'display: block;"></div>',
+                description: 'HTML to display while recording is in progress.'
+            },
+            recording_light_off: {
+                type: jsPsych.plugins.parameterType.HTML_STRING,
+                pretty_name: 'Recording light (off state)',
+                default: '<div id="jspsych-html-audio-response-light" '+
+                'style="border: 2px solid darkred; background-color: inherit; '+
+                'width: 50px; height: 50px; border-radius: 50px; margin: 20px auto; '+
+                'display: block;"></div>',
+                description: 'HTML to display while recording is not in progress.'
+            },
+            prompt: {
+                type: jsPsych.plugins.parameterType.STRING,
+                pretty_name: 'Prompt',
+                default: null,
+                description: 'Any content here will be displayed under the button.'
+            },
+            stimulus_duration: {
+                type: jsPsych.plugins.parameterType.INT,
+                pretty_name: 'Stimulus duration',
+                default: null,
+                description: 'How long to show the stimulus.'
+            },
+            margin_vertical: {
+                type: jsPsych.plugins.parameterType.STRING,
+                pretty_name: 'Margin vertical',
+                default: '0px',
+                description: 'The vertical margin of the button.'
+            },
+            margin_horizontal: {
+                type: jsPsych.plugins.parameterType.STRING,
+                pretty_name: 'Margin horizontal',
+                default: '8px',
+                description: 'The horizontal margin of the button.'
+            },
+            response_ends_trial: {
+                type: jsPsych.plugins.parameterType.BOOL,
+                pretty_name: 'Response ends trial',
+                default: false,
+                description: 'If true, then trial will end when user responds.'
+            },
+            wait_for_mic_approval: {
+                type: jsPsych.plugins.parameterType.BOOL,
+                pretty_name: 'Wait for mic approval',
+                default: false,
+                description: 'If true, the trial will not start until the participant approves the browser mic request.'
+            },
+            enable_mic_message: {
+                type: jsPsych.plugins.parameterType.BOOL,
+                pretty_name: 'Will allow pop-up for participant to enable microphone',
+                default: false,
+                description: 'If true, will allow the browser mic request. This should be done before recording any audio!'
+            },
+            manually_end_recording: {
+                type: jsPsych.plugins.parameterType.BOOL,
+                pretty_name: 'Subject will manually end their recording',
+                default: false,
+                description: 'If true, the subject will have to press a key to stop recording and continue.'
+            },
+            manually_end_recording_key: {
+                type: jsPsych.plugins.parameterType.KEYCODE,
+                pretty_name: 'Key to manually end recording',
+                default: jsPsych.ALL_KEYS,
+                description: 'The key to end recording on any given trial, default is any key.'
+
+            }
+        }
+    };
+
+    plugin.trial = function(display_element, trial) {
+
+        if(typeof trial.stimulus === 'undefined'){
+            console.error('Required parameter "stimulus" missing in html-audio-response_modified');
+        }
+
+        let playbackElements = [];
+        // store response
+        let response = {
+            rt: null,
+            audio_data: null
+        };
+        let recorder = null;
+        let start_time = null;
+
+        // add stimulus
+        let html = '<div id="jspsych-html-audio-response-stimulus">'+trial.stimulus+'</div>';
+
+        // add prompt if there is one
+        if (trial.prompt !== null) {
+            html += trial.prompt;
+        }
+
+        // add recording off light
+        html += '<div id="jspsych-html-audio-response-recording-container">'+trial.recording_light_off+'</div>';
+
+        // add audio element container with hidden audio element
+        html += '<div id="jspsych-html-audio-response-audio-container"><audio id="jspsych-html-audio-response-audio" controls style="visibility:hidden;"></audio></div>';
+
+        // add button element with hidden buttons
+        html += '<div id="jspsych-html-audio-response-buttons"><button id="jspsych-html-audio-response-rerecord" class="jspsych-audio-response-button jspsych-btn" style="display: inline-block; margin:'+trial.margin_vertical+' '+trial.margin_horizontal+'; visibility:hidden;">Retry</button><button id="jspsych-html-audio-response-okay" class="jspsych-audio-response-button jspsych-btn" style="display: inline-block; margin:'+trial.margin_vertical+' '+trial.margin_horizontal+'; visibility:hidden;">Sounds good!</button></div>';
+
+        function start_trial() {
+            display_element.innerHTML = html;
+            document.querySelector('#jspsych-html-audio-response-okay').addEventListener('click', end_trial);
+            document.querySelector('#jspsych-html-audio-response-rerecord').addEventListener('click', start_recording);
+            // Add visual indicators to let people know we're recording
+            document.querySelector('#jspsych-html-audio-response-recording-container').innerHTML = trial.recording_light;
+            // trial start time
+            start_time = performance.now();
+            // set timer to hide-html if stimulus duration is set
+            if (trial.stimulus_duration !== null) {
+                jsPsych.pluginAPI.setTimeout(function() {
+                    display_element.querySelector('#jspsych-html-audio-response-stimulus').style.visibility = 'hidden';
+                }, trial.stimulus_duration);
+            }
+            if (!trial.wait_for_mic_approval) {
+                start_recording();
+            }
+        }
+
+        // audio element processing
+        function start_recording() {
+            // hide existing playback elements
+            playbackElements.forEach(function (id) {
+                let element = document.getElementById(id);
+                element.style.visibility = 'hidden';
+            });
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(process_audio);
+            if (!trial.wait_for_mic_approval) {
+                // Add visual indicators to let people know we're recording
+                document.querySelector('#jspsych-html-audio-response-recording-container').innerHTML = trial.recording_light;
+            }
+        }
+        
+        // function to handle responses by the subject
+        function process_audio(stream) {
+
+            if (trial.wait_for_mic_approval) {
+                if (start_time === null) {
+                    start_trial();
+                } else {
+                    document.querySelector('#jspsych-html-audio-response-recording-container').innerHTML = trial.recording_light;
+                }
+            } 
+
+            // This code largely thanks to skyllo at
+            // http://air.ghost.io/recording-to-an-audio-file-using-html5-and-js/
+
+            // store streaming data chunks in array
+            const chunks = [];
+            // create media recorder instance to initialize recording
+            // Note: the MediaRecorder function is not supported in Safari or Edge
+
+            //ADD check for browser! FROM https://experiments.ppls.ed.ac.uk/, THANKS TO ANNIE HOLTZ AND KENNY SMITH
+
+            var wrong_browser_message = "Sorry, it's not possible to run the experiment on your web browser. Please try using Chrome or Firefox instead.";
+            var declined_audio_message = "You must allow audio recording to take part in the experiment. Please reload the page and allow access to your microphone to proceed.";
+
+            // function that throws error and displays message if experiment is run in browsers that do not support MediaRecorder, or if microphone access is denied
+            function errorQuit(message) {
+              var body = document.getElementsByTagName('body')[0];
+              body.innerHTML = '<p style="color: #FF0000">'+message+'</p>'+body.innerHTML;//defines the style of error messages
+              throw error;
+            };
+
+            //either starts handlerFunction if access to microphone is enabeled or catches that it is blocked and calls errorQuit function
+            if(trial.enable_mic_message){
+                navigator.mediaDevices.getUserMedia({audio:true})
+                    .then(stream => {handlerFunction(stream)})
+                    .catch(error => {errorQuit(declined_audio_message)});
+            }else{
+                recorder = new MediaRecorder(stream)
+                stream = recorder.stream
+                handlerFunction(stream)
+            }
+            //function that catches incompatibility with MediaRecorder (e.g. in Safari or Edge)
+            function handlerFunction(stream) {
+                try {
+                    recorder = new MediaRecorder(stream);
+                    recorder.data = [];
+                    recorder.wrapUp = false;
+                    recorder.ondataavailable = function(e) {
+                    // add stream data to chunks
+                    chunks.push(e.data);
+                    if (recorder.wrapUp) {
+                        if (typeof trial.postprocessing !== 'undefined') {
+                            trial.postprocessing(chunks)
+                                .then(function(processedData) {
+                                    onRecordingFinish(processedData);
+                                });
+                    } else {
+                        // should never fire - trial.postprocessing should use the default function if
+                        // not passed in via trial parameters
+                        onRecordingFinish(chunks);
+                    }
+                    }
+                }; 
+
+                // start recording with 1 second time between receiving 'ondataavailable' events
+                recorder.start(1000);
+                
+                if(trial.manually_end_recording == false){
+                    // function to initiate the end of recording, either due to a timeout or a keypress
+                    function stop_recording() {
+                        // check if recorder has been set up and is recording 
+                        // this is in case a valid key is pressed before recording starts or after it ends 
+                        if (recorder !== null && recorder.state == "recording") {
+                            // kill the keyboard listener as soon as recording stops
+                            jsPsych.pluginAPI.cancelAllKeyboardResponses();
+                        // the code below will trigger one final 'ondataavailable' event and set recorder state to 'inactive'
+                        // which will trigger the trial.postprocessing function, followed by onRecordingFinish
+                        recorder.stop();
+                        recorder.wrapUp = true;
+                    }
+                }
+
+                // ... inside the process_audio function ...
+                setTimeout(function() {
+                    // stop the recording when buffer_length duration is reached
+                    stop_recording();
+                }, trial.buffer_length);
+
+                // set up keyboard event listener
+                var keyboardListener = jsPsych.pluginAPI.getKeyboardResponse({
+                callback_function: stop_recording,  // stop the recording when a valid key is pressed
+                valid_responses: trial.choices,  // add a choices parameter to the plugin, or use ['space'] instead of trial.choices
+                rt_method: 'performance',
+                persist: false,
+                allow_held_key: false
+            });
+                }else{
+                    //wait for response from keyboard to end recording
+                    var keyboardListener = jsPsych.pluginAPI.getKeyboardResponse({
+                        callback_function: after_response,
+                        valid_responses: trial.manually_end_recording_key,
+                        rt_method: 'performance',
+                        persist: false,
+                        allow_held_key: false
+                    });
+
+
+                }
+            } catch(error) {
+                errorQuit(wrong_browser_message);
+            };
+        }
+                   
+           // navigator.mediaDevices.getUserMedia({audio:true});
+            //recorder = new MediaRecorder(stream);
+            //recorder.data = [];
+            //recorder.wrapUp = false;
+
+        }
+
+        var after_response = function(info){
+
+            // after a valid response, the stimulus will have the CSS class 'responded'
+            // which can be used to provide visual feedback that a response was recorded
+            display_element.querySelector('#jspsych-html-audio-response-stimulus').className += ' responded';
+
+            // only record the first response
+            if (response.key == null) {
+                response = info;
+            }
+            // this will trigger one final 'ondataavailable' event and set recorder state to 'inactive'
+            recorder.stop();
+            recorder.wrapUp = true;
+        }
+
+
+        function showPlaybackTools(data) {
+            // Audio Player
+            let playerDiv = display_element.querySelector('#jspsych-html-audio-response-audio-container');
+            let url;
+            if (data instanceof Blob) {
+                const blob = new Blob(data, { type: 'audio/webm' });
+                url = (URL.createObjectURL(blob));
+            } else {
+                url = data;
+            }
+            let player = playerDiv.querySelector('#jspsych-html-audio-response-audio');
+            player.src = url;
+            player.style.visibility = "visible";
+            // Okay/rerecord buttons
+            let buttonDiv = document.querySelector('#jspsych-html-audio-response-buttons');
+            let rerecord = buttonDiv.querySelector('#jspsych-html-audio-response-rerecord');
+            let okay = buttonDiv.querySelector('#jspsych-html-audio-response-okay');
+            rerecord.style.visibility = 'visible';
+            okay.style.visibility = 'visible';
+            // Save ids of things we want to hide later:
+            playbackElements = [player.id, okay.id, rerecord.id];
+        }
+
+        function onRecordingFinish(data) {
+            // switch to the off visual indicator
+            let light = document.querySelector('#jspsych-html-audio-response-recording-container');
+            if (light !== null)
+                light.innerHTML = trial.recording_light_off;
+            // measure rt
+            let end_time = performance.now();
+            let rt = end_time - start_time;
+            response.audio_data = data.str;
+            response.audio_url = data.url;
+            response.rt = rt;
+
+            if (trial.response_ends_trial) {
+                end_trial();
+            } else if (trial.allow_playback) {  // only allow playback if response doesn't end trial
+                showPlaybackTools(response.audio_url);
+            } else { 
+                // fallback in case response_ends_trial and allow_playback are both false, 
+                // which would mean the trial never ends
+                end_trial();
+            }
+        }
+
+        // function to end trial when it is time
+        function end_trial() {
+            // kill any remaining setTimeout handlers
+            jsPsych.pluginAPI.clearAllTimeouts();
+            //kill keyboard listeners
+            jsPsych.pluginAPI.cancelAllKeyboardResponses();
+
+            // gather the data to store for the trial
+            let trial_data = {
+                "rt": response.rt,
+                "stimulus": trial.stimulus,
+                "audio_data": response.audio_data,
+                "key_press": response.key
+            };
+
+            // clear the display
+            display_element.innerHTML = '';
+
+            // move on to the next trial
+            jsPsych.finishTrial(trial_data);
+        }
+
+        if (trial.wait_for_mic_approval) {
+            start_recording();
+            } else {
+                start_trial();
+            }
+
+    };
+
+    return plugin;
+})();// PRODUCTION EXPERIMENT
 var production_instructions_practice = {
   type: "html-keyboard-response",
   stimulus: `
@@ -91,20 +657,3 @@ var production_end = {
     </p>
   `,
 };
-// 一番最後でいい
-var timeline = [];
-timeline.push(informed_consent);
-
-// produciotn
-timeline.push(production_instructions_practice);
-timeline.push(production_practice);
-timeline.push(production_instructions);
-timeline.push(production);
-timeline.push(production_end);
-
-jsPsych.init({
-    timeline: timeline,
-    // on_finish: function(){
-    //     jsPsych.data.displayData();
-    // }
-});
