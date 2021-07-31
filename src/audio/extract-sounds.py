@@ -23,5 +23,4 @@ for interval in tgt_intervals:
                                 preserve_times=False)
     snd_part.save(f"{output_dir}/" + interval.text + f"-{pid}.wav", 'WAV')
 
-# TODO: assert if the content under output/ is as expected
 # TODO: do the same thing for retakes

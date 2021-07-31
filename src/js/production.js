@@ -64,10 +64,11 @@ var production = {
 
 var production_end = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
     <p>
     産出課題はこれで終了となります。
-    お好きなキーを押して次に進んでください。
+    スペースキーを押して次に進んでください。
     </p>
   `,
 };

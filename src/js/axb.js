@@ -5,15 +5,16 @@ var preload = {
 
 var axb_instructions_practice = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
-    <p>キーを押すと練習課題に移ってしまうので、
-    以下のお願いを全て読んでからキーを押してください。</p>
+    <p>スペースキーを押すと練習課題に移ってしまうので、
+    <u>以下のお願いを全て読んでから</u>キーを押してください。</p>
     <p>この実験の各課題では A->X->B という順序で
     3つの音を聞いてもらいます。
-    そしてX、つまり2つ目の音が似ているのはAかBかを
-    答えていただきます。</p>
-    <p>キーを押すと練習課題を2問呈示いたします。
-    </p>
+    2つ目の音、つまりXが似ているのはAかBかを答えていただきます。
+    もし1つ目(A)に似ているなら a、
+    2つ目(B)に似ているなら b のキーを押してください。</p>
+    <p>スペースキーを押すと練習課題を2問呈示いたします。</p>
   `,
 };
 
@@ -93,8 +94,8 @@ var rest = {
 
 //Practice
 var practice_stimuli = [
-  { a: "32.mp3", x:"33.mp3", b:"33.mp3", correct: 'b', task: "axb-practice"},
-  { a: "33.mp3", x:"33.mp3", b:"32.mp3", correct: 'a', task: "axb-practice"},
+  { a: "eSupo.wav", x:"eSpo.wav", b:"eSpo.wav", correct: 'b', task: "axb-practice"},
+  { a: "eSupo.wav", x:"eSupo.wav", b:"eSpo.wav", correct: 'a', task: "axb-practice"},
 ];
 var axb_practice = {
   timeline: [fixation, trial_a, trial_x, trial_b, question, feedback],
@@ -103,14 +104,13 @@ var axb_practice = {
 
 var axb_instructions = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
-    <p>今流れたものは機械的な音ですが、
+    <p>今の練習課題では一人による読み上げでしたが、
     実際に流れる音は3人の人が読み上げる音声です。
-    さきほどのものより違いがかなり微細なので、
-    注意して聞き分けてみてください。</p>
-    <p>また、今の練習課題では回答の正誤を表示しましたが、
+    また、今の練習課題では回答の正誤を表示しましたが、
     本番では表示しません。</p>
-    <p>キーの押下で本番の呈示を開始いたします。</p>
+    <p>スペースキーの押下で本番の呈示を開始いたします。</p>
   `,
 };
 
@@ -123,10 +123,11 @@ var axb = {
 
 var axb_end = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
     <p>
     弁別課題はこれで終了となります。
-    お好きなキーを押して次に進んでください。
+    スペースキーを押して次に進んでください。
     </p>
   `,
 };

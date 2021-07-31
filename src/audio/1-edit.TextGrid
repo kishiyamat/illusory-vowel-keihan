@@ -147,7 +147,7 @@ item []:
         intervals [34]:
             xmin = 15.299937499999999 
             xmax = 15.697663194444445 
-            text = "ets-L" 
+            text = "ets-L_" 
         intervals [35]:
             xmin = 15.697663194444445 
             xmax = 16.0439375 
@@ -171,7 +171,7 @@ item []:
         intervals [40]:
             xmin = 17.723937499999998 
             xmax = 18.3239375 
-            text = "etsuto-H_L" 
+            text = "etsto-H_L" 
         intervals [41]:
             xmin = 18.3239375 
             xmax = 18.7319375 
@@ -219,7 +219,7 @@ item []:
         intervals [52]:
             xmin = 24.2279375 
             xmax = 24.654304617117116 
-            text = "es-L" 
+            text = "es-L_" 
         intervals [53]:
             xmin = 24.654304617117116 
             xmax = 24.9719375 

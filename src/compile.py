@@ -23,7 +23,7 @@ csv2json(var_name, target_cols, save_dir)
 # %%
 import glob 
 var_name = "list_audio_preload"
-sample = list(glob.glob("audio/sample/*.mp3"))
+sample = list(glob.glob("audio/sample/*.wav"))
 ouput = list(glob.glob("audio/output/*.wav"))
 
 results = sample + ouput
@@ -32,4 +32,9 @@ results = ",".join(results)
 
 with open(f"{save_dir}/{var_name}.js", mode='w') as f:
     f.write(f"var {var_name} = [{results}];\n")
+
+# チェック用にcsvも生成
+with open(f"{save_dir}/{var_name}.csv", mode='w') as f:
+    for_csv = results.replace(",","\n").replace("'", "")
+    f.write(f"{var_name}\n{for_csv }\n")
 # %%
