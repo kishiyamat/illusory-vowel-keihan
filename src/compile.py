@@ -12,11 +12,24 @@ def csv2json(var_name, target_cols, dir="."):
     with open(f"{dir}/{var_name}.js", mode='w') as f:
         f.write(f"var {var_name} = [{list_json}];\n")
 
+save_dir = "list"
 var_name = "production_list"
 target_cols = ["task", "item_id", "type", "read"]
-csv2json(var_name, target_cols, "list")
+csv2json(var_name, target_cols, save_dir)
 
 var_name = "perception_list"
 target_cols = ["task", "item_id","type","a","x","b","correct","item_a","item_x","item_b"]
-csv2json(var_name, target_cols, "list")
+csv2json(var_name, target_cols, save_dir)
+# %%
+import glob 
+var_name = "list_audio_preload"
+sample = list(glob.glob("audio/sample/*.mp3"))
+ouput = list(glob.glob("audio/output/*.wav"))
+
+results = sample + ouput
+results = list(map(lambda s: "'" + s.split("/")[-1] + "'", results))
+results = ",".join(results)
+
+with open(f"{save_dir}/{var_name}.js", mode='w') as f:
+    f.write(f"var {var_name} = [{results}];\n")
 # %%

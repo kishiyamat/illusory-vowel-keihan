@@ -1,5 +1,9 @@
 // TIMELINE
 var timeline = [];
+
+// preload
+timeline.push(preload);
+
 timeline.push(informed_consent);
 
 // produciotn

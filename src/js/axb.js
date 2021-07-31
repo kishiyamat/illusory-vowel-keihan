@@ -1,3 +1,8 @@
+var preload = {
+    type: 'preload',
+    audio: list_audio_preload,
+}
+
 var axb_instructions_practice = {
   type: "html-keyboard-response",
   stimulus: `
