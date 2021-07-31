@@ -20,13 +20,13 @@ var axb_instructions_practice = {
   `,
 };
 
-//Define Procedure for AXB
 var fixation = {
   type: 'html-keyboard-response',
   stimulus: '<div style="font-size:60px;">+</div>',
   choices: jsPsych.NO_KEYS,
   trial_duration: 1000,
 }
+
 var trial_a = {
     type: 'audio-keyboard-response',
     stimulus: jsPsych.timelineVariable('a'),
@@ -34,6 +34,7 @@ var trial_a = {
     trial_ends_after_audio: true,
     post_trial_gap: 200,
 };
+
 var trial_x = {
     type: 'audio-keyboard-response',
     stimulus: jsPsych.timelineVariable('x'),
@@ -41,12 +42,14 @@ var trial_x = {
     trial_ends_after_audio: true,
     post_trial_gap: 200,
 };
+
 var trial_b = {
     type: 'audio-keyboard-response',
     stimulus: jsPsych.timelineVariable('b'),
     choices: jsPsych.NO_KEYS,
     trial_ends_after_audio: true,
 };
+
 var question = {
     type: 'html-keyboard-response',
     stimulus: '音声呈示は A->X->B の順でした。',
@@ -55,28 +58,29 @@ var question = {
     data: {
         task:  jsPsych.timelineVariable('task'),
         item_id: jsPsych.timelineVariable('item_id'),
-        type: jsPsych.timelineVariable('type'),
-        correct_response: jsPsych.timelineVariable('correct'),
+        correct: jsPsych.timelineVariable('correct'),
     },
     on_finish: function(data){
-      data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+      data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct);
     },
 };
+
 var feedback = {
     type: 'html-keyboard-response',
     stimulus: function(){
-        let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+        let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
         if (last_trial_correct) { return "<p>正解です。</p>"; }
         else { return "<p>不正解です。</p>"; }
     },
     choices: [' '],
     prompt: "次の問題に進む場合はスペースキーを押してください。",
 };
+
 var rest = {
     type: 'html-keyboard-response',
     // stimulus: '<p>Running</p>',
     stimulus: function(){
-        var fool_proof = "<p>以下のアイテム情報は本来見えるべきではありません。".concat(
+        var fool_proof = "<p>以下のアイテム情報は stimulus の情報であり、本来は見えるべきではありません。".concat(
                          "もし本実験で見えてしまっている場合はお手数ですが実験実施者にご連絡ください。<p>");
         let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
         var is_correct = last_trial_correct? "正解<br>":  "不正解<br>";
@@ -92,8 +96,8 @@ var rest = {
 
 //Practice
 var practice_stimuli = [
-  { a: "32.mp3", x:"33.mp3", b:"33.mp3", cond_str: "b", correct_response: 'b', task: "axb-practice"},
-  { a: "33.mp3", x:"33.mp3", b:"32.mp3", cond_str: "a", correct_response: 'a', task: "axb-practice"},
+  { a: "32.mp3", x:"33.mp3", b:"33.mp3", correct: 'b', task: "axb-practice"},
+  { a: "33.mp3", x:"33.mp3", b:"32.mp3", correct: 'a', task: "axb-practice"},
 ];
 var axb_practice = {
   timeline: [fixation, trial_a, trial_x, trial_b, question, feedback],

@@ -61,6 +61,7 @@ var question = {
       data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct);
     },
 };
+
 var feedback = {
     type: 'html-keyboard-response',
     stimulus: function(){
@@ -71,6 +72,7 @@ var feedback = {
     choices: [' '],
     prompt: "次の問題に進む場合はスペースキーを押してください。",
 };
+
 var rest = {
     type: 'html-keyboard-response',
     // stimulus: '<p>Running</p>',
@@ -91,8 +93,8 @@ var rest = {
 
 //Practice
 var practice_stimuli = [
-  { a: "32.mp3", x:"33.mp3", b:"33.mp3", cond_str: "b", correct: 'b', task: "axb-practice"},
-  { a: "33.mp3", x:"33.mp3", b:"32.mp3", cond_str: "a", correct: 'a', task: "axb-practice"},
+  { a: "32.mp3", x:"33.mp3", b:"33.mp3", correct: 'b', task: "axb-practice"},
+  { a: "33.mp3", x:"33.mp3", b:"32.mp3", correct: 'a', task: "axb-practice"},
 ];
 var axb_practice = {
   timeline: [fixation, trial_a, trial_x, trial_b, question, feedback],
