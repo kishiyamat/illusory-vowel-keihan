@@ -1,33 +1,5 @@
-// リストをくっつける
-var timeline = [];
-// 1. informed concent 
-// 1. instructions_prod
-// 1. practice
-// 1. trial
-// 1. thank you
-
-// https://www.jspsych.org/plugins/jspsych-external-html/
-
 // TODO: オンラインに載せるときは以下も実行
-var check_consent = function(elem) {
-  if (document.getElementById('consent_checkbox').checked) {
-    return true;
-  }
-  else {
-    alert("同意して実験に参加していただける場合はチェックボックスをクリックしてください。");
-    return false;
-  }
-  return false;
-};
-var informed_consent = {
-  type:'external-html',
-  url: "informed_consent.html",
-  cont_btn: "start",
-  check_fn: check_consent
-};
-timeline.push(informed_consent);
-
-var instructions_practice = {
+var production_instructions_practice = {
   type: "html-keyboard-response",
   stimulus: `
     <p>キーを押すと練習課題に移ってしまうので、<br>
@@ -38,9 +10,7 @@ var instructions_practice = {
     必要に応じてマイクの許可をお願いいたします。</p>
     `,
 };
-timeline.push(instructions_practice);
 
-// このリストを回す
 var record = {
     type: 'html-audio-response_modified',
     stimulus: jsPsych.timelineVariable('read'),
@@ -64,17 +34,16 @@ var record = {
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
     },
 };
-var practice_production_list = [
+var production_list_practice = [
   {type: "production", item_id: -1, read: "銀河", },
   {type: "production", item_id: -2, read: "アップル"},
 ];
-var practice_prod = {
+var production_practice = {
   timeline: [record],
-  timeline_variables: practice_production_list
+  timeline_variables: production_list_practice
 }
-timeline.push(practice_prod);
 
-var instructions_target = {
+var production_instructions = {
   type: "html-keyboard-response",
   stimulus: `
     <p>以上で練習は終わりです。もしもう一度練習を希望される場合は<br>
@@ -86,17 +55,14 @@ var instructions_target = {
     </p>
     `,
 };
-timeline.push(instructions_target);
 
 var production_list = jsPsych.randomization.repeat(production_list, 1);
-
-var practice_prod = {
+var production = {
   timeline: [record],
   timeline_variables: production_list
 }
-timeline.push(practice_prod);
 
-var finish_prod = {
+var production_end = {
   type: "html-keyboard-response",
   stimulus: `
     <p>
@@ -105,11 +71,3 @@ var finish_prod = {
     </p>
   `,
 };
-timeline.push(finish_prod);
-
-jsPsych.init({
-    timeline: timeline,
-    // on_finish: function(){
-    //     jsPsych.data.displayData();
-    // }
-});
