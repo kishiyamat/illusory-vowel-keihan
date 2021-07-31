@@ -1,9 +1,12 @@
-experiment/jspsych-6.3.1/
-experiment/jspsych-html-audio-response_modified.js
-experiment/audio/output/*
-!experiment/audio/output/.gitkeep
-venv
 **/.DS_Store
-.vscode/
+**/jspsych-6.3.1/
+**/jspsych-html-audio-response_modified.js
 **/*.wav
 **/*.webm
+results/csv/*
+# results/wav/*
+# results/webm/*
+src/audio/output/*
+!src/audio/output/.gitkeep
+venv
+.vscode/
