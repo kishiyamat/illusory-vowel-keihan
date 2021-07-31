@@ -1,4 +1,4 @@
 init:
 	python compile.py
-js:
-	cat production_list.js experiment.js > output.js
+script:
+	cat list/production_list.js js/experiment.js > output.js
