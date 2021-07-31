@@ -53,15 +53,10 @@ var question = {
     choices: ['a', 'b'],
     prompt: "<p>Xの音がAと同じなら'a'を押し、Bと同じなら'b'を押してください。</p>",
     data: {
-        index: jsPsych.timelineVariable('index'),
-        latin: jsPsych.timelineVariable('latin'),
         task:  jsPsych.timelineVariable('task'),
-        c1_duration:  jsPsych.timelineVariable('c1_duration'),
-        cond_context:  jsPsych.timelineVariable('cond_context'),
-        cond_prev:  jsPsych.timelineVariable('cond_prev'),
-        token_sequence: jsPsych.timelineVariable('token_sequence'),
-        speaker_sequence: jsPsych.timelineVariable('speaker_sequence'),
-        correct_response: jsPsych.timelineVariable('correct_response'),
+        item_id: jsPsych.timelineVariable('item_id'),
+        type: jsPsych.timelineVariable('type'),
+        correct_response: jsPsych.timelineVariable('correct'),
     },
     on_finish: function(data){
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
@@ -232,7 +227,8 @@ var timeline = [];
 // preload
 timeline.push(preload);
 
-timeline.push(informed_consent);
+// TODO: 今はスコープ外だが最終的には含める
+// timeline.push(informed_consent);
 
 // produciotn
 timeline.push(production_instructions_practice);

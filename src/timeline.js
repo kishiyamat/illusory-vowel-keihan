@@ -4,7 +4,8 @@ var timeline = [];
 // preload
 timeline.push(preload);
 
-timeline.push(informed_consent);
+// TODO: 今はスコープ外だが最終的には含める
+// timeline.push(informed_consent);
 
 // produciotn
 timeline.push(production_instructions_practice);

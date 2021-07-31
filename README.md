@@ -4,9 +4,9 @@
 
 1. srcに言ってmake jsする
 1. cognition.run にアップロードする
-    1. audioのmodをアップロード > 場所
-    1. 音源 > 場所
-    1. informed > 場所
+    1. audioのmodをアップロード > External JS/CSS
+    1. 音源 > Stimuli
+    1. informed > Stimuli
 1. URLを発行
 
 ## セットアップ
