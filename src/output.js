@@ -53,9 +53,10 @@ var question = {
     type: 'html-keyboard-response',
     stimulus: '音声呈示は a -> x -> b の順でした。',
     choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音のどちらに似ていますか。</p>",
+    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
     data: {
-        task:  jsPsych.timelineVariable('task'),
+        task:  jsPsych.timelineVariable('task'),  // production--perception-categorization
+        type:  jsPsych.timelineVariable('type'),  // filler--target
         item_id: jsPsych.timelineVariable('item_id'),
         correct: jsPsych.timelineVariable('correct'),
     },
@@ -81,7 +82,7 @@ var rest = {
     stimulus: function(){
         var fool_proof = "<p>以下のアイテム情報は stimulus の情報であり、本来は見えるべきではありません。".concat(
                          "もし本実験で見えてしまっている場合はお手数ですが実験実施者にご連絡ください。<p>");
-        let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+        let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
         var is_correct = last_trial_correct? "正解<br>":  "不正解<br>";
         var pair = "pair: ".concat(jsPsych.timelineVariable('pair_str'), "<br>");
         var a = "a: ".concat(jsPsych.timelineVariable('a'), "<br>");
