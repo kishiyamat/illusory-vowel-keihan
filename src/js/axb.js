@@ -52,7 +52,7 @@ var axb_question = {
     choices: ['a', 'b'],
     prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
     data: {
-        task:  jsPsych.timelineVariable('task'),  // production--perception-categorization
+        task:  'axb',  // production--perception-categorization
         type:  jsPsych.timelineVariable('type'),  // filler--target
         item_id: jsPsych.timelineVariable('item_id'),
         correct: jsPsych.timelineVariable('correct'),
@@ -65,14 +65,14 @@ var axb_question = {
 var bxa_question = {
     // 数を稼ぐために a と b を交換している。is_trial は間違えると正解になる。
     type: 'html-keyboard-response',
-    stimulus: '音声呈示は a -> x -> b の順でした。',
+    stimulus: '音声呈示は a -> x -> b の順でした。', // 本当は b -> x -> a
     choices: ['a', 'b'],
     prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
     data: {
-        task:  jsPsych.timelineVariable('task'),  // production--perception-categorization
+        task:  'bxa',  // production--perception-categorization
         type:  jsPsych.timelineVariable('type'),  // filler--target
         item_id: jsPsych.timelineVariable('item_id'),
-        correct: jsPsych.timelineVariable('correct'),
+        correct: jsPsych.timelineVariable('correct'),  // bxa において正解は失敗になる
     },
     on_finish: function(data){
       data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct)==false;
