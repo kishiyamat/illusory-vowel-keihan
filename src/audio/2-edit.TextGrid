@@ -1,0 +1,194 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0 
+xmax = 31.994716553287983 
+tiers? <exists> 
+size = 1 
+item []: 
+    item [1]:
+        class = "IntervalTier" 
+        name = "silences" 
+        xmin = 0 
+        xmax = 31.994716553287983 
+        intervals: size = 45 
+        intervals [1]:
+            xmin = 0 
+            xmax = 0.7533582766439915 
+            text = "silent" 
+        intervals [2]:
+            xmin = 0.7533582766439915 
+            xmax = 1.2973582766439915 
+            text = "espo" 
+        intervals [3]:
+            xmin = 1.2973582766439915 
+            xmax = 2.4733582766439914 
+            text = "silent" 
+        intervals [4]:
+            xmin = 2.4733582766439914 
+            xmax = 3.0493582766439915 
+            text = "esupo" 
+        intervals [5]:
+            xmin = 3.0493582766439915 
+            xmax = 4.169358276643992 
+            text = "silent" 
+        intervals [6]:
+            xmin = 4.169358276643992 
+            xmax = 4.705358276643992 
+            text = "ezbo" 
+        intervals [7]:
+            xmin = 4.705358276643992 
+            xmax = 5.673358276643992 
+            text = "silent" 
+        intervals [8]:
+            xmin = 5.673358276643992 
+            xmax = 6.225358276643991 
+            text = "ezubo" 
+        intervals [9]:
+            xmin = 6.225358276643991 
+            xmax = 7.505358276643992 
+            text = "silent" 
+        intervals [10]:
+            xmin = 7.505358276643992 
+            xmax = 8.089358276643992 
+            text = "ekto" 
+        intervals [11]:
+            xmin = 8.089358276643992 
+            xmax = 8.913358276643992 
+            text = "silent" 
+        intervals [12]:
+            xmin = 8.913358276643992 
+            xmax = 9.481358276643991 
+            text = "ekuto" 
+        intervals [13]:
+            xmin = 9.481358276643991 
+            xmax = 10.225358276643991 
+            text = "silent" 
+        intervals [14]:
+            xmin = 10.225358276643991 
+            xmax = 10.79335827664399 
+            text = "egdo" 
+        intervals [15]:
+            xmin = 10.79335827664399 
+            xmax = 11.337358276643991 
+            text = "silent" 
+        intervals [16]:
+            xmin = 11.337358276643991 
+            xmax = 11.905358276643991 
+            text = "egudo" 
+        intervals [17]:
+            xmin = 11.905358276643991 
+            xmax = 12.529358276643991 
+            text = "silent" 
+        intervals [18]:
+            xmin = 12.529358276643991 
+            xmax = 13.073358276643992 
+            text = "epso" 
+        intervals [19]:
+            xmin = 13.073358276643992 
+            xmax = 13.71335827664399 
+            text = "silent" 
+        intervals [20]:
+            xmin = 13.71335827664399 
+            xmax = 14.281358276643992 
+            text = "epuso" 
+        intervals [21]:
+            xmin = 14.281358276643992 
+            xmax = 14.977358276643992 
+            text = "silent" 
+        intervals [22]:
+            xmin = 14.977358276643992 
+            xmax = 15.561358276643992 
+            text = "ebzo" 
+        intervals [23]:
+            xmin = 15.561358276643992 
+            xmax = 16.377358276643992 
+            text = "silent" 
+        intervals [24]:
+            xmin = 16.377358276643992 
+            xmax = 16.96935827664399 
+            text = "ebuzo" 
+        intervals [25]:
+            xmin = 16.96935827664399 
+            xmax = 18.025358276643992 
+            text = "silent" 
+        intervals [26]:
+            xmin = 18.025358276643992 
+            xmax = 18.55335827664399 
+            text = "etsko" 
+        intervals [27]:
+            xmin = 18.55335827664399 
+            xmax = 19.80935827664399 
+            text = "silent" 
+        intervals [28]:
+            xmin = 19.80935827664399 
+            xmax = 20.39335827664399 
+            text = "etsuko" 
+        intervals [29]:
+            xmin = 20.39335827664399 
+            xmax = 21.04135827664399 
+            text = "silent" 
+        intervals [30]:
+            xmin = 21.04135827664399 
+            xmax = 21.62535827664399 
+            text = "edzgo" 
+        intervals [31]:
+            xmin = 21.62535827664399 
+            xmax = 22.369358276643993 
+            text = "silent" 
+        intervals [32]:
+            xmin = 22.369358276643993 
+            xmax = 22.929358276643992 
+            text = "edzugo" 
+        intervals [33]:
+            xmin = 22.929358276643992 
+            xmax = 25.145358276643993 
+            text = "silent" 
+        intervals [34]:
+            xmin = 25.145358276643993 
+            xmax = 25.48450731163284 
+            text = "ets-L_" 
+        intervals [35]:
+            xmin = 25.48450731163284 
+            xmax = 26.06535827664399 
+            text = "silent" 
+        intervals [36]:
+            xmin = 26.06535827664399 
+            xmax = 26.561358276643993 
+            text = "etsto-H_L" 
+        intervals [37]:
+            xmin = 26.561358276643993 
+            xmax = 27.25735827664399 
+            text = "silent" 
+        intervals [38]:
+            xmin = 27.25735827664399 
+            xmax = 27.793358276643993 
+            text = "etsto-L_H" 
+        intervals [39]:
+            xmin = 27.793358276643993 
+            xmax = 28.48135827664399 
+            text = "silent" 
+        intervals [40]:
+            xmin = 28.48135827664399 
+            xmax = 28.84135827664399 
+            text = "es-L_" 
+        intervals [41]:
+            xmin = 28.84135827664399 
+            xmax = 29.68135827664399 
+            text = "silent" 
+        intervals [42]:
+            xmin = 29.68135827664399 
+            xmax = 30.23335827664399 
+            text = "esko-H_L" 
+        intervals [43]:
+            xmin = 30.23335827664399 
+            xmax = 31.049358276643993 
+            text = "silent" 
+        intervals [44]:
+            xmin = 31.049358276643993 
+            xmax = 31.593358276643993 
+            text = "esko-L_H" 
+        intervals [45]:
+            xmin = 31.593358276643993 
+            xmax = 31.994716553287983 
+            text = "silent" 
