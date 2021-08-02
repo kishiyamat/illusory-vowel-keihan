@@ -179,7 +179,7 @@ item []:
         intervals [42]:
             xmin = 29.39540625 
             xmax = 30.04340625 
-            text = "etsuto-H_L" 
+            text = "etsto-H_L" 
         intervals [43]:
             xmin = 30.04340625 
             xmax = 30.803406250000002 
@@ -203,7 +203,7 @@ item []:
         intervals [48]:
             xmin = 34.17940625 
             xmax = 34.979406250000004 
-            text = "etsuto-L_H" 
+            text = "etsto-L_H" 
         intervals [49]:
             xmin = 34.979406250000004 
             xmax = 35.63540625 
@@ -283,7 +283,7 @@ item []:
         intervals [68]:
             xmin = 49.69140625 
             xmax = 50.49940625 
-            text = "esko-LHH" 
+            text = "esuko-LHH" 
         intervals [69]:
             xmin = 50.49940625 
             xmax = 50.9348125 
