@@ -10,12 +10,12 @@ var axb_instructions_practice = {
   type: "html-keyboard-response",
   choices: [' '],
   stimulus: `
-    <p>スペースキーを押すと練習課題に移ってしまうので、
-    <u>以下のお願いを全て読んでから</u>キーを押してください。</p>
-    <p>この実験の各課題では a -> x -> b という順序で 3つの音を聞いてもらい、
+    <p>　この弁別実験の各課題では a -> x -> b という順序で 3つの音を聞いてもらい、
     2つ目の音(x)が似ているのが
-    (a)1つ目の音か (b)3つ目の音か を a か b のキーで答えてもらいます。</p>
-    <p>スペースキーを押すと練習課題を2問呈示いたします。</p>
+    (a)1つ目の音か (b)3つ目の音か を a か b のキーで答えてもらいます。
+    静かな環境で、可能な場合はイヤホンなどの装着をお願いいたします。
+    スペースキーを押すと練習課題を2問呈示いたします。
+    </p>
   `,
 };
 
@@ -53,7 +53,7 @@ var axb_question = {
     type: 'html-keyboard-response',
     stimulus: '音声呈示は a -> x -> b の順でした。',
     choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
+    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と3つ目の音(b)のどちらに似ていますか。</p>",
     data: {
         task:  'axb',  // production--perception-categorization
         type:  jsPsych.timelineVariable('type'),  // filler--target
@@ -62,23 +62,6 @@ var axb_question = {
     },
     on_finish: function(data){
       data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct);
-    },
-};
-
-var bxa_question = {
-    // 数を稼ぐために a と b を交換している。is_trial は間違えると正解になる。
-    type: 'html-keyboard-response',
-    stimulus: '音声呈示は a -> x -> b の順でした。', // 本当は b -> x -> a
-    choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
-    data: {
-        task:  'bxa',  // production--perception-categorization
-        type:  jsPsych.timelineVariable('type'),  // filler--target
-        item_id: jsPsych.timelineVariable('item_id'),
-        correct: jsPsych.timelineVariable('correct'),  // bxa において正解は失敗になる
-    },
-    on_finish: function(data){
-      data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct)==false;
     },
 };
 
@@ -93,7 +76,7 @@ var feedback = {
     prompt: "次の問題に進む場合はスペースキーを押してください。",
 };
 
-var rest = {
+var axb_rest = {
     type: 'html-keyboard-response',
     // stimulus: '<p>Running</p>',
     stimulus: function(){
@@ -136,13 +119,7 @@ var axb_instructions = {
 var perception_list = jsPsych.randomization.repeat(perception_list, 1);
 
 var axb = {
-  timeline: [fixation, trial_a, trial_x, trial_b, axb_question, rest],
-  timeline_variables: perception_list
-}
-
-var bxa = {
-  // 数を稼ぐために a と b を交換している。is_trial は間違えると正解になる。
-  timeline: [fixation, trial_b, trial_x, trial_a, bxa_question, rest],
+  timeline: [fixation, trial_a, trial_x, trial_b, axb_question, axb_rest],
   timeline_variables: perception_list
 }
 
@@ -151,8 +128,7 @@ var axb_end = {
   choices: [' '],
   stimulus: `
     <p>
-    弁別課題はこれで終了となります。
-    スペースキーを押して次に進んでください。
+    弁別課題はこれで終了となります。スペースキーを押して次に進んでください。
     </p>
   `,
 };
@@ -175,30 +151,48 @@ var informed_consent = {
   cont_btn: "start",
   check_fn: check_consent
 };
+var form_trial = {
+  type: 'survey-html-form',
+  preamble: '<p> 実験者から伝えられた4桁の数字をペーストしてください。</p>',
+  html: '<p><input name="subject_id" type="text"/></p>'
+};
+
+var welcome = {
+    type: "html-keyboard-response",
+    stimulus: `<p>実験にご参加ありがとうございます。<br>
+               スペースキーを押すと実験の説明に移ります。</p>`
+};
+
+var thankyou = {
+    type: "html-keyboard-response",
+    stimulus: `<p>実験にご参加ありがとうございました。<br>
+               これにて実験は終了です。スペースキーを押すと画面が空白にったら
+               完了ですのでブラウザを閉じてください。
+               ご協力ありがとうございました。
+               </p>`
+};
 // PRODUCTION EXPERIMENT
 var production_instructions_practice = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
-    <p>キーを押すと練習課題に移ってしまうので、<br>
-    以下のお願いを全て読んでからキーを押してください。<br><br>
-    最初の産出実験では、一番上に表示される単語を<br>
-    標準語で2回ずつ読み上げていただきます。<br> <br>
-    キーを押すと2セットの練習課題に移ります。<br>
-    必要に応じてマイクの許可をお願いいたします。</p>
+    <p>　この産出実験では、一番上に表示される単語を
+    大きな声、標準語で3回ずつ読み上げていただきます。
+    マイクへのアクセスが要求さればた場合は許可し、
+    静かな環境での実施をお願いいたします。
+    スペースキーを押すと練習課題を2問呈示いたします。
+    </p>
     `,
 };
 
 var record = {
     type: 'html-audio-response_modified',
     stimulus: jsPsych.timelineVariable('read'),
-    prompt: `<br>
-    大きな声ではっきりと、<br>
-    標準語で上の単語を2回読み上げたらspaceキーを押してください。<br>
-    再生ボタンを押して確認し、上手く録音できた場合は Sounds good! で次に進み、<br>
-    上手く録音できなかった場合は Retry を押してください。<br>
-    小さな声しか出せない環境での実施は想定されておらず、<br>
-    その後の分析で非常に困りますので場所が不適切な場合は移動をお願いいたします。<br>
-    ※丸が赤で満たされている時、録音しています。
+    prompt: `
+    <p>　上の単語を大きな声で標準語で3回読み上げたらスペースキーを押してください。
+    再生ボタンを押して確認し、上手く録音できた場合は「次へ進む」、
+    上手く録音できなかった場合は「やり直す」を押してください。</p>
+    <p> ※丸が赤で満たされている時は録音中です。 </p>
     `, 
     buffer_length: 60000,
     manually_end_recording_key: ['space'],
@@ -222,14 +216,9 @@ var production_practice = {
 
 var production_instructions = {
   type: "html-keyboard-response",
+  choices: [' '],
   stimulus: `
-    <p>以上で練習は終わりです。もしもう一度練習を希望される場合は<br>
-    本画面を閉じてから再度同じURLを開いてください。<br><br>
-    キーを押すと2セットの本番の産出課題に移ります。<br>
-    丸が赤で満たされているときは録音しています。<br>
-    ※途中で間違えて次に進んでしまったとしても、<br>
-    そこまで致命的な問題にはなりません。<br>
-    </p>
+    <p>　以上で練習は終わりです。スペースキーを押すと2セットの本番の産出課題に移ります。</p>
     `,
 };
 
@@ -243,9 +232,7 @@ var production_end = {
   type: "html-keyboard-response",
   choices: [' '],
   stimulus: `
-    <p>
-    産出課題はこれで終了となります。
-    スペースキーを押して次に進んでください。
+    <p>　産出課題はこれで終了となります。スペースキーを押して次に進んでください。
     </p>
   `,
 };
@@ -255,26 +242,30 @@ var timeline = [];
 // preload
 timeline.push(preload);
 
-// TODO: 今はスコープ外だが最終的には含める
-// timeline.push(informed_consent);
+timeline.push(informed_consent);
 
-// TODO: 今はスコープ外だが最終的には含める
+// messages
+timeline.push(form_trial);
+timeline.push(welcome);
+
 // produciotn
-// timeline.push(production_instructions_practice);
-// timeline.push(production_practice);
-// timeline.push(production_instructions);
-// timeline.push(production);
-// timeline.push(production_end);
+timeline.push(production_instructions_practice);
+timeline.push(production_practice);
+timeline.push(production_instructions);
+timeline.push(production);
+timeline.push(production_end);
 
 // produciotn
 timeline.push(axb_instructions_practice);
 timeline.push(axb_practice);
 timeline.push(axb_instructions);
 timeline.push(axb);
-timeline.push(bxa);
 timeline.push(axb_end);
 
 // categorize
+
+// messages
+timeline.push(thankyou);
 
 jsPsych.init({
     timeline: timeline,

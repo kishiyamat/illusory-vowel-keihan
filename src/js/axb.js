@@ -7,12 +7,12 @@ var axb_instructions_practice = {
   type: "html-keyboard-response",
   choices: [' '],
   stimulus: `
-    <p>スペースキーを押すと練習課題に移ってしまうので、
-    <u>以下のお願いを全て読んでから</u>キーを押してください。</p>
-    <p>この実験の各課題では a -> x -> b という順序で 3つの音を聞いてもらい、
+    <p>　この弁別実験の各課題では a -> x -> b という順序で 3つの音を聞いてもらい、
     2つ目の音(x)が似ているのが
-    (a)1つ目の音か (b)3つ目の音か を a か b のキーで答えてもらいます。</p>
-    <p>スペースキーを押すと練習課題を2問呈示いたします。</p>
+    (a)1つ目の音か (b)3つ目の音か を a か b のキーで答えてもらいます。
+    静かな環境で、可能な場合はイヤホンなどの装着をお願いいたします。
+    スペースキーを押すと練習課題を2問呈示いたします。
+    </p>
   `,
 };
 
@@ -50,7 +50,7 @@ var axb_question = {
     type: 'html-keyboard-response',
     stimulus: '音声呈示は a -> x -> b の順でした。',
     choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
+    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と3つ目の音(b)のどちらに似ていますか。</p>",
     data: {
         task:  'axb',  // production--perception-categorization
         type:  jsPsych.timelineVariable('type'),  // filler--target
@@ -125,8 +125,7 @@ var axb_end = {
   choices: [' '],
   stimulus: `
     <p>
-    弁別課題はこれで終了となります。
-    スペースキーを押して次に進んでください。
+    弁別課題はこれで終了となります。スペースキーを押して次に進んでください。
     </p>
   `,
 };
