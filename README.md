@@ -8,7 +8,7 @@
 1. cognition.run にアップロードする
     1. audioのmodをアップロード > External JS/CSS
     1. 音源 > Stimuli
-    1. informed > Stimuli
+    1. informed.html > Stimuli
 1. URLを発行
 
 ## セットアップ
