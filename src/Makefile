@@ -12,5 +12,6 @@ all:
 	python check.py
 	make out
 	make copy
+	cat todo.txt
 check:
 	python check.py

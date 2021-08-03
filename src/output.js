@@ -53,7 +53,7 @@ var axb_question = {
     type: 'html-keyboard-response',
     stimulus: '音声呈示は a -> x -> b の順でした。',
     choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と2つ目の音(b)のどちらに似ていますか。</p>",
+    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と3つ目の音(b)のどちらに似ていますか。</p>",
     data: {
         task:  'axb',  // production--perception-categorization
         type:  jsPsych.timelineVariable('type'),  // filler--target
