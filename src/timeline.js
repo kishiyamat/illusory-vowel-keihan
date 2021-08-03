@@ -20,7 +20,6 @@ timeline.push(axb_instructions_practice);
 timeline.push(axb_practice);
 timeline.push(axb_instructions);
 timeline.push(axb);
-timeline.push(bxa);
 timeline.push(axb_end);
 
 // categorize
