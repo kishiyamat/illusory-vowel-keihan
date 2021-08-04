@@ -113,8 +113,8 @@ var axb_instructions = {
   `,
 };
 
+// json で定義済み
 var axb_list = jsPsych.randomization.repeat(axb_list, 1);
-
 var axb = {
   timeline: [fixation, trial_a, trial_x, trial_b, axb_question, axb_rest],
   timeline_variables: axb_list

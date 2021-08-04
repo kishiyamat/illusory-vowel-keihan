@@ -117,8 +117,8 @@ var axb_instructions = {
   `,
 };
 
+// json で定義済み
 var axb_list = jsPsych.randomization.repeat(axb_list, 1);
-
 var axb = {
   timeline: [fixation, trial_a, trial_x, trial_b, axb_question, axb_rest],
   timeline_variables: axb_list
@@ -213,10 +213,11 @@ var cat_instructions = {
     `,
 };
 
+// json で定義済み
 var cat_list = jsPsych.randomization.repeat(cat_list, 1);
 var cat = {
     timeline: [fixation, cat_presentation, cat_question, rate],
-    timeline_variables: cat_list  // js で定義している
+    timeline_variables: cat_list
 }
 
 var cat_end = {
@@ -319,6 +320,7 @@ var production_instructions = {
     `,
 };
 
+// json で定義済み
 var production_list = jsPsych.randomization.repeat(production_list, 1);
 var production = {
   timeline: [record],
@@ -345,19 +347,19 @@ timeline.push(informed_consent);
 timeline.push(form_trial);
 timeline.push(welcome);
 
-// // produciotn
-// timeline.push(production_instructions_practice);
-// timeline.push(production_practice);
-// timeline.push(production_instructions);
-// timeline.push(production);
-// timeline.push(production_end);
-// 
-// // produciotn
-// timeline.push(axb_instructions_practice);
-// timeline.push(axb_practice);
-// timeline.push(axb_instructions);
-// timeline.push(axb);
-// timeline.push(axb_end);
+// produciotn
+timeline.push(production_instructions_practice);
+timeline.push(production_practice);
+timeline.push(production_instructions);
+timeline.push(production);
+timeline.push(production_end);
+
+// produciotn
+timeline.push(axb_instructions_practice);
+timeline.push(axb_practice);
+timeline.push(axb_instructions);
+timeline.push(axb);
+timeline.push(axb_end);
 
 // categorize
 timeline.push(cat_instructions_practice);

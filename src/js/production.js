@@ -50,6 +50,7 @@ var production_instructions = {
     `,
 };
 
+// json で定義済み
 var production_list = jsPsych.randomization.repeat(production_list, 1);
 var production = {
   timeline: [record],

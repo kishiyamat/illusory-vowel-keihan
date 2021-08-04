@@ -77,10 +77,11 @@ var cat_instructions = {
     `,
 };
 
+// json で定義済み
 var cat_list = jsPsych.randomization.repeat(cat_list, 1);
 var cat = {
     timeline: [fixation, cat_presentation, cat_question, rate],
-    timeline_variables: cat_list  // js で定義している
+    timeline_variables: cat_list
 }
 
 var cat_end = {
