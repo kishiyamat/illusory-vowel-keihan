@@ -17,8 +17,12 @@ var_name = "production_list"
 target_cols = ["task", "item_id", "type", "read"]
 csv2json(var_name, target_cols, save_dir)
 
-var_name = "perception_list"
+var_name = "axb_list"
 target_cols = ["task", "item_id","type","a","x","b","correct","item_a","item_x","item_b"]
+csv2json(var_name, target_cols, save_dir)
+
+var_name = "cat_list"
+target_cols = ["task", "item_id", "audio"]
 csv2json(var_name, target_cols, save_dir)
 # %%
 import glob 

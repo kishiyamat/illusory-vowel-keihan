@@ -25,6 +25,11 @@ timeline.push(axb);
 timeline.push(axb_end);
 
 // categorize
+timeline.push(cat_instructions_practice);
+timeline.push(cat_practice);
+timeline.push(cat_instructions);
+timeline.push(cat);
+timeline.push(cat_end);
 
 // messages
 timeline.push(thankyou);
