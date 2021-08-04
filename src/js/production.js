@@ -24,9 +24,10 @@ var record = {
     buffer_length: 60000,
     manually_end_recording_key: ['space'],
     data: {
-        type:  jsPsych.timelineVariable('type'),
+        task: "production",
+        type: jsPsych.timelineVariable('type'),
         item_id: jsPsych.timelineVariable('item_id'),
-        read:  jsPsych.timelineVariable('read'),
+        read: jsPsych.timelineVariable('read'),
     },
     on_finish: function(data){
       data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
