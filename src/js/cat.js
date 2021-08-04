@@ -66,7 +66,7 @@ var rate = {
 //Practice
 var cat_practice = {
     timeline: [fixation, cat_presentation, cat_question_practice, rate],
-    timeline_variables: practice_stimuli
+    timeline_variables: cat_practice_stimuli
 }
 
 var cat_instructions = {

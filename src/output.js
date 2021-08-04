@@ -3,8 +3,8 @@ var cat_list = [{'task': 'cat', 'item_id': 1, 'audio': 'espo-1.wav'},{'task': 'c
 var list_audio_preload = ['eSpo.wav','eSupo.wav','etsto-L_H-3.wav','etsu-HL-3.wav','ebuzo-2.wav','ebuzo-3.wav','edzugo-1.wav','etsto-L_H-2.wav','edzugo-3.wav','ebuzo-1.wav','edzugo-2.wav','etsu-HL-1.wav','etsto-L_H-1.wav','etsuto-HLL-3.wav','edzgo-2.wav','ets-L_-3.wav','esuko-LHH-1.wav','epso-1.wav','ets-L_-2.wav','edzgo-3.wav','edzgo-1.wav','epso-2.wav','epso-3.wav','esuko-LHH-3.wav','ets-L_-1.wav','etsuto-HLL-1.wav','ezubo-1.wav','etsuko-1.wav','esuko-LLH-1.wav','ebzo-1.wav','etsuto-HHL-3.wav','ezubo-2.wav','etsuto-HHL-1.wav','etsuko-2.wav','ebzo-3.wav','esuko-LLH-3.wav','ebzo-2.wav','etsuko-3.wav','ezubo-3.wav','esko-L_H-3.wav','ekto-1.wav','esko-L_H-2.wav','etsu-LL-3.wav','es-L_-1.wav','es-L_-3.wav','etsu-LL-1.wav','ekto-3.wav','ekto-2.wav','esko-L_H-1.wav','es-L_-2.wav','ekuto-1.wav','esu-HL-1.wav','egudo-2.wav','ezbo-3.wav','esko-H_L-1.wav','ezbo-2.wav','egudo-3.wav','ekuto-2.wav','egudo-1.wav','esko-H_L-3.wav','esko-H_L-2.wav','ezbo-1.wav','esu-HL-3.wav','ekuto-3.wav','etsuto-LHH-1.wav','esuko-HLL-3.wav','esupo-2.wav','esupo-3.wav','epuso-1.wav','epuso-3.wav','esupo-1.wav','esuko-HLL-1.wav','epuso-2.wav','etsuto-LHH-3.wav','espo-3.wav','etsko-3.wav','esuko-HHL-3.wav','etsko-2.wav','espo-2.wav','etsuto-LLH-1.wav','etsuto-LLH-3.wav','esuko-HHL-1.wav','etsko-1.wav','espo-1.wav','egdo-1.wav','esu-LL-1.wav','etsto-H_L-1.wav','etsto-H_L-3.wav','esu-LL-3.wav','egdo-2.wav','egdo-3.wav','etsto-H_L-2.wav'];
 var production_list = [{'task': 'production', 'item_id': 1, 'type': 'target', 'read': '句読点 (くとうてん)'},{'task': 'production', 'item_id': 2, 'type': 'target', 'read': '悪天候 (あくてんこう)'},{'task': 'production', 'item_id': 3, 'type': 'target', 'read': 'エスペラント (えすぺらんと)'},{'task': 'production', 'item_id': 4, 'type': 'target', 'read': 'スポーツ (すぽーつ)'},{'task': 'production', 'item_id': 5, 'type': 'target', 'read': 'エプソン (えぷそん)'},{'task': 'production', 'item_id': 6, 'type': 'target', 'read': '釜山名物 (ぷさんめいぶつ)'},{'task': 'production', 'item_id': 7, 'type': 'target', 'read': 'お使い (おつかい)'},{'task': 'production', 'item_id': 8, 'type': 'target', 'read': 'ツケ払い (つけばらい)'},{'task': 'production', 'item_id': 9, 'type': 'filler', 'read': '北上 (きたかみ)'},{'task': 'production', 'item_id': 10, 'type': 'filler', 'read': '効き目 (ききめ)'},{'task': 'production', 'item_id': 11, 'type': 'filler', 'read': '鹿 (しか)'},{'task': 'production', 'item_id': 12, 'type': 'filler', 'read': '意識 (いしき)'},{'task': 'production', 'item_id': 13, 'type': 'filler', 'read': '既成 (きせい)'},{'task': 'production', 'item_id': 14, 'type': 'filler', 'read': '着過ぎる (きすぎる)'},{'task': 'production', 'item_id': 15, 'type': 'filler', 'read': '遅刻 (ちこく)'},{'task': 'production', 'item_id': 16, 'type': 'filler', 'read': '竹輪 (ちくわ)'},{'task': 'production', 'item_id': 17, 'type': 'filler', 'read': '心 (こころ)'},{'task': 'production', 'item_id': 18, 'type': 'filler', 'read': '小瓶 (こびん)'},{'task': 'production', 'item_id': 19, 'type': 'filler', 'read': '磯辺焼き (いそべやき)'},{'task': 'production', 'item_id': 20, 'type': 'filler', 'read': 'お蕎麦 (おそば)'},{'task': 'production', 'item_id': 21, 'type': 'filler', 'read': '大都市 (だいとし)'},{'task': 'production', 'item_id': 22, 'type': 'filler', 'read': 'コスト (こすと)'},{'task': 'production', 'item_id': 23, 'type': 'filler', 'read': 'おちょこ (おちょこ)'},{'task': 'production', 'item_id': 24, 'type': 'filler', 'read': '貯金 (ちょきん)'}];
 var preload = {
-    type: 'preload',
-    audio: list_audio_preload,
+  type: 'preload',
+  audio: list_audio_preload,
 }
 
 var axb_instructions_practice = {
@@ -28,77 +28,77 @@ var fixation = {
 }
 
 var trial_a = {
-    type: 'audio-keyboard-response',
-    stimulus: jsPsych.timelineVariable('a'),
-    choices: jsPsych.NO_KEYS,
-    trial_ends_after_audio: true,
-    post_trial_gap: 200,
+  type: 'audio-keyboard-response',
+  stimulus: jsPsych.timelineVariable('a'),
+  choices: jsPsych.NO_KEYS,
+  trial_ends_after_audio: true,
+  post_trial_gap: 200,
 };
 
 var trial_x = {
-    type: 'audio-keyboard-response',
-    stimulus: jsPsych.timelineVariable('x'),
-    choices: jsPsych.NO_KEYS,
-    trial_ends_after_audio: true,
-    post_trial_gap: 200,
+  type: 'audio-keyboard-response',
+  stimulus: jsPsych.timelineVariable('x'),
+  choices: jsPsych.NO_KEYS,
+  trial_ends_after_audio: true,
+  post_trial_gap: 200,
 };
 
 var trial_b = {
-    type: 'audio-keyboard-response',
-    stimulus: jsPsych.timelineVariable('b'),
-    choices: jsPsych.NO_KEYS,
-    trial_ends_after_audio: true,
+  type: 'audio-keyboard-response',
+  stimulus: jsPsych.timelineVariable('b'),
+  choices: jsPsych.NO_KEYS,
+  trial_ends_after_audio: true,
 };
 
 var axb_question = {
-    type: 'html-keyboard-response',
-    stimulus: '音声呈示は a -> x -> b の順でした。',
-    choices: ['a', 'b'],
-    prompt: "<p> 2つ目の音(x)は1つ目の音(a)と3つ目の音(b)のどちらに似ていますか。</p>",
-    data: {
-        task:  'axb',  // production--perception-categorization
-        type:  jsPsych.timelineVariable('type'),  // filler--target
-        item_id: jsPsych.timelineVariable('item_id'),
-        correct: jsPsych.timelineVariable('correct'),
-    },
-    on_finish: function(data){
-      data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct);
-    },
+  type: 'html-keyboard-response',
+  stimulus: '音声呈示は a -> x -> b の順でした。',
+  choices: ['a', 'b'],
+  prompt: "<p> 2つ目の音(x)は1つ目の音(a)と3つ目の音(b)のどちらに似ていますか。</p>",
+  data: {
+    task: 'axb',  // production--perception-categorization
+    type: jsPsych.timelineVariable('type'),  // filler--target
+    item_id: jsPsych.timelineVariable('item_id'),
+    correct: jsPsych.timelineVariable('correct'),
+  },
+  on_finish: function (data) {
+    data.is_correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct);
+  },
 };
 
 var feedback = {
-    type: 'html-keyboard-response',
-    stimulus: function(){
-        let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
-        if (last_trial_correct) { return "<p>正解です。</p>"; }
-        else { return "<p>不正解です。</p>"; }
-    },
-    choices: [' '],
-    prompt: "次の問題に進む場合はスペースキーを押してください。",
+  type: 'html-keyboard-response',
+  stimulus: function () {
+    let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
+    if (last_trial_correct) { return "<p>正解です。</p>"; }
+    else { return "<p>不正解です。</p>"; }
+  },
+  choices: [' '],
+  prompt: "次の問題に進む場合はスペースキーを押してください。",
 };
 
 var axb_rest = {
-    type: 'html-keyboard-response',
-    // stimulus: '<p>Running</p>',
-    stimulus: function(){
-        var fool_proof = "<p>以下のアイテム情報は stimulus の情報であり、本来は見えるべきではありません。".concat(
-                         "もし本実験で見えてしまっている場合はお手数ですが実験実施者にご連絡ください。<p>");
-        let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
-        var is_correct = last_trial_correct? "正解<br>":  "不正解<br>";
-        var pair = "pair: ".concat(jsPsych.timelineVariable('pair_str'), "<br>");
-        var a = "a: ".concat(jsPsych.timelineVariable('a'), "<br>");
-        var x = "x: ".concat(jsPsych.timelineVariable('x'), "<br>");
-        var b = "b: ".concat(jsPsych.timelineVariable('b'), "<br>");
-        return "".concat(fool_proof, pair, is_correct, a, x, b);
-    },
-    choices: [' '],
-    prompt: "次の問題に進む場合はスペースキーを押してください。",
+  type: 'html-keyboard-response',
+  // stimulus: '<p>Running</p>',
+  stimulus: function () {
+    var fool_proof = "<p>以下のアイテム情報は stimulus の情報であり、本来は見えるべきではありません。".concat(
+      "もし本実験で見えてしまっている場合はお手数ですが実験実施者にご連絡ください。<p>");
+    let last_trial_correct = jsPsych.data.get().last(1).values()[0].is_correct;
+    var is_correct = last_trial_correct ? "正解<br>" : "不正解<br>";
+    var pair = "pair: ".concat(jsPsych.timelineVariable('pair_str'), "<br>");
+    var a = "a: ".concat(jsPsych.timelineVariable('a'), "<br>");
+    var x = "x: ".concat(jsPsych.timelineVariable('x'), "<br>");
+    var b = "b: ".concat(jsPsych.timelineVariable('b'), "<br>");
+    return "".concat(fool_proof, pair, is_correct, a, x, b);
+  },
+  choices: [' '],
+  prompt: "次の問題に進む場合はスペースキーを押してください。",
 };
 
 //Practice
 var practice_stimuli = [
-  { a: "eSupo.wav", x:"eSpo.wav", b:"eSpo.wav", correct: 'b', task: "axb-practice"},
-  { a: "eSupo.wav", x:"eSupo.wav", b:"eSpo.wav", correct: 'a', task: "axb-practice"},
+  { a: "eSupo.wav", x: "eSpo.wav", b: "eSpo.wav", correct: 'b', task: "axb-practice" },
+  { a: "eSupo.wav", x: "eSupo.wav", b: "eSpo.wav", correct: 'a', task: "axb-practice" },
 ];
 var axb_practice = {
   timeline: [fixation, trial_a, trial_x, trial_b, axb_question, feedback],
@@ -135,24 +135,24 @@ var axb_end = {
 };
 
 var cat_instructions_practice = {
-  type: "html-keyboard-response",
-  choices: [' '],
-  stimulus: `
+    type: "html-keyboard-response",
+    choices: [' '],
+    stimulus: `
     <p>　
     次の実験では聞いてもらった音が表記（ひらがな）にどの程度一致しているかを
     1--7段階で評価してもらいます。
     静かな環境で、可能な場合はイヤホンなどの装着をお願いいたします。
     スペースキーを押すと練習課題を2問呈示いたします。
     </p>
-  `,
+    `,
 };
-  
+
 // Difine stimuli
 var cat_practice_stimuli = [
-    {item_id: -1, task: "cat-practice", audio: "eSupo.wav", cond_str: "bu"},
-    {item_id: -2, task: "cat-practice", audio: "eSupo.wav", cond_str: "bi"},
+    { item_id: -1, task: "cat-practice", audio: "eSupo.wav", cond_str: "bu" },
+    { item_id: -2, task: "cat-practice", audio: "eSupo.wav", cond_str: "bi" },
 ];
-var scale = [ "1", "2", "3", "4", "5", "6", "7"];
+var scale = ["1", "2", "3", "4", "5", "6", "7"];
 
 //Define Procedure for AXB
 var fixation = {
@@ -172,11 +172,11 @@ var cat_question_practice = {
     stimulus: '<p></p>',
     choices: ['えしゅぽ', 'えしゅぼ', 'えしぽ', 'えしぼ'], // 文字の大きさに注意
     prompt: "<p>どの表記に近いですか？</p>",
-data: {
-    task: "cat",
-    type: "target",  // filler--target
-    item_id: jsPsych.timelineVariable('item_id'), // 想定通りかチェック
-},
+    data: {
+        task: "cat",
+        type: "target",  // filler--target
+        item_id: jsPsych.timelineVariable('item_id'), // 想定通りかチェック
+    },
 };
 var cat_question = {
     type: 'html-button-response',
@@ -191,7 +191,7 @@ var cat_question = {
 };
 var rate = {
     type: 'survey-likert',
-    questions: [ {prompt: "聞いた音声は選んだ表記として適切ですか？<br>1: 全く適切でない<br>7: 極めて適切", labels: scale} ],
+    questions: [{ prompt: "聞いた音声は選んだ表記として適切ですか？<br>1: 全く適切でない<br>7: 極めて適切", labels: scale }],
     data: {
         task: "rate",
         type: "target",  // filler--target
@@ -202,9 +202,8 @@ var rate = {
 //Practice
 var cat_practice = {
     timeline: [fixation, cat_presentation, cat_question_practice, rate],
-    timeline_variables: practice_stimuli
+    timeline_variables: cat_practice_stimuli
 }
-timeline.push(practice_procedure);
 
 var cat_instructions = {
     type: "html-keyboard-response",
@@ -221,9 +220,9 @@ var cat = {
 }
 
 var cat_end = {
-type: "html-keyboard-response",
-  choices: [' '],
-stimulus: `
+    type: "html-keyboard-response",
+    choices: [' '],
+    stimulus: `
     <p>
     分類課題はこれで終了となります。
     スペースキーを押して次に進んでください。
@@ -273,39 +272,39 @@ var production_instructions_practice = {
   type: "html-keyboard-response",
   choices: [' '],
   stimulus: `
-    <p>　この産出実験では、一番上に表示される単語を
-    大きな声、標準語で3回ずつ読み上げていただきます。
-    マイクへのアクセスが要求さればた場合は許可し、
-    静かな環境での実施をお願いいたします。
-    スペースキーを押すと練習課題を2問呈示いたします。
-    </p>
-    `,
+      <p>　この産出実験では、一番上に表示される単語を
+      大きな声、標準語で3回ずつ読み上げていただきます。
+      マイクへのアクセスが要求さればた場合は許可し、
+      静かな環境での実施をお願いいたします。
+      スペースキーを押すと練習課題を2問呈示いたします。
+      </p>
+      `,
 };
 
 var record = {
-    type: 'html-audio-response_modified',
-    stimulus: jsPsych.timelineVariable('read'),
-    prompt: `
+  type: 'html-audio-response_modified',
+  stimulus: jsPsych.timelineVariable('read'),
+  prompt: `
     <p>　上の単語を大きな声で標準語で3回読み上げたらスペースキーを押してください。
     再生ボタンを押して確認し、上手く録音できた場合は「次へ進む」、
     上手く録音できなかった場合は「やり直す」を押してください。</p>
     <p> ※丸が赤で満たされている時は録音中です。 </p>
-    `, 
-    buffer_length: 60000,
-    manually_end_recording_key: ['space'],
-    data: {
-        task: "production",
-        type: jsPsych.timelineVariable('type'),
-        item_id: jsPsych.timelineVariable('item_id'),
-        read: jsPsych.timelineVariable('read'),
-    },
-    on_finish: function(data){
-      data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
-    },
+    `,
+  buffer_length: 60000,
+  manually_end_recording_key: ['space'],
+  data: {
+    task: "production",
+    type: jsPsych.timelineVariable('type'),
+    item_id: jsPsych.timelineVariable('item_id'),
+    read: jsPsych.timelineVariable('read'),
+  },
+  on_finish: function (data) {
+    data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+  },
 };
 var production_list_practice = [
-  {type: "production", item_id: -1, read: "銀河", },
-  {type: "production", item_id: -2, read: "アップル"},
+  { type: "production", item_id: -1, read: "銀河", },
+  { type: "production", item_id: -2, read: "アップル" },
 ];
 var production_practice = {
   timeline: [record],
