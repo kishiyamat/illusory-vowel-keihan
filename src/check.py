@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 samples = ['eSupo.wav', 'eSpo.wav'] # 音がでかすぎるので変更
-csv_path, target_cols = "./list/perception_list.csv", ["a","x","b"]
+csv_path, target_cols = "./list/axb_list.csv", ["a","x","b"]
 
 check_list_stimulus = list(pd.read_csv(csv_path)[target_cols].to_numpy().flatten())
 check_list_stimulus = set(check_list_stimulus + samples)
