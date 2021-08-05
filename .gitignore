@@ -4,6 +4,7 @@ venv
 **/jspsych-6.3.1/
 **/jspsych-html-audio-response_modified.js
 
+results/illusory-vowel-keihan.csv
 results/csv/*
 results/wav/*
 results/webm/*
