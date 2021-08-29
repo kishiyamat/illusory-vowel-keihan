@@ -85,7 +85,7 @@ var axb_rest = {
     var a = "a: ".concat(jsPsych.timelineVariable('a'), "<br>");
     var x = "x: ".concat(jsPsych.timelineVariable('x'), "<br>");
     var b = "b: ".concat(jsPsych.timelineVariable('b'), "<br>");
-    return "".concat(fool_proof, pair, is_correct, a, x, b);
+    return ""//.concat(fool_proof, pair, is_correct, a, x, b);
   },
   choices: [' '],
   prompt: "次の問題に進む場合はスペースキーを押してください。",
