@@ -21,7 +21,7 @@ columns = ["run_id", "type", "task", "item_id", "read", "audio_data"]
 audio_results = results[columns].query("task == 'production'").query("type=='target'")
 #%%
 for i, row in audio_results.iterrows():
-    file_base = str(row["run_id"])+"_"+row["item_id"]
+    file_base = str(row["run_id"])+"_"+row["item_id"]  # ここをsubj_idにする
     webm_file = "webm/"+file_base+".webm"
     wav_file = "wav/"+file_base+".wav"
     decodedData = base64.b64decode(row["audio_data"])
