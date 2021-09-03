@@ -8,6 +8,8 @@ timeline.push(informed_consent);
 
 // messages
 timeline.push(form_trial);
+timeline.push(form_tokyo);
+timeline.push(form_kinki);
 timeline.push(welcome);
 
 // produciotn
