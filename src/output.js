@@ -250,8 +250,20 @@ var informed_consent = {
 };
 var form_trial = {
   type: 'survey-html-form',
-  preamble: '<p> 実験者から伝えられた4桁の数字をペーストしてください。</p>',
-  html: '<p><input name="subject_id" type="text"/></p>'
+  preamble: '<p> 実験者から伝えられた4桁の数字を入力してください。</p>',
+  html: '<p><input name="subject_id" type="number"/></p>'
+};
+
+var form_tokyo = {
+  type: 'survey-html-form',
+  preamble: '<p> これまで東京に居住してきた年数を入力して下さい。</p>',
+  html: '<p><input name="span_tokyo" type="number"/></p>'
+};
+
+var form_kinki = {
+  type: 'survey-html-form',
+  preamble: '<p> これまで近畿地方に居住してきた年数を入力して下さい。</p>',
+  html: '<p><input name="span_kinki" type="number"/></p>'
 };
 
 var welcome = {
@@ -345,6 +357,8 @@ timeline.push(informed_consent);
 
 // messages
 timeline.push(form_trial);
+timeline.push(form_tokyo);
+timeline.push(form_kinki);
 timeline.push(welcome);
 
 // produciotn
