@@ -3,6 +3,7 @@ venv
 **/.DS_Store
 **/jspsych-6.3.1/
 **/jspsych-html-audio-response_modified.js
+.Rhistory
 
 results/illusory-vowel-keihan.csv
 results/csv/*
