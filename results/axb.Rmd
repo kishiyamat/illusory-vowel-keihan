@@ -81,7 +81,10 @@ axb_results
 ```
 
 ## ABX
+
 ### 無声化
+
+https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
 
 ```{r}
 # 文脈などのカラムをひっぱるのも可能
@@ -102,6 +105,8 @@ axb_results_devoice %>%
 ```
 
 ### トーン
+
+https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
 
 ```{r}
 # 文脈などのカラムをひっぱるのも可能
