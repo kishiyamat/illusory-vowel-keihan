@@ -4,7 +4,7 @@ import pandas as pd
 import base64
 from ffmpy import FFmpeg
 
-N_TRIALS = 8
+N_TRIALS = 10
 # FIXME: ここの名前を考え直す
 csv_path = "illusory-vowel-keihan.csv"
 # 事前に webm や wav の中身は空にしないといけない
