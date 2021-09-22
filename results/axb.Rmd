@@ -128,7 +128,15 @@ axb_results_tone <- axb_results_tone %>%
     tone == "-LHH" ~ 1,
     tone == "-LLH" ~ 0
   ))
-View(axb_results_tone)
+head(axb_results_tone)
+```
+
+```{r}
+axb_results_tone %>%
+  mutate(span_kinki = span_kinki > 5) %>%
+  ggplot() +
+  facet_wrap(run_id ~ span_kinki) +
+  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
 ```
 
 ```{r}
