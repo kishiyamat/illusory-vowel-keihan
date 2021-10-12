@@ -11,6 +11,8 @@ results/wav/*
 results/webm/*
 results/*.html
 src/audio/output/*
+model/wav/*
 
 !**/.gitkeep
 .Rproj.user
+*.npy
