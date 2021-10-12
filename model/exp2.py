@@ -56,3 +56,4 @@ train_x, train_y, test_x, _ = load_data(**params)
 print(train_x[0].shape)
 print(train_y[0].shape)
 # %%
+# https://github.com/kishiyamat/lsj-162-replication/blob/main/src/run.py
