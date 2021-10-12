@@ -39,7 +39,6 @@ for wav_i in train_wav_list+test_wav_list:
 # %%
 # 2. Feature Extraction(f0, rms)
 # ここらへん、ハイパラになるかも。
-frame_width = 0.010  # (10ms)
 frame_stride = 0.025  # (25ms)
 # load
 for wav_i in train_wav_list:
@@ -47,8 +46,7 @@ for wav_i in train_wav_list:
     save_path_i = project_dir / "model/wav" / wav_i
     y, sr = librosa.load(resample_path_i, sr=SR)  # none にすると読んでくれる
     assert sr == SR
-    hop_length = int(frame_width*sr)
-    n_fft = int(frame_stride*sr)
+    hop_length = int(frame_stride*sr)
     f0, voiced_flag, voiced_probs = librosa.pyin(y, fmin=librosa.note_to_hz(
         'C2'), fmax=librosa.note_to_hz('C7'), sr=sr, hop_length=hop_length)
     f0 = f0.reshape(1, -1)
@@ -63,8 +61,6 @@ for wav_i in train_wav_list:
 # 3. Labeling
 # wavの名前から作成する
 # window関数とパラメータをチューニングしてうまく割る
-
-
 def objective(trial):
     n_correct = 0
     # params(find_peaksは色々試した)
@@ -144,14 +140,3 @@ for wav_i in train_wav_list:
     n_correct += n_split == len(peaks)
 
 print(n_correct/len(train_wav_list))
-#%%
-
-wav_i = train_wav_list[0]
-cond = ["base", "rle", "rle_delta"]
-cond_i = cond[2]
-
-file_name = wav_i.split(".")[0]
-arr_i_path = project_dir / f"model/label_{cond_i}" / f"{file_name}.npy"
-x = np.load(arr_i_path, allow_pickle=False)
-x
-# %%
