@@ -35,27 +35,68 @@ for wav_i in train_wav_list + test_wav_list:
     y, sr = librosa.load(data_path(wav_i, "original"), sr=None)
     y_16k = librosa.resample(y, sr, SR)
     sf.write(data_path(wav_i, "downsample"), y_16k, SR)
+# %%
+# 2. Feature Extraction(f0, rms)
+# この段階でハイパラを決める.
+# 原理上、理想のf0とrmsの数は決定する
+check = ["esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
 
 # %%
 # 2. Feature Extraction(f0, rms)
-for wav_i in train_wav_list:
+# praat-parselmouth を使ったほうが良さそう
+# この段階でハイパラを決める.
+# 原理上、理想のf0とrmsの数は決定する
+import parselmouth
+
+check = ["esuko-LLH-3.wav", "esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
+from scipy import signal
+for wav_i in train_wav_list: # [:1]:
+# for wav_i in check:
+    # wav_i = x 
+    # frame_stride = 0.005  # (25ms)
     frame_stride = 0.025  # (25ms)
     y, sr = librosa.load(data_path(wav_i, "downsample"), SR)
     hop_length = int(frame_stride*sr)
-    f0, _, _ = librosa.pyin(
+    f0, _, voiced_prob = librosa.pyin(
+        # https://www.fon.hum.uva.nl/praat/manual/Sound__To_Pitch__ac____.html
         y,
-        fmin=librosa.note_to_hz('C2'),
-        fmax=librosa.note_to_hz('C7'),
+        fmin=20,
+        fmax=400,
         sr=sr,
-        hop_length=hop_length
+        hop_length=hop_length,
     )
     rms = librosa.feature.rms(y=y, hop_length=hop_length)
     feature = np.concatenate([f0.reshape(1, -1), rms])
     np.save(data_path(wav_i, "feature"), feature, allow_pickle=False)
+    # rms = np.load(arr_i_path, allow_pickle=False)[0, :]
+    # rms = np.load(arr_i_path, allow_pickle=False)[1, :]
+    print(f0.shape)
+    print(rms.shape)
+    print(wav_i)
+    # plt.plot(rms)
+    # plt.plot(np.nan_to_num(f0))
+    # plt.show()
+    # plt.plot(rms.reshape(-1, 1))
+    # plt.show()
+    # plt.plot(voiced_prob)
+    # plt.show()
+    # parselmouth
+    snd = parselmouth.Sound(str(data_path(wav_i, "downsample")))
+    # 
+    intensity = snd.to_intensity().values.T
+    plt.plot(intensity)
+    plt.show()
+    plt.plot(signal.resample(intensity, 40))
+    plt.show()
+    pitch = snd.to_pitch_ac(voicing_threshold=0.5, pitch_ceiling=400).selected_array['frequency']
+    plt.plot(signal.resample(pitch, 40))
+    plt.show()
+    # オクターブジャンプ
+    # 外れ値は存在する。しかも上方向にだけ
+    plt.plot(pitch)
+    plt.show()
 
 # %%
-
-
 def data_path(wav_path, data_type):
     # p.stem
     # TODO: add test
@@ -89,13 +130,13 @@ def objective(trial):
     for wav_i in train_wav_list:  # [:1]:
         rms = np.load(data_path(wav_i, "feature"), allow_pickle=False)[1, :]
         window = 1-np.kaiser(len(rms), beta=beta)
-        rms -= window
+        # rms -= window
         _, height = np.percentile(rms, [75, percentile_lower])
         peaks, _ = find_peaks(
             -rms,
             height=-height,
-            threshold=th,
-            distance=dist,
+            # threshold=th,
+            # distance=dist,
         )
         label_i = wav_i.split("-")[1]
         n_mora, n_peak = len(label_i), len(peaks)
@@ -132,7 +173,8 @@ cond = ["base", "rle", "rle_delta"]
 for wav_i in train_wav_list:
     file_name = wav_i.split(".")[0]
     arr_i_path = project_dir / "model/feature" / f"{file_name}.npy"
-    rms = np.load(arr_i_path, allow_pickle=False)[1, :]
+    rms = np.load(arr_i_path, allow_pickle=False)[0, :]
+    # rms = np.load(arr_i_path, allow_pickle=False)[1, :]
     n_len = len(rms)
     window = 1-np.kaiser(n_len, beta=best_params["beta"])
     rms = rms + window
@@ -154,7 +196,7 @@ for wav_i in train_wav_list:
     for c in cond:
         tones = [cond_mapper[label_i][c][t_i] for t_i in tones_idx]
         save_path_i = project_dir / f"model/label_{c}" / file_name
-        np.save(save_path_i, tones, allow_pickle=False)
+        # np.save(save_path_i, tones, allow_pickle=False)
     n_mora = len(label_i)
     n_split = n_mora-1
     print(file_name, f"\n\t{n_split} -> {len(peaks)}")
@@ -162,3 +204,7 @@ for wav_i in train_wav_list:
     n_correct += n_split == len(peaks)
 
 print(n_correct/len(train_wav_list))
+
+# %%
+
+# %%
