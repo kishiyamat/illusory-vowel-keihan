@@ -14,10 +14,11 @@
 # - Kinki
 # 実験
 # testの音声を与えてみて推論させる。
-from typing import List
-import numpy as np
-from pathlib import Path
 from glob import glob
+from pathlib import Path
+from typing import List
+
+import numpy as np
 
 
 def load_data(space, cond, delta) -> tuple:
@@ -31,23 +32,25 @@ def load_data(space, cond, delta) -> tuple:
     train_token = [p.split("/")[-1] for p in train_path]
     # filter by space
     accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
-              "kinki": ["HL", "HH", "LH", "LL", "LLH", "LHH", "HLL", "HHL", ]}
+              "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
     train_token = list(filter(
         lambda s: s.split("-")[1] in accept[space],
         train_token
     ))
-    train_x = [np.load(str(project_dir/"model/feature"/t)) for t in train_token]
-    train_y = [np.load(str(project_dir/f"model/label_{cond}"/t)) for t in train_token]
+    train_x = [np.load(str(project_dir/"model/feature"/t))
+               for t in train_token]
+    train_y = [
+        np.load(str(project_dir/f"model/label_{cond}"/t)) for t in train_token]
     test_x = [np.load(p) for p in test_path]
     return train_x, train_y, test_x, None
+
 
 # experiment settings
 # だいたい20データポイント、つまり
 # frame_stride が 25ms なので、一モーラ250ms程度ということになる
-# ここで修正できてよかった
 params = {
     "space": "tokyo",
-    "cond": "base",
+    "cond": "rle_delta",
     "delta": 10
 }
 
@@ -55,5 +58,6 @@ train_x, train_y, test_x, _ = load_data(**params)
 # %%
 print(train_x[0].shape)
 print(train_y[0].shape)
+print(train_y[0])
 # %%
 # https://github.com/kishiyamat/lsj-162-replication/blob/main/src/run.py

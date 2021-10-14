@@ -1,4 +1,5 @@
 # %%
+import random
 from pathlib import Path
 
 import librosa
@@ -6,8 +7,50 @@ import matplotlib.pyplot as plt
 import numpy as np
 import optuna
 import pandas as pd
+import parselmouth
 import soundfile as sf
 from scipy.signal import find_peaks
+
+
+def random_resampling(arr_1d, N, it=100):
+    # 条件
+    # 1. 定常性を仮定できる
+    # 1. len(arr_1d) < N:
+    # len(arr_1d) と N の差が開くほど精度は落ちる
+    if len(arr_1d) < N:
+        raise ValueError
+
+    arr_list = []
+    for _ in range(it):
+        idx = random.sample(list(range(len(arr_1d))), N)
+        idx.sort()
+        arr_list.append(arr_1d[idx])
+
+    return np.median(np.array(arr_list), axis=0)
+
+# %%
+
+
+def data_path(wav_path, data_type):
+    # p.stem
+    # TODO: add test
+    project_dir = Path("../")
+    accepted_types = [
+        "original", "downsample", "feature",
+        "label_base", "label_rle", "label_rle_delta"
+    ]
+    assert data_type in accepted_types
+    data_path_map = {
+        "original": project_dir / "src/audio/output" / wav_path,
+        "downsample": project_dir / "model/wav" / wav_path,
+        "feature": project_dir / "model/feature" / str(wav_path.split(".")[0]+".npy"),
+        "label_base": project_dir / "model/label_base" / str(wav_path.split(".")[0]+".npy"),
+        "label_rle": project_dir / "model/label_rle" / str(wav_path.split(".")[0]+".npy"),
+        "label_rle_delta": project_dir / "model/label_rle_delta" / str(wav_path.split(".")[0]+".npy"),
+    }
+    return data_path_map[data_type]
+
+
 # %%
 # Get Train/Test dataset
 project_dir = Path("../")
@@ -46,75 +89,42 @@ check = ["esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
 # praat-parselmouth を使ったほうが良さそう
 # この段階でハイパラを決める.
 # 原理上、理想のf0とrmsの数は決定する
-import parselmouth
-
+# きつかったリスト
 check = ["esuko-LLH-3.wav", "esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
-from scipy import signal
-for wav_i in train_wav_list: # [:1]:
+
+
 # for wav_i in check:
-    # wav_i = x 
-    # frame_stride = 0.005  # (25ms)
+for wav_i in train_wav_list:
     frame_stride = 0.025  # (25ms)
     y, sr = librosa.load(data_path(wav_i, "downsample"), SR)
+    print("should be size of: ", (len(y)/sr)/frame_stride)
     hop_length = int(frame_stride*sr)
-    f0, _, voiced_prob = librosa.pyin(
-        # https://www.fon.hum.uva.nl/praat/manual/Sound__To_Pitch__ac____.html
-        y,
-        fmin=20,
-        fmax=400,
-        sr=sr,
-        hop_length=hop_length,
-    )
-    rms = librosa.feature.rms(y=y, hop_length=hop_length)
-    feature = np.concatenate([f0.reshape(1, -1), rms])
-    np.save(data_path(wav_i, "feature"), feature, allow_pickle=False)
-    # rms = np.load(arr_i_path, allow_pickle=False)[0, :]
-    # rms = np.load(arr_i_path, allow_pickle=False)[1, :]
-    print(f0.shape)
-    print(rms.shape)
+    # 他の特徴料と合わせる
+    feature_len = librosa.feature.rms(y=y, hop_length=hop_length).shape[1]
+    print("should be size of: ", feature_len)
     print(wav_i)
-    # plt.plot(rms)
-    # plt.plot(np.nan_to_num(f0))
-    # plt.show()
-    # plt.plot(rms.reshape(-1, 1))
-    # plt.show()
-    # plt.plot(voiced_prob)
-    # plt.show()
     # parselmouth
     snd = parselmouth.Sound(str(data_path(wav_i, "downsample")))
-    # 
-    intensity = snd.to_intensity().values.T
-    plt.plot(intensity)
-    plt.show()
-    plt.plot(signal.resample(intensity, 40))
-    plt.show()
-    pitch = snd.to_pitch_ac(voicing_threshold=0.5, pitch_ceiling=400).selected_array['frequency']
-    plt.plot(signal.resample(pitch, 40))
-    plt.show()
-    # オクターブジャンプ
-    # 外れ値は存在する。しかも上方向にだけ
-    plt.plot(pitch)
-    plt.show()
 
-# %%
-def data_path(wav_path, data_type):
-    # p.stem
-    # TODO: add test
-    project_dir = Path("../")
-    accepted_types = [
-        "original", "downsample", "feature",
-        "label_base", "label_rle", "label_rle_delta"
-    ]
-    assert data_type in accepted_types
-    data_path_map = {
-        "original": project_dir / "src/audio/output" / wav_path,
-        "downsample": project_dir / "model/wav" / wav_path,
-        "feature": project_dir / "model/feature" / str(wav_i.split(".")[0]+".npy"),
-    }
-    return data_path_map[data_type]
+    intensity = snd.to_intensity().values.T
+    intensity = random_resampling(intensity, feature_len).T
+
+    pitch = snd.to_pitch_ac(
+        pitch_floor=40, pitch_ceiling=400).selected_array['frequency']
+    pitch = random_resampling(pitch, feature_len).reshape(1, -1)
+    feature = np.concatenate((pitch, intensity), 0)
+    print(feature.shape)
+    np.save(data_path(wav_i, "feature"), feature, allow_pickle=False)
+
+    # plt.plot(intensity.reshape(-1))
+    # plt.show()
+    # plt.plot(pitch.reshape(-1))
+    # plt.show()
 
 # %%
 # 3. Labeling
+# 3.1 hypara
+# 3.2 annotation
 
 
 def objective(trial):
@@ -125,23 +135,16 @@ def objective(trial):
     # params
     beta = trial.suggest_uniform("beta", 0.3, 3)
     percentile_lower = trial.suggest_int("percentile_lower", 5, 60)
-    th = trial.suggest_uniform("th", -10, -0)
-    dist = trial.suggest_uniform("dist", 1, 20)
-    for wav_i in train_wav_list:  # [:1]:
+    for wav_i in train_wav_list:
         rms = np.load(data_path(wav_i, "feature"), allow_pickle=False)[1, :]
         window = 1-np.kaiser(len(rms), beta=beta)
-        # rms -= window
+        rms = rms + window
         _, height = np.percentile(rms, [75, percentile_lower])
-        peaks, _ = find_peaks(
-            -rms,
-            height=-height,
-            # threshold=th,
-            # distance=dist,
-        )
+        peaks, _ = find_peaks(-rms, height=-height,)
         label_i = wav_i.split("-")[1]
         n_mora, n_peak = len(label_i), len(peaks)
         n_split = n_mora - 1
-        n_correct += int(n_split == n_peak)
+        n_correct += n_split == n_peak
     return n_correct/len(train_wav_list)
 
 
@@ -149,7 +152,7 @@ study = optuna.create_study(
     direction="maximize",
     sampler=optuna.samplers.TPESampler(seed=42)
 )
-study.optimize(objective, n_trials=50)
+study.optimize(objective, n_trials=100)
 # ALL GREEEN
 # %%
 study.best_params
@@ -171,40 +174,27 @@ n_correct = 0
 label = []
 cond = ["base", "rle", "rle_delta"]
 for wav_i in train_wav_list:
-    file_name = wav_i.split(".")[0]
-    arr_i_path = project_dir / "model/feature" / f"{file_name}.npy"
-    rms = np.load(arr_i_path, allow_pickle=False)[0, :]
-    # rms = np.load(arr_i_path, allow_pickle=False)[1, :]
-    n_len = len(rms)
-    window = 1-np.kaiser(n_len, beta=best_params["beta"])
+    rms = np.load(data_path(wav_i, "feature"), allow_pickle=False)[1, :]
+    window = 1-np.kaiser(len(rms), beta=best_params["beta"])
     rms = rms + window
     _, height = np.percentile(rms, [75, best_params["percentile_lower"]])
     peaks, _ = find_peaks(-rms, height=-height,)
-    # peak に 1 をたてて cumsum して、それをindexにすればいい。
-    # Plot
+    # show
     plt.plot(peaks, rms[peaks], "xr")
     plt.plot(rms)
     plt.plot(window)
-    plt.legend(['distance'])
     plt.show()
-    # label(index, tone)
-    label_i = wav_i.split("-")[1]
     # indexを振る
-    tones_idx = np.zeros(n_len)
+    label_i = wav_i.split("-")[1]
+    tones_idx = np.zeros(len(rms))
     tones_idx[peaks] = 1
     tones_idx = np.cumsum(tones_idx, dtype=int)
     for c in cond:
         tones = [cond_mapper[label_i][c][t_i] for t_i in tones_idx]
-        save_path_i = project_dir / f"model/label_{c}" / file_name
-        # np.save(save_path_i, tones, allow_pickle=False)
-    n_mora = len(label_i)
-    n_split = n_mora-1
-    print(file_name, f"\n\t{n_split} -> {len(peaks)}")
-    # Score
-    n_correct += n_split == len(peaks)
+        np.save(data_path(wav_i, f"label_{c}"), tones, allow_pickle=False)
+    n_mora, n_peak = len(label_i), len(peaks)
+    n_split = n_mora - 1
+    n_correct += n_split == n_peak
+    print(wav_i, f"\n\t{n_split} -> {len(peaks)}")
 
 print(n_correct/len(train_wav_list))
-
-# %%
-
-# %%
