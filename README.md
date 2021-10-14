@@ -90,6 +90,11 @@ assert を上手く使って想定内の挙動であることを保証し続け�
 ### ソフトウェア
 
 - brew install git-lfs
+- pip install --upgrade cython
+- pip install git+https://github.com/kishiyamat/hsmmlearn.git
+    - multivariateがmergeされるまで
+- pip install numba # librosaが依存; numpyが厳しい
+- pip install librosa
 
 ## 分析
 
