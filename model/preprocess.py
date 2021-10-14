@@ -198,3 +198,4 @@ for wav_i in train_wav_list:
     print(wav_i, f"\n\t{n_split} -> {len(peaks)}")
 
 print(n_correct/len(train_wav_list))
+# 精度が1であることを保証
