@@ -14,6 +14,8 @@
 # - Kinki
 # 実験
 # testの音声を与えてみて推論させる。
+import rle
+import librosa
 from hsmmlearn.hsmm import MultivariateGaussianHSMM
 import matplotlib.pyplot as plt
 import random
@@ -81,7 +83,6 @@ plt.show()
 # - [ ] 初期状態と終端状態を加える
 # RLEで一発では？(空白区切りじゃないとだめ. )
 
-import rle 
 rle.encode(train_y_i)
 y_all = []
 _ = [y_all.extend(y) for y in train_y]
@@ -89,27 +90,46 @@ _ = [y_all.extend(y) for y in train_y]
 train_x_i
 # 0がある (pitch, intensity). これを
 # "delta": (10, ) に基づいて増加させたい
-#%%
+# %%
+list()
+
+
+def delta(arr, width=1):
+    # [1,2,3] ->
+    # [1,2,3,0] -> base(add tail)
+    # [0,1,2,3] -> refer
+    # [1, 1, 1, 3] -> diff
+    # [1, 1, 1] -> drop tail
+    pad = np.array([0 for _ in range(width)])
+    base = np.append(arr, pad)
+    refer = np.append(pad, arr)
+    delta = base - refer
+    return delta[:-width]
+
+
+# %%
 # deltaの計算
-import librosa
-# train_x_i
-# 10--15で上がってほしい. で、20--は不変であってほしい
-# train_x_i[train_x_i==0]= "nan"
-# あるいは、nanの部分をtrimするか。
-# それいいな。
-train_x_i_delta = librosa.feature.delta(train_x_i, width=9)
-# X.shape =(d, t)
-plt.plot(train_x_i[0, :])
-plt.show()
+# naを事前に除去する方法も考えたが、それだと H_L のケースで詰む
+# 7, 9, 11 あたりが面白い
+# 元の値を考慮すれば、0との比較を帳消しにできるかも？
+# modeも色々と試してみる
 plt.plot(train_x_i[1, :])
 plt.show()
-plt.plot(train_x_i_delta[0, :])
+plt.plot(train_x_i[0, :])
 plt.show()
-plt.plot(train_x_i_delta[1, :])
-plt.show()
-#%%
+# 40あがる-> 140(0との比較)
+for i in range(3, 19, 2):
+    print(i)
+    delta_pitch = delta(train_x_i[0, :], width=i)
+    plt.plot(delta(train_x_i[0, :], width=i))
+    # plt.plot(librosa.feature.delta(train_x_i, width=i)[0, :])
+    plt.show()
+    delta_pitch_2 = delta_pitch - train_x_i[0, :]
+    plt.plot(delta_pitch_2)
+    plt.show()
+# %%
 
-# means = 0  
+# means = 0
 # scales = 0
 # durations = 0
 # tmat = 0
