@@ -16,7 +16,9 @@ def random_resampling(arr_1d, N, it=100):
     # 条件
     # 1. 定常性を仮定できる
     # 1. len(arr_1d) < N:
-    # len(arr_1d) と N の差が開くほど精度は落ちる
+    # 注意事項
+    # 1. len(arr_1d) と N の差が開くほど精度は落ちる
+    # 1. グローバルな傾向しか見れない
     if len(arr_1d) < N:
         raise ValueError
 
@@ -85,7 +87,7 @@ for wav_i in train_wav_list + test_wav_list:
 check = ["esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
 
 # %%
-# 2. Feature Extraction(f0, rms)
+# 2. Feature Extraction(pitch, intensity)
 # praat-parselmouth を使ったほうが良さそう
 # この段階でハイパラを決める.
 # 原理上、理想のf0とrmsの数は決定する
