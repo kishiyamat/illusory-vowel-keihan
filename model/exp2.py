@@ -102,9 +102,12 @@ def delta(arr, width=1):
     # [1, 1, 1] -> drop tail
     pad = np.array([0 for _ in range(width)])
     base = np.append(arr, pad)
+    base[base==0] = "nan"
     refer = np.append(pad, arr)
+    refer[refer==0] = "nan"
     delta = base - refer
-    return delta[:-width]
+    delta = delta[:-width] 
+    return delta
 
 
 # %%
@@ -120,12 +123,12 @@ plt.show()
 # 40あがる-> 140(0との比較)
 for i in range(3, 19, 2):
     print(i)
-    delta_pitch = delta(train_x_i[0, :], width=i)
-    plt.plot(delta(train_x_i[0, :], width=i))
+    pitch_i = train_x_i[0, :] 
+    pitch_i[pitch_i==0]  = "nan"
+    delta_pitch = delta(pitch_i, width=i)
+    delta_pitch[ np.isnan(delta_pitch)] = 0
+    plt.plot(delta_pitch)
     # plt.plot(librosa.feature.delta(train_x_i, width=i)[0, :])
-    plt.show()
-    delta_pitch_2 = delta_pitch - train_x_i[0, :]
-    plt.plot(delta_pitch_2)
     plt.show()
 # %%
 
