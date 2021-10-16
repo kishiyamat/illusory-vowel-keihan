@@ -24,7 +24,16 @@ from pathlib import Path
 from pydoc import resolve
 from typing import List
 
+import pandas as pd
 import numpy as np
+
+#%%
+project_dir = Path("../")
+csv_name = "axb_list.csv"
+list_path = project_dir/"src/list"/csv_name
+tone_df = pd.read_csv(list_path).query("type=='filler'")
+tone_df
+# これが実験ファイルになる
 # %%
 # Data Load
 setting_i = {
@@ -33,6 +42,7 @@ setting_i = {
     "span_kinki": 0,  # 近畿居住歴 (異なるパターンへの許容度)
     "encoding": "base",
     "delta": (10, ),  # どれくらい前を見と比較するのか(単位一つが25ms)
+    "feature": "base:delta",  # どれくらい前を見と比較するのか(単位一つが25ms)
     "pid": 0,
 }
 
@@ -100,10 +110,12 @@ def delta(arr, width=1):
     # [0,1,2,3] -> refer
     # [1, 1, 1, 3] -> diff
     # [1, 1, 1] -> drop tail
+    # v->v のみを計算する
     pad = np.array([0 for _ in range(width)])
     base = np.append(arr, pad)
-    base[base==0] = "nan"
     refer = np.append(pad, arr)
+    # 0をnanに変えて計算をV間のみで行う
+    base[base==0] = "nan"
     refer[refer==0] = "nan"
     delta = base - refer
     delta = delta[:-width] 
@@ -113,7 +125,11 @@ def delta(arr, width=1):
 # %%
 # deltaの計算
 # naを事前に除去する方法も考えたが、それだと H_L のケースで詰む
-# 7, 9, 11 あたりが面白い
+# 7, 9, 11, 13 あたりが面白い. 確率的に重ね合わせとかできる？
+# あるいは、ピークの時間をつかったり、DPマッチさせたり。
+# ただ経験的に、ヒューリスティクスを重ねるとデバッグが面倒になる。
+# その際は特定の区間に重みを載せたいが...。
+# あるいは、そのままデータ拡張にする。
 # 元の値を考慮すれば、0との比較を帳消しにできるかも？
 # modeも色々と試してみる
 plt.plot(train_x_i[1, :])
@@ -126,7 +142,7 @@ for i in range(3, 19, 2):
     pitch_i = train_x_i[0, :] 
     pitch_i[pitch_i==0]  = "nan"
     delta_pitch = delta(pitch_i, width=i)
-    delta_pitch[ np.isnan(delta_pitch)] = 0
+    delta_pitch[ np.isnan(delta_pitch)] = 0  # 表示のため
     plt.plot(delta_pitch)
     # plt.plot(librosa.feature.delta(train_x_i, width=i)[0, :])
     plt.show()
@@ -145,12 +161,17 @@ for i in range(3, 19, 2):
 
 class Subject:
     def __init__(self, area, span_tokyo, span_kinki, encoding, delta, pid) -> None:
-        self.pid = pid
-        self.area = area
-        self.span_tokyo = span_tokyo
-        self.span_kinki = span_kinki
-        self.encoding = encoding
-        self.delta = delta
+        self.__pid = pid
+        self.__area = area
+        self.__span_tokyo = span_tokyo
+        self.__span_kinki = span_kinki
+        self.__encoding = encoding
+        self.__delta = delta
+    
+    @property
+    def pid(self):
+        # validate
+        return self.__pid
 
     def fit(self, X, y):
         # 読むのは外で一回にする(被験者分のCSJは困る)。
