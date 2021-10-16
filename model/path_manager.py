@@ -35,6 +35,7 @@ class PathManager:
     }
     tone_df = pd.read_csv(project_dir/"src/list/axb_list.csv")\
         .query("type=='filler'")
+    setting_df = pd.read_csv(project_dir/"model/setting.csv")
 
     @classmethod
     def data_path(cls, data_type, wav_path=""):

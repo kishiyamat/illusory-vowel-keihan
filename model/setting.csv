@@ -1,0 +1,3 @@
+area,feature,encoding,span_tokyo,span_kyoto
+tokyo,pitch,base,10,0
+tokyo,pitch:pitch_delta,base:delta,0,10

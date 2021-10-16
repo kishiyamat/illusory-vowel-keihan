@@ -29,23 +29,14 @@ import numpy as np
 from path_manager import PathManager
 
 # %%
-# これが実験ファイルになる
-PathManager.tone_df
+# これが実験ファイルになる. この実験ファイルに基づいて実験を行ってログする
+setting = PathManager.setting_df
+setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
+sample_i = 0
+setting_i = setting_dicts[sample_i]
+setting_i 
 
 # %%
-# Data Load
-setting_i = {
-    "area": "tokyo",  # 東京居住歴 (異なるパターンへの許容度)
-    "span_tokyo": 10,  # 東京居住歴 (異なるパターンへの許容度)
-    "span_kinki": 0,  # 近畿居住歴 (異なるパターンへの許容度)
-    "encoding": "base",
-    "delta": (10, ),  # どれくらい前を見と比較するのか(単位一つが25ms)
-    "feature": "base:delta",  # どれくらい前を見と比較するのか(単位一つが25ms)
-    "pid": 0,
-}
-
-
-# ((pitch, intensity), ...)
 train_x, train_y, _, _ = PathManager.load_data(**setting_i)
 pid_i = setting_i["pid"]
 data_i = 8
