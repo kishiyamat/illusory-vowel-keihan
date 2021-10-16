@@ -19,7 +19,6 @@ import librosa
 from hsmmlearn.hsmm import MultivariateGaussianHSMM
 import matplotlib.pyplot as plt
 import random
-from glob import glob
 from pathlib import Path
 from pydoc import resolve
 from typing import List
@@ -27,13 +26,12 @@ from typing import List
 import pandas as pd
 import numpy as np
 
-#%%
-project_dir = Path("../")
-csv_name = "axb_list.csv"
-list_path = project_dir/"src/list"/csv_name
-tone_df = pd.read_csv(list_path).query("type=='filler'")
-tone_df
+from path_manager import PathManager
+
+# %%
 # これが実験ファイルになる
+PathManager.tone_df
+
 # %%
 # Data Load
 setting_i = {
@@ -47,32 +45,8 @@ setting_i = {
 }
 
 
-def load_data(area, encoding, **kwargs) -> tuple:
-    encoding_methods = ["base", "rle", "rle_delta"]
-    spaces = ["kinki", "tokyo"]
-    assert area in spaces and encoding in encoding_methods
-    project_dir = Path("../")
-    data_path = glob(str(project_dir/"model/feature/*.npy"))
-    train_path = filter(lambda p: p.split("/")[-1].count("_") == 0, data_path)
-    test_path = filter(lambda p: p.split("/")[-1].count("_") >= 1, data_path)
-    train_token = [p.split("/")[-1] for p in train_path]
-    # filter by area
-    accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
-              "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
-    train_token = list(filter(
-        lambda s: s.split("-")[1] in accept[area],
-        train_token
-    ))
-    train_x = [np.load(str(project_dir/"model/feature"/t))
-               for t in train_token]
-    train_y = [
-        np.load(str(project_dir/f"model/label_{encoding}"/t)) for t in train_token]
-    test_x = [np.load(p) for p in test_path]
-    return train_x, train_y, test_x, None
-
-
 # ((pitch, intensity), ...)
-train_x, train_y, _, _ = load_data(**setting_i)
+train_x, train_y, _, _ = PathManager.load_data(**setting_i)
 pid_i = setting_i["pid"]
 data_i = 8
 
@@ -115,10 +89,10 @@ def delta(arr, width=1):
     base = np.append(arr, pad)
     refer = np.append(pad, arr)
     # 0をnanに変えて計算をV間のみで行う
-    base[base==0] = "nan"
-    refer[refer==0] = "nan"
+    base[base == 0] = "nan"
+    refer[refer == 0] = "nan"
     delta = base - refer
-    delta = delta[:-width] 
+    delta = delta[:-width]
     return delta
 
 
@@ -139,10 +113,10 @@ plt.show()
 # 40あがる-> 140(0との比較)
 for i in range(3, 19, 2):
     print(i)
-    pitch_i = train_x_i[0, :] 
-    pitch_i[pitch_i==0]  = "nan"
+    pitch_i = train_x_i[0, :]
+    pitch_i[pitch_i == 0] = "nan"
     delta_pitch = delta(pitch_i, width=i)
-    delta_pitch[ np.isnan(delta_pitch)] = 0  # 表示のため
+    delta_pitch[np.isnan(delta_pitch)] = 0  # 表示のため
     plt.plot(delta_pitch)
     # plt.plot(librosa.feature.delta(train_x_i, width=i)[0, :])
     plt.show()
@@ -167,7 +141,7 @@ class Subject:
         self.__span_kinki = span_kinki
         self.__encoding = encoding
         self.__delta = delta
-    
+
     @property
     def pid(self):
         # validate

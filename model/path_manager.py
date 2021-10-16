@@ -1,4 +1,6 @@
 # %%
+import numpy as np
+from glob import glob
 from pathlib import Path
 import pandas as pd
 
@@ -67,3 +69,29 @@ class PathManager:
             filter(lambda s: s.count("_") == 0, wav_list_set))
         test_wav_list = list(filter(lambda s: s.count("_") != 0, wav_list_set))
         return train_wav_list, test_wav_list
+
+    def load_data(area, encoding, **kwargs) -> tuple:
+        encoding_methods = ["base", "rle", "rle_delta"]
+        spaces = ["kinki", "tokyo"]
+        assert area in spaces and encoding in encoding_methods
+        project_dir = Path("../")
+        data_path = glob(str(project_dir/"model/feature/*.npy"))
+        train_path = filter(lambda p: p.split(
+            "/")[-1].count("_") == 0, data_path)
+        test_path = filter(lambda p: p.split(
+            "/")[-1].count("_") >= 1, data_path)
+        train_token = [p.split("/")[-1] for p in train_path]
+        # filter by area
+        # TODO: 予測に失敗した時、近畿のLHH拒否が原因かもしれない
+        accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
+                  "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
+        train_token = list(filter(
+            lambda s: s.split("-")[1] in accept[area],
+            train_token
+        ))
+        train_x = [np.load(str(project_dir/"model/feature"/t))
+                   for t in train_token]
+        train_y = [
+            np.load(str(project_dir/f"model/label_{encoding}"/t)) for t in train_token]
+        test_x = [np.load(p) for p in test_path]
+        return train_x, train_y, test_x, None
