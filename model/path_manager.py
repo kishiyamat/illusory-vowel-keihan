@@ -31,9 +31,11 @@ class PathManager:
             "LLH": ["L2", "L2", "dH1"],
         },
     }
+    tone_df = pd.read_csv(project_dir/"src/list/axb_list.csv")\
+        .query("type=='filler'")
 
     @classmethod
-    def data_path(cls,  data_type, wav_path=""):
+    def data_path(cls, data_type, wav_path=""):
         # 参照したいタイプを渡すとパスを返す
         project_dir = cls.project_dir
         accepted_types = [
@@ -49,15 +51,12 @@ class PathManager:
             "label_base": project_dir / "model/label_base" / str(wav_path.split(".")[0]+".npy"),
             "label_rle": project_dir / "model/label_rle" / str(wav_path.split(".")[0]+".npy"),
             "label_rle_delta": project_dir / "model/label_rle_delta" / str(wav_path.split(".")[0]+".npy"),
-            "axb": project_dir/"src/list/axb_list.csv",
         }
         return data_path_map[data_type]
 
-    @property
-    def train_test_wav(self):
-        # Get Train/Test dataset
-        tone_df = pd.read_csv(self.data_path("axb")).query("type=='filler'")
-        tone_df = tone_df[["a", "x", "b"]]
+    @classmethod
+    def train_test_wav(cls):
+        tone_df = cls.tone_df[["a", "x", "b"]]
         wav_list_set = set(
             tone_df.a.values.tolist() +
             tone_df.x.values.tolist() +

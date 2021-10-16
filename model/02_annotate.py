@@ -19,7 +19,7 @@ def objective(trial):
     n_correct = 0
     # params
     beta = trial.suggest_uniform("beta", 0.3, 3)
-    percentile_lower = trial.suggest_int("percentile_lower", 5, 60)
+    percentile_lower = trial.suggest_int("percentile_lower", 3, 60)
     for wav_i in train_wav_list:
         rms = np.load(PathManager.data_path("feature", wav_i),
                       allow_pickle=False
@@ -35,19 +35,26 @@ def objective(trial):
     return n_correct/len(train_wav_list)
 
 
+# %%
 if __name__ == "__main__":
-    train_wav_list, test_wav_list = PathManager.train_test_wav
+    print()
+    # %%
+    n_trials = 100
+    train_wav_list, _ = PathManager.train_test_wav()
     study = optuna.create_study(
         direction="maximize",
         sampler=optuna.samplers.TPESampler(seed=42)
     )
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=n_trials)
     study.best_params
     best_params = study.best_params
     print(best_params)
-
+    print()
+    if study.best_value!=1:
+        raise ValueError("Try to increse the iteration of resampling in 01_preprocess.py")
+    # %%
     set([wav_i.split("-")[1] for wav_i in train_wav_list])
-
+    # %%
     # 目視でアノテーションを確認
     n_correct = 0
     label = []
@@ -61,17 +68,19 @@ if __name__ == "__main__":
         _, height = np.percentile(rms, [75, best_params["percentile_lower"]])
         peaks, _ = find_peaks(-rms, height=-height,)
         # show
-        plt.plot(peaks, rms[peaks], "xr")
-        plt.plot(rms)
-        plt.plot(window)
-        plt.show()
+        if 'get_ipython' in globals():
+            plt.plot(peaks, rms[peaks], "xr")
+            plt.plot(rms)
+            plt.plot(window)
+            plt.show()
         # indexを振る
         label_i = wav_i.split("-")[1]
         tones_idx = np.zeros(len(rms))
         tones_idx[peaks] = 1
         tones_idx = np.cumsum(tones_idx, dtype=int)
         for encode in encodes:
-            tones = [PathManager.label_by_encode[encode][label_i][t_i] for t_i in tones_idx]
+            tones = [PathManager.label_by_encode[encode][label_i][t_i]
+                     for t_i in tones_idx]
             np.save(PathManager.data_path(f"label_{encode}", wav_i),
                     tones, allow_pickle=False
                     )

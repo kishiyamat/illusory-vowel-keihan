@@ -14,7 +14,7 @@ class Preprocessor:
     frame_stride = 0.025  # (25ms)
 
     @staticmethod
-    def random_resampling(arr_1d, N, it=100):
+    def random_resampling(arr_1d, N, it=500):
         # 条件
         # 1. 定常性を仮定できる
         # 1. len(arr_1d) < N:
@@ -33,7 +33,7 @@ class Preprocessor:
         return np.median(np.array(arr_list), axis=0)
 
     @classmethod
-    def pitch_intensity(cls, y, sr, snd):
+    def pitch_intensity(cls, y, sr, snd, resampling_iter):
         # ["esuko-LLH-3.wav", "esuko-HHL-3.wav", "etsuto-LHH-3.wav"]
         # を目視で確認しながなら特徴量を選択した。
         # もとは librosa をつかっていたが、 parselmouth に以降
@@ -42,7 +42,9 @@ class Preprocessor:
         feature_len = librosa.feature.rms(y=y, hop_length=hop_length).shape[1]
 
         intensity = snd.to_intensity().values.T
-        intensity = cls.random_resampling(intensity, feature_len).T
+        intensity = cls.random_resampling(
+            intensity, feature_len, resampling_iter
+        ).T
 
         pitch = snd.to_pitch_ac(pitch_floor=40, pitch_ceiling=400)\
             .selected_array['frequency']
@@ -50,8 +52,12 @@ class Preprocessor:
         return np.concatenate((pitch, intensity), 0)
 
 
+# %%
 if __name__ == "__main__":
-    train_wav_list, test_wav_list = PathManager.train_test_wav
+    resampling_iter = 300
+    print("preprocess に依存して annotation は失敗しうる")
+    # %%
+    train_wav_list, test_wav_list = PathManager.train_test_wav()
     print(f"train wav files are:\n\t{train_wav_list}")
     print(f"test wav files are:\n\t{test_wav_list}")
 
@@ -64,10 +70,16 @@ if __name__ == "__main__":
 
     # 2. Feature Extraction(pitch, intensity)
     for wav_i in train_wav_list + test_wav_list:
-        y, sr = librosa.load(PathManager.data_path("downsample", wav_i), SR)
+        y, sr = librosa.load(
+            PathManager.data_path("downsample", wav_i), SR
+        )
         snd = parselmouth.Sound(
-            str(PathManager.data_path("downsample", wav_i)))
-        feature = Preprocessor.pitch_intensity(y, sr, snd)
-        np.save(PathManager.data_path("feature", wav_i),
-                feature,
-                allow_pickle=False)
+            str(PathManager.data_path("downsample", wav_i))
+        )
+        feature = Preprocessor.pitch_intensity(y, sr, snd, resampling_iter)
+        np.save(
+            PathManager.data_path("feature", wav_i),
+            feature, allow_pickle=False
+        )
+
+# %%
