@@ -41,7 +41,7 @@ class PathManager:
         # 参照したいタイプを渡すとパスを返す
         project_dir = cls.project_dir
         accepted_types = [
-            "original", "downsample", "feature",
+            "original", "downsample", "feature", "pitch_delta",
             "label_base", "label_rle", "label_rle_delta",
             "axb",
         ]
@@ -50,6 +50,7 @@ class PathManager:
             "original": project_dir / "src/audio/output" / wav_path,
             "downsample": project_dir / "model/wav" / wav_path,
             "feature": project_dir / "model/feature" / str(wav_path.split(".")[0]+".npy"),
+            "pitch_delta": project_dir / "model/pitch_delta" / str(wav_path.split(".")[0]+".npy"),
             "label_base": project_dir / "model/label_base" / str(wav_path.split(".")[0]+".npy"),
             "label_rle": project_dir / "model/label_rle" / str(wav_path.split(".")[0]+".npy"),
             "label_rle_delta": project_dir / "model/label_rle_delta" / str(wav_path.split(".")[0]+".npy"),
