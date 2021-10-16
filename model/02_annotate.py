@@ -5,11 +5,7 @@ import optuna
 from scipy.signal import find_peaks
 from path_manager import PathManager
 
-
 # %%
-# 3. Annotation
-# 3.1 hypara
-# 3.2 annotation
 
 
 def objective(trial):
@@ -37,7 +33,9 @@ def objective(trial):
 
 # %%
 if __name__ == "__main__":
-    print()
+    # 3. Annotation
+    # 3.1 hypara
+    # 3.2 annotation
     # %%
     n_trials = 100
     train_wav_list, _ = PathManager.train_test_wav()
@@ -50,8 +48,9 @@ if __name__ == "__main__":
     best_params = study.best_params
     print(best_params)
     print()
-    if study.best_value!=1:
-        raise ValueError("Try to increse the iteration of resampling in 01_preprocess.py")
+    if study.best_value != 1:
+        raise ValueError(
+            "Try to increse the iteration of resampling in 01_preprocess.py")
     # %%
     set([wav_i.split("-")[1] for wav_i in train_wav_list])
     # %%

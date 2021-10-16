@@ -38,6 +38,7 @@ class Preprocessor:
         # を目視で確認しながなら特徴量を選択した。
         # もとは librosa をつかっていたが、 parselmouth に以降
         # ただ、特徴量の幅は librosa に準拠
+        # resamplingしないとガタガタでアノテーションができない
         hop_length = int(cls.frame_stride*sr)
         feature_len = librosa.feature.rms(y=y, hop_length=hop_length).shape[1]
 
@@ -54,9 +55,10 @@ class Preprocessor:
 
 # %%
 if __name__ == "__main__":
-    resampling_iter = 300
-    print("preprocess に依存して annotation は失敗しうる")
+    # 1. Down-sampling and save
+    # 2. Feature Extraction(pitch, intensity)
     # %%
+    resampling_iter = 1000
     train_wav_list, test_wav_list = PathManager.train_test_wav()
     print(f"train wav files are:\n\t{train_wav_list}")
     print(f"test wav files are:\n\t{test_wav_list}")
@@ -81,5 +83,3 @@ if __name__ == "__main__":
             PathManager.data_path("feature", wav_i),
             feature, allow_pickle=False
         )
-
-# %%
