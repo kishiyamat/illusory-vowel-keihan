@@ -12,6 +12,8 @@ results/webm/*
 results/*.html
 src/audio/output/*
 model/wav/*
+**/__pycache__/
+
 
 !**/.gitkeep
 .Rproj.user
