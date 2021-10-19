@@ -1,3 +1,7 @@
 area,feature,encoding,span_tokyo,span_kyoto
-tokyo,pitch,base,10,0
-tokyo,pitch:pitch_delta,base:delta,0,10
+tokyo,pitch,base,nan,nan
+tokyo,pitch_delta,rle,nan,nan
+tokyo,pitch:pitch_delta,rle_delta,nan,nan
+kinki,pitch,base,nan,nan
+kinki,pitch_delta,rle,nan,nan
+kinki,pitch:pitch_delta,rle_delta,nan,nan

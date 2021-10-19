@@ -32,13 +32,12 @@ from path_manager import PathManager
 # これが実験ファイルになる. この実験ファイルに基づいて実験を行ってログする
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-sample_i = 0
+sample_i = 1
 setting_i = setting_dicts[sample_i]
-setting_i 
+print(setting_i)
+train_x, train_y, _, _ = PathManager.load_data(**setting_i)
 
 # %%
-train_x, train_y, _, _ = PathManager.load_data(**setting_i)
-pid_i = setting_i["pid"]
 data_i = 8
 
 train_x_i, train_y_i = train_x[data_i], train_y[data_i]
