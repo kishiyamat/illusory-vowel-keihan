@@ -1,15 +1,14 @@
 # %%
-# 実験
-# モデル作成
-# モデル要因
-# - Naive Bayes
+# 実験(3x3)を2パターン作る
+# ラベル要因
 # - RLEなし
 # - RLEあり
 # - RLE+デルタ
-# ハイパーパラメータ
-# - 何個先をdeltaするか
-# - 何階deltaとするか
-# モデル
+# 特徴量要因
+# - pitch
+# - pitch:delta
+# - delta
+# 言語モデル
 # - Tokyo
 # - Kinki
 # 実験
@@ -29,95 +28,56 @@ import numpy as np
 from path_manager import PathManager
 
 # %%
-# これが実験ファイルになる. この実験ファイルに基づいて実験を行ってログする
+# DataLoad
+# NOTE: これが実験ファイルになる. 
+# TODO: この実験ファイルに基づいて実験を行ってログする
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-sample_i = 1
+sample_i = 8
 setting_i = setting_dicts[sample_i]
-print(setting_i)
 train_x, train_y, _, _ = PathManager.load_data(**setting_i)
 
+for idx, train_x_i in enumerate(train_x):
+    print(f"params: {setting_i}")
+    print(f"data index: {idx}")
+    print(f"data shape: {train_x_i.shape}")
+    print(f"data label: {train_y[idx]}")
+    for train_x_i_row in train_x_i:
+        plt.plot(train_x_i_row)
+        plt.show()
 # %%
-data_i = 8
-
-train_x_i, train_y_i = train_x[data_i], train_y[data_i]
-print(train_x_i.shape)
-print(train_y_i.shape)
-print(train_y_i)
-plt.plot(train_x_i[0, :])
+# ModelFit
+# 1. meanにするか、medianにするか
+# 1. 次元が1の時(1, n_sample)と2の時で同じ処理ができるか
+# シンボルごとにxをまとめる
+K = list(set(np.concatenate(train_y)))
+train_x_dict = {k:[] for k in K}
+for k in K:
+    # シンボルkの辞書を観測iごとに更新していく
+    for train_x_i, train_y_i in zip(train_x, train_y):
+        train_x_dict[k] = train_x_dict[k]+[train_x_i[:, train_y_i==k]]
+    # まとめ終わったらconcateする(n_feature, n_sample)
+    train_x_dict[k] = np.concatenate(train_x_dict[k], axis=1)
+# %%
+K_i = 3
+print(K[K_i])
+plt.plot(train_x_dict[K[K_i]][0,:])
 plt.show()
-plt.plot(train_x_i[1, :])
-plt.show()
-
 # %%
-# https://github.com/jvkersch/hsmmlearn/blob/master/docs/source/tutorial.rst
-# TODO
-# - [ ] まずは一人のモデルを作る
-# - [ ] デルタを加える
-# - [ ] 初期状態と終端状態を加える
-# RLEで一発では？(空白区切りじゃないとだめ. )
-
-rle.encode(train_y_i)
-y_all = []
-_ = [y_all.extend(y) for y in train_y]
-# y_all ここで y_all で音声を拾えばいい
-train_x_i
-# 0がある (pitch, intensity). これを
-# "delta": (10, ) に基づいて増加させたい
-# %%
-list()
-
-
-def delta(arr, width=1):
-    # [1,2,3] ->
-    # [1,2,3,0] -> base(add tail)
-    # [0,1,2,3] -> refer
-    # [1, 1, 1, 3] -> diff
-    # [1, 1, 1] -> drop tail
-    # v->v のみを計算する
-    pad = np.array([0 for _ in range(width)])
-    base = np.append(arr, pad)
-    refer = np.append(pad, arr)
-    # 0をnanに変えて計算をV間のみで行う
-    base[base == 0] = "nan"
-    refer[refer == 0] = "nan"
-    delta = base - refer
-    delta = delta[:-width]
-    return delta
-
-
-# %%
-# deltaの計算
-# naを事前に除去する方法も考えたが、それだと H_L のケースで詰む
-# 7, 9, 11, 13 あたりが面白い. 確率的に重ね合わせとかできる？
-# あるいは、ピークの時間をつかったり、DPマッチさせたり。
-# ただ経験的に、ヒューリスティクスを重ねるとデバッグが面倒になる。
-# その際は特定の区間に重みを載せたいが...。
-# あるいは、そのままデータ拡張にする。
-# 元の値を考慮すれば、0との比較を帳消しにできるかも？
-# modeも色々と試してみる
-plt.plot(train_x_i[1, :])
-plt.show()
-plt.plot(train_x_i[0, :])
-plt.show()
-# 40あがる-> 140(0との比較)
-for i in range(3, 19, 2):
-    print(i)
-    pitch_i = train_x_i[0, :]
-    pitch_i[pitch_i == 0] = "nan"
-    delta_pitch = delta(pitch_i, width=i)
-    delta_pitch[np.isnan(delta_pitch)] = 0  # 表示のため
-    plt.plot(delta_pitch)
-    # plt.plot(librosa.feature.delta(train_x_i, width=i)[0, :])
-    plt.show()
-# %%
-
+# 上でラベルごとに行列を抽出したので、meansとscalesを産出
+# ただ、scalesは共分散行列の認識だが、あっているかを確認する
+# また、一次元のときでも同じ対応ができるかどうかも確認する
 # means = 0
 # scales = 0
 # durations = 0
 # tmat = 0
 # startprob = 0
 # MultivariateGaussianHSMM(means, scales, durations, tmat, startprob)
+
+# print(K)
+# Stats
+#%%
+# list(filter(lambda arr: len(arr), train_x_dict[K[0]]))
 # %%
 # Model Making
 # https://github.com/kishiyamat/lsj-162-replication/blob/main/src/run.py
