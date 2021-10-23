@@ -57,7 +57,8 @@ if __name__ == "__main__":
             str(PathManager.data_path("downsample", wav_i))
         )
         feature = Preprocessor.pitch_intensity(
-            y, sr, snd, resampling_iter, ceiling)
+            y, sr, snd, resampling_iter, ceiling
+            )
         np.save(
             PathManager.data_path("feature", wav_i),
             feature, allow_pickle=False
