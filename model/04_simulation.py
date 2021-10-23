@@ -2,7 +2,7 @@
 from path_manager import PathManager
 import rle
 import librosa
-from hsmmlearn.hsmm import MultivariateGaussianHSMM
+from hsmmlearn.hsmm import MultivariateGaussianHSMM, GaussianHSMM
 import matplotlib.pyplot as plt
 import more_itertools
 import random
@@ -20,13 +20,19 @@ pp = pprint.PrettyPrinter()
 # Setting for experiment
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-# sample_i = 4
-sample_i = 8
-setting_i = setting_dicts[sample_i]
+# condition_i = 4
+condition_i = 8
+setting_i = setting_dicts[condition_i]
 pp.pprint(setting_i)
 # %%
 # DataLoad
-train_x, train_y, _, _ = PathManager.load_data(**setting_i)
+train_x, train_y, test_x, test_token = PathManager.load_data(**setting_i)
+sample_i = 0
+print(test_token[sample_i])
+print(train_x[sample_i].shape)
+print(test_x[sample_i].shape)
+
+#%%
 # %%
 # ModelBuild
 
@@ -41,6 +47,8 @@ class Model:
         self.log = ""
         self.dur_std = None
         self.resolusion = 4
+        self.hsmm = None
+        self.K = []
         # その他のあり得るハイパラ
         # - meanにするか、medianにするか(meanにするには0が多い)
         # - scaleも調整が必要
@@ -56,20 +64,18 @@ class Model:
         # カテゴリーごとにXを取得して射出確率の計算に使う
         K = list(set(np.concatenate(y)))  # ordered list
         K.sort()
+        self.K = K
         X_by_K = self._X_by_K(X, y, K)
         # feature によって射出モデルとパラメータは変わる
         params = {}
         if not self.is_multi:
-            params["model_name"] = "GaussianHSMM"
-            params["means"] = [np.mean(X_by_K[K_i]) for K_i in K]
-            params["scales"] = [np.std(X_by_K[K_i]) for K_i in K]
+            params["means"] = np.array([np.mean(X_by_K[K_i]) for K_i in K])
+            params["scales"] = np.array([np.std(X_by_K[K_i]) for K_i in K])
         elif self.is_multi:
-            params["model_name"] = "MultivariateGaussianHSMM"
             params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
             params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
         # Beta(遷移確率)
         startprob, tmat = self._startprob_tmat(y, K)
-        params["categories"] = K
         params["tmat"] = tmat
         params["startprob"] = startprob
         # Duration
@@ -83,9 +89,12 @@ class Model:
             [self._duration_dist(duration_by_K[k], dur_max+int(dur_std_mean), self.resolusion)
              for k in K]
         )
-        # MultivariateGaussianHSMM(means, scales, durations, tmat, startprob)
         pp.pprint(params)
         self.params = params
+        if not self.is_multi:
+            self.hsmm = GaussianHSMM(**params)
+        elif self.is_multi:
+            self.hsmm = MultivariateGaussianHSMM(**params)
         return self
 
     def duration_log(self):
@@ -181,7 +190,12 @@ class Model:
 # %%
 model = Model(**setting_i)
 model.fit(train_x, train_y)
-model.duration_log()
+# model.duration_log()
+print(setting_i)
+print(model.params)
+test_y = model.hsmm.decode(test_x[sample_i])
+print(test_token[sample_i])
+[model.K[y] for y in test_y]
 # %%
 # %%
 # 上でラベルごとに行列を抽出したので、meansとscalesを産出

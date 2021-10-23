@@ -114,6 +114,7 @@ class PathManager:
         train_path = filter(cls.is_not_illusory, feature_path)
         test_path = filter(cls.is_illusory, feature_path)
         train_token = [p.split("/")[-1] for p in train_path]
+        test_token = [p.split("/")[-1] for p in test_path]
         # filter by area: token(LLHなど)が条件(kinki--tokyo)を満たすか
         train_token = list(filter(
             lambda s: s.split("-")[1] in cls.accept[area],
@@ -138,5 +139,19 @@ class PathManager:
             np.load(cls.data_path(f"label_{encoding}", t))
             for t in train_token
         ]
-        test_x = [np.load(p) for p in test_path]
-        return train_x, train_y, test_x, None
+        test_x = []
+        for t in test_token:
+            pitch = np.load(cls.data_path("feature", t))[0, :].reshape(1, -1)
+            delta = np.load(cls.data_path("pitch_delta", t))
+            # testはそのままdecodeできる値にする。
+            # pitch や pitch_delta は GausianHSMM
+            # pitch:pitch_delta は Multivariate の入力になる
+            if feature == "pitch":
+                test_x.append(pitch.flatten())
+            elif feature == "pitch:pitch_delta":
+                test_x.append(np.concatenate([pitch, delta]).T)
+            elif feature == "pitch_delta":
+                test_x.append(delta.flatten())
+            else:
+                raise NotImplementedError
+        return train_x, train_y, test_x, test_token
