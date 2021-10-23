@@ -1,4 +1,5 @@
 # %%
+from path_manager import PathManager
 import rle
 import librosa
 from hsmmlearn.hsmm import MultivariateGaussianHSMM
@@ -11,47 +12,40 @@ from typing import List
 import pandas as pd
 import numpy as np
 
-from path_manager import PathManager
-
+import pprint
+pp = pprint.PrettyPrinter()
 # %%
-# DataLoad
-# NOTE: これが実験ファイルになる.
-# TODO: この実験ファイルに基づいて実験を行ってログする
+# Setting for experiment
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
 # sample_i = 0
 sample_i = 8
 setting_i = setting_dicts[sample_i]
-train_x, train_y, _, _ = PathManager.load_data(**setting_i)
-
-# for idx, train_x_i in enumerate(train_x):
-#     print(f"params: {setting_i}")
-#     print(f"data index: {idx}")
-#     print(f"data shape: {train_x_i.shape}")
-#     print(f"data label: {train_y[idx]}")
-#     for train_x_i_row in train_x_i:
-#         if 'get_ipython' in globals():
-#             plt.plot(train_x_i_row)
-#             plt.show()
-
+pp.pprint(setting_i)
 # %%
+# DataLoad
+train_x, train_y, _, _ = PathManager.load_data(**setting_i)
+# %%
+# ModelBuild
 
 
 class Model:
     def __init__(self, area, feature, encoding, **kwargs):
         self.area, self.feature, self.encoding = area, feature, encoding
-        # その他のあり得るハイパラ
-        # meanにするか、medianにするか
-        # scaleも調整が必要
-        # もしかしたら長さも調整が必要かも
         self.kwargs = kwargs
+        self.is_multi = len(feature.split(":")) >= 2
+        # その他のあり得るハイパラ
+        # - meanにするか、medianにするか
+        # - scaleも調整が必要
+        # - 持続時間の分布の形状
+        # - frame_width
 
     def fit(self, X: List[np.ndarray], y: List[np.ndarray]) -> None:
         """
         X: 観測数ごとにListにした (n_features, n_samples)
         y: 観測数ごとにListにした(n_samples, )
         """
-        K = list(set(np.concatenate(y)))
+        K = list(set(np.concatenate(y)))  # ordered list
         X_by_K = {k: [] for k in K}
         for k in K:
             # シンボルkの辞書を観測iごとに更新していく
@@ -61,47 +55,50 @@ class Model:
             # まとめ終わったらconcateする(n_feature, n_sample)
             X_by_K[k] = np.concatenate(X_by_K[k], axis=1)
 
-        # feature によって射出モデルのパラメータは変わる
-        if self.feature.count(":") == 0:
-            means = [np.mean(X_by_K[K_i]) for K_i in K]
-            scales = [np.std(X_by_K[K_i]) for K_i in K]  # 2次元の時
-            pass
-        elif self.feature.count(":") == 1:
-            means = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
-            scales = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
-            pass
-        else:
-            raise NotImplementedError
-        # area によって遷移確率パラメータは変わるが、yから決まる
-        # rle して durは求まる。
-        # 早めにK*Kの行列を作る
-        tmat = None
+        # feature によって射出モデルとパラメータは変わる
+        params = {}
+        # Alpha(射出確率)
+        if not self.is_multi:
+            params["model_name"] = "HSMM"
+            params["mean"] = [np.mean(X_by_K[K_i]) for K_i in K]
+            params["scales"] = [np.std(X_by_K[K_i]) for K_i in K]
+        elif self.is_multi:
+            params["model_name"] = "MultivariateHSMM"
+            params["mean"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
+            params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+        # Beta(遷移確率)
+        # 0. np.zerosで K+1 x K+1 の行列を作成(silを足すためK+1になる)
+        counter = np.zeros((len(K)+1, len(K)+1), dtype=int)
+        # 1. 初期確率を求めるため、カテゴリーにsil(ent)を足す
+        K = ["sil"] + K  # 最初の確率
+        for train_y_i in train_y:
+            # 2. 各観測 train_y_i で rle し、カテゴリーの系列を取得、silを先頭に足す
+            seq, duration = rle.encode(train_y_i)
+            seq = ["sil"] + seq
+            n_transition = len(seq)-1
+            for i in range(n_transition):
+                # 3. 系列の [i, i+1] を足していく
+                from_idx = K.index(seq[i])
+                to_idx = K.index(seq[i+1])
+                counter[from_idx, to_idx] += 1
+
+        # 4. 存在するかしないかの2択なのでboolにしてintにする(0/1)
+        counter_bin = counter.astype(bool).astype(int)
+        # 5. 確率に変換する: 横に潰してsumして、それを(n_state, 1)にreshapeして除算
+        tmat_with_sil = counter_bin / counter_bin.sum(axis=1).reshape(-1, 1)
+        startprob = tmat_with_sil[0, 1:] # 0行,1列以降
+        tmat = tmat_with_sil[1:, 1:]  # 1行,1列以降
+        params["tmat"] = tmat
+        params["startprob"] = startprob 
         durations = None
-        startprob = None
-        MultivariateGaussianHSMM(means, scales, durations, tmat, startprob)
+        # MultivariateGaussianHSMM(means, scales, durations, tmat, startprob)
+        pp.pprint(params)
         return self
 
 
 # %%
-K = list(set(np.concatenate(train_y)))
-K = ["sil"] + K # 最初の確率
-K.index("L1")
-counter = np.zeros((len(K), len(K)), dtype=int)
-for train_y_i in train_y:
-    seq, duration = rle.encode(train_y_i)
-    seq = ["sil"] + seq
-    n_transition = len(seq)-1
-    for i in range(n_transition):
-        src = K.index(seq[i])
-        tgt = K.index(seq[i+1])
-        counter[src, tgt] += 1
-
-print(K)
-print(counter)
-# ラプラスして頻度にする
-# 偏りなので0以外は等しい確率を想定する
-# sil行はstartprobになる
-# sil行、sil列は落とす
+model = Model(**setting_i)
+model.fit(train_x, train_y)
 # %%
 # ModelFit
 # 1. 次元が1の時(1, n_sample)と2の時で同じ処理ができるか
@@ -109,13 +106,6 @@ tmat = [[0.5, 0.5],
         [0.5, 0.5]]
 dur_dict = {k_i: np.mean([np.sum(y == k_i) for y in train_y])for k_i in K}
 dur_dict
-# %%
-
-
-def model_select(area, encoding, feature, **kwargs) -> dict:
-    pass
-
-
 # %%
 # 上でラベルごとに行列を抽出したので、meansとscalesを産出
 # ただ、scalesは共分散行列の認識だが、あっているかを確認する
