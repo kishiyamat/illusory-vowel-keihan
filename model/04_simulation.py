@@ -4,6 +4,7 @@ import rle
 import librosa
 from hsmmlearn.hsmm import MultivariateGaussianHSMM
 import matplotlib.pyplot as plt
+import more_itertools
 import random
 from pathlib import Path
 from pydoc import resolve
@@ -19,8 +20,8 @@ pp = pprint.PrettyPrinter()
 # Setting for experiment
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-sample_i = 4
-# sample_i = 8
+# sample_i = 4
+sample_i = 8
 setting_i = setting_dicts[sample_i]
 pp.pprint(setting_i)
 # %%
@@ -32,10 +33,14 @@ train_x, train_y, _, _ = PathManager.load_data(**setting_i)
 
 class Model:
     def __init__(self, area, feature, encoding, **kwargs):
+        # TODO: 全てのKでsortを保証
         self.area, self.feature, self.encoding = area, feature, encoding
         self.kwargs = kwargs
         self.is_multi = len(feature.split(":")) >= 2
         self.params = {}
+        self.log = ""
+        self.dur_std = None
+        self.resolusion = 4
         # その他のあり得るハイパラ
         # - meanにするか、medianにするか(meanにするには0が多い)
         # - scaleも調整が必要
@@ -50,30 +55,55 @@ class Model:
         # Alpha(射出確率)
         # カテゴリーごとにXを取得して射出確率の計算に使う
         K = list(set(np.concatenate(y)))  # ordered list
+        K.sort()
         X_by_K = self._X_by_K(X, y, K)
         # feature によって射出モデルとパラメータは変わる
         params = {}
         if not self.is_multi:
             params["model_name"] = "GaussianHSMM"
-            params["mean"] = [np.mean(X_by_K[K_i]) for K_i in K]
+            params["means"] = [np.mean(X_by_K[K_i]) for K_i in K]
             params["scales"] = [np.std(X_by_K[K_i]) for K_i in K]
         elif self.is_multi:
             params["model_name"] = "MultivariateGaussianHSMM"
-            params["mean"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
+            params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
             params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
         # Beta(遷移確率)
         startprob, tmat = self._startprob_tmat(y, K)
         params["categories"] = K
         params["tmat"] = tmat
         params["startprob"] = startprob
-        durations = None
+        # Duration
+        duration_by_K = self._duration_by_K(y, K)
+        dur_std_mean = np.mean([np.std(duration_by_K[k]) for k in K])
+        self._dur_std_mean = dur_std_mean
+        durations = np.concatenate([v for _, v in duration_by_K.items()])
+        dur_max = np.max(durations)  # 24のbinがあるこれを1/4のサイズにする。
+        # dur_max に std のint分は上限を追加する
+        params["durations"] = np.array(
+            [self._duration_dist(duration_by_K[k], dur_max+int(dur_std_mean), self.resolusion)
+             for k in K]
+        )
         # MultivariateGaussianHSMM(means, scales, durations, tmat, startprob)
         pp.pprint(params)
         self.params = params
         return self
 
+    def duration_log(self):
+        # log
+        frame_stride = Preprocessor.frame_stride  # 0.025
+        print("std of frame duration is ", round(self._dur_std_mean, 2))
+        print(f"since the frame_stride is {frame_stride}(s)")
+        print(
+            f"the 2*sd of duraion is {round(2*self._dur_std_mean*frame_stride, 2)}(s)"
+        )
+        print("assuming that the distribution is bellcurve")
+        print(
+            f"the resolution is set to {self.resolusion}, which is supposed to be 2*sd"
+        )
+
     @staticmethod
     def _X_by_K(X: List[np.ndarray], y: List[np.ndarray], K: list) -> dict:
+        assert more_itertools.is_sorted(K)
         X_by_K = {k: [] for k in K}
         for k in K:
             # シンボルkの辞書を観測iごとに更新していく
@@ -86,17 +116,24 @@ class Model:
 
     @staticmethod
     def _duration_by_K(y: List[np.ndarray], K: list) -> dict:
-        pass
+        duration_by_K = {k: [] for k in K}
+        for y_i in y:
+            # 2. 各観測 y_i で rle し、カテゴリーの系列を取得、silを先頭に足す
+            seq, duration = rle.encode(y_i)
+            for s, d in zip(seq, duration):
+                duration_by_K[s] = duration_by_K[s]+[d]
+        return duration_by_K
 
     @staticmethod
     def _startprob_tmat(y: List[np.ndarray], K):
         """
         y: 観測数ごとにListにしたList(n_samples, )
         """
+        assert more_itertools.is_sorted(K)
         # 0. np.zerosで K+1 x K+1 の行列を作成(silを足すためK+1になる)
         counter = np.zeros((len(K)+1, len(K)+1), dtype=int)
         # 1. 初期確率を求めるため、カテゴリーにsil(ent)を足す
-        K = ["bos"] + K  # 最初の確率
+        K_with_bos = ["bos"] + K  # 最初の確率
         for y_i in y:
             # 2. 各観測 y_i で rle し、カテゴリーの系列を取得、bosを先頭に足す
             seq, _ = rle.encode(y_i)
@@ -104,17 +141,17 @@ class Model:
             n_transition = len(seq)-1
             for i in range(n_transition):
                 # 3. 系列の [i, i+1] を足していく
-                from_idx = K.index(seq[i])
-                to_idx = K.index(seq[i+1])
+                from_idx = K_with_bos.index(seq[i])
+                to_idx = K_with_bos.index(seq[i+1])
                 counter[from_idx, to_idx] += 1
 
         # 4. 存在するかしないかの2択なのでboolにしてintにする(0/1)
         counter_bin = counter.astype(bool).astype(int)
         # 5. 確率に変換する: 横に潰してsumして、それを(n_state, 1)にreshapeして除算
-        tmat_with_sil = counter_bin / counter_bin.sum(axis=1).reshape(-1, 1)
-        startprob = tmat_with_sil[0, 1:]  # 0行,1列以降
+        tmat_with_bos = counter_bin / counter_bin.sum(axis=1).reshape(-1, 1)
+        startprob = tmat_with_bos[0, 1:]  # 0行,1列以降
         assert np.sum(startprob) == 1
-        tmat = tmat_with_sil[1:, 1:]  # 1行,1列以降
+        tmat = tmat_with_bos[1:, 1:]  # 1行,1列以降
         tmat = np.nan_to_num(tmat)
         for idx, row in enumerate(tmat):
             # 6. 和が0の時、自身に遷移させる
@@ -124,76 +161,28 @@ class Model:
             assert np.sum(row) == 1
         return startprob, tmat
 
+    @staticmethod
+    def _duration_dist(arr, max, res):
+        """
+        arr: 求めたい分布のarr
+        max: クラスK_i の arr だけではなく、全Kのarrのmax
+        res: 1塊とするframeの個数
+            strideが25msでresが4のとき、100msをひとかたまりとする。
+            このresの値はbelcurveの時の sd の 2倍が適切
+        """
+        count, _ = np.histogram(arr, bins=int(max/res), range=(1, max))
+        count = count/res  # resで割っておく
+        x = np.concatenate([[i]*res for i in count])
+        duration = x/np.sum(x)
+        assert np.isclose(np.sum(duration), 1, rtol=1e-10, atol=1e-10)
+        return duration
+
 
 # %%
 model = Model(**setting_i)
 model.fit(train_x, train_y)
+model.duration_log()
 # %%
-# まずKのプレースホルダーを作成
-# ポアソンなのか、経験なのか。
-# 0の確率は存在しない。1スタート
-# 粒度の問題か。
-# モーラはxだから、100ms程度で分けて良いだろう。
-# ただ、あまりヒューリスティックスには頼りたくない。
-# まぁサンプリングしてdiscreteにすればいいか
-y = train_y
-K = list(set(np.concatenate(y)))  # ordered list
-# Kごとにdurationの統計を取る
-duration_dist = "hist"
-
-duration_by_K = {k: [] for k in K}
-for y_i in y:
-    # 2. 各観測 y_i で rle し、カテゴリーの系列を取得、silを先頭に足す
-    seq, duration = rle.encode(y_i)
-    for s, d in zip(seq, duration):
-        duration_by_K[s] = duration_by_K[s]+[d]
-
-dur_means = [np.mean(duration_by_K[k]) for k in K]
-dur_std_mean = np.mean([np.std(duration_by_K[k]) for k in K])
-frame_stride = Preprocessor.frame_stride  # 0.025
-print("std of frame duration is ", round(dur_std_mean, 2))
-print(f"since the frame_stride is {frame_stride}(s)")
-print(f"the 2*sd of duraion is {round(2*dur_std_mean*frame_stride, 2)}(s)")
-print("assuming that the distribution is bellcurve")
-resolusion = 4
-print(f"the resolution is set to {resolusion}, which is supposed to be 2*sd")
-
-pp.pprint(duration_by_K)
-durations = np.concatenate([v for k, v in duration_by_K.items()])
-dur_max = np.max(durations)  # 24のbinがあるこれを1/4のサイズにする。
-
-
-def duration_dist(arr, max, res):
-    """
-    arr: 求めたい分布のarr
-    max: クラスK_i の arr だけではなく、全Kのarrのmax
-    res: 1塊とするframeの個数
-        strideが25msでresが4のとき、100msをひとかたまりとする。
-        このresの値はbelcurveの時の sd の 2倍が適切
-    """
-    count, _ = np.histogram(arr, bins=int(max/res), range=(1, max))
-    print(count)
-    count = count/res
-    x = np.concatenate([[i]*res for i in count])
-    duration = x/np.sum(x)
-    assert np.sum(duration) == 1
-    return duration
-
-
-for k in K:
-    print(k)
-    duration_by_K[k] = duration_dist(duration_by_K[k], dur_max, resolusion)
-
-duration_by_K
-
-# %%
-# %%
-# ModelFit
-# 1. 次元が1の時(1, n_sample)と2の時で同じ処理ができるか
-tmat = [[0.5, 0.5],
-        [0.5, 0.5]]
-dur_dict = {k_i: np.mean([np.sum(y == k_i) for y in train_y])for k_i in K}
-dur_dict
 # %%
 # 上でラベルごとに行列を抽出したので、meansとscalesを産出
 # ただ、scalesは共分散行列の認識だが、あっているかを確認する
