@@ -15,6 +15,7 @@ class Modeler:
         # TODO: 全てのKでsortを保証
         self.area, self.feature, self.encoding = area, feature, encoding
         self.kwargs = kwargs
+        self.feature_label = feature.split(":")
         self.is_multi = len(feature.split(":")) >= 2
         self.model_params = {}
         self.log = ""
@@ -68,8 +69,10 @@ class Modeler:
         elif self.is_multi:
             self.hsmm = MultivariateGaussianHSMM(**params)
         return self.hsmm
-    
-    def predict():
+
+    def predict(self, X, show=False):
+        y = self.hsmm.predict(X)
+        # plt.plot(X, y, color='green', linestyle='dashed', marker='o', markerfacecolor='blue', markersize=12).
         # ビジュアルも出してほしい
         pass
 

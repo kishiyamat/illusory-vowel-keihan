@@ -1,4 +1,7 @@
 # %%
+import numpy as np
+import matplotlib.pyplot as plt
+from preprocessor import Preprocessor
 import pprint
 import random
 
@@ -28,7 +31,30 @@ print(setting_i)
 print(model.model_params)
 test_y = model.hsmm.decode(test_x[sample_i])
 print(test_token[sample_i])
-[model.K[y] for y in test_y]
+y_pred = np.array(model.K)[test_y]
+# %%
+# まずモーラは錯覚されている。
+print(setting_i)
+fig, axs = plt.subplots(2)
+fig.suptitle('Vertically stacked subplots')
+# xはmsに直すと一気にわかりやすくなる
+x = [i*Preprocessor.frame_stride*1_000 for i in range(len(y_pred))]
+#
+label = ["A", "B"] # TODO: model.feature_label を使う
+for idx, l in enumerate(label):
+    axs[0].plot(x, test_x[sample_i][:, idx], label=l)
+    axs[0].legend()
+# 非該当にはnanを置く
+y_set = set(y_pred)
+for l in y_set:
+    low_high = [y_i.count("H") if y_i == l else np.nan for y_i in y_pred]  # 0--1
+    axs[1].plot(x, low_high, label=l)
+    axs[1].legend()
+# axs[1].plot(x, y_pred)
+plt.show()
+# %%
+test_x[sample_i].shape
+# test_y
 # %%
 # %%
 # 上でラベルごとに行列を抽出したので、meansとscalesを産出
