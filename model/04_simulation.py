@@ -43,3 +43,21 @@ if __name__ == "__main__":
     results_df.to_csv("artifacts/results.csv")
 
 # %%
+results_df.head()
+combine_lambda = lambda x: '{}+{}+{}'.format(x.area, x.encoding, x.feature)
+results_df["conditions"] = results_df.apply(combine_lambda, axis = 1)
+exp_cond = list(set(results_df.conditions))
+exp_cond.sort()
+
+from plotnine import *
+
+for exp_cond_i in exp_cond:
+    results_df_i = results_df.query(f"conditions == '{exp_cond_i}'") 
+    print(exp_cond_i)
+    gg = (
+        ggplot(results_df_i, aes(x='res'))
+        + facet_grid(".~pitch")
+        + geom_histogram(binwidth=0.5) # specify the binwidth
+        + theme(axis_text_x=element_text(rotation=90, hjust=1))
+    )
+    print(gg)
