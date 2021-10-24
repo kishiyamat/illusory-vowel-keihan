@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+from plotnine import *
 
 from modeler import Modeler
 from path_manager import PathManager
@@ -16,10 +17,14 @@ if __name__ == "__main__":
     results_list = []
     for condition_i, setting_i in enumerate(setting_dicts):
         # DataLoad
-        train_x, train_y, test_x, test_token = PathManager.load_data(
-            **setting_i)
+        train_x, train_y, test_x, test_token = PathManager\
+            .load_data(**setting_i)
+        # TODO: Data Augmentation(train, test)
+        # train は duration の調整+幅の調整(特徴量を作る段階じゃん...)
+        # test は duration の要因化
         # Modeling
         model = Modeler(**setting_i)
+        # TODO: Model のパラメータチェック(bell curve, tmat, duration)
         model.fit(train_x, train_y)
         # Experiment
         for sample_idx, test_token_i in enumerate(test_token):
@@ -44,21 +49,27 @@ if __name__ == "__main__":
 
 # %%
 results_df.head()
-combine_lambda = lambda x: '{}+{}+{}'.format(x.area, x.encoding, x.feature)
-results_df["conditions"] = results_df.apply(combine_lambda, axis = 1)
+def combine_lambda(x): return '{}+{}'.format(x.encoding, x.feature)
+
+
+results_df["conditions"] = results_df.apply(combine_lambda, axis=1)
 exp_cond = list(set(results_df.conditions))
 exp_cond.sort()
 
-from plotnine import *
-# まさかの rle+pitch 条件が最も良い結果？
 
 for exp_cond_i in exp_cond:
-    results_df_i = results_df.query(f"conditions == '{exp_cond_i}'") 
+    results_df_i = results_df.query(f"conditions == '{exp_cond_i}'")
     print(exp_cond_i)
     gg = (
         ggplot(results_df_i, aes(x='res'))
-        + facet_grid(".~pitch")
-        + geom_histogram(binwidth=0.5) # specify the binwidth
+        + facet_grid("area~pitch")
+        + geom_histogram(binwidth=0.5)  # specify the binwidth
         + theme(axis_text_x=element_text(rotation=90, hjust=1))
     )
     print(gg)
+
+# %%
+
+# %%
+
+# %%

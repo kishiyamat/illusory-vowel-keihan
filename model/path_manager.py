@@ -34,6 +34,7 @@ class PathManager:
         },
     }
     accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
+              # HLL を許すとHLLになる。むしろ、話者もそうなのか？
               "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
     tone_df = pd.read_csv(project_dir/"src/list/axb_list.csv")\
         .query("type=='filler'")
