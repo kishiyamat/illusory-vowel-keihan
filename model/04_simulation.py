@@ -50,6 +50,7 @@ exp_cond = list(set(results_df.conditions))
 exp_cond.sort()
 
 from plotnine import *
+# まさかの rle+pitch 条件が最も良い結果？
 
 for exp_cond_i in exp_cond:
     results_df_i = results_df.query(f"conditions == '{exp_cond_i}'") 
