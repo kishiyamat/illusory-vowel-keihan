@@ -8,3 +8,12 @@ tokyo,pitch_delta,rle_delta,nan,nan
 tokyo,pitch:pitch_delta,base,nan,nan
 tokyo,pitch:pitch_delta,rle,nan,nan
 tokyo,pitch:pitch_delta,rle_delta,nan,nan
+kinki,pitch,base,nan,nan
+kinki,pitch,rle,nan,nan
+kinki,pitch,rle_delta,nan,nan
+kinki,pitch_delta,base,nan,nan
+kinki,pitch_delta,rle,nan,nan
+kinki,pitch_delta,rle_delta,nan,nan
+kinki,pitch:pitch_delta,base,nan,nan
+kinki,pitch:pitch_delta,rle,nan,nan
+kinki,pitch:pitch_delta,rle_delta,nan,nan

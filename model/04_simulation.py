@@ -13,43 +13,51 @@ pp = pprint.PrettyPrinter()
 # Setting for experiment
 setting = PathManager.setting_df
 setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-condition_i = 8
+# condition_i = 13
+# condition_i = 14 # error
+condition_i = 8 # こっちはちゃんと HLL も LHH もでている。
 setting_i = setting_dicts[condition_i]
 pp.pprint(setting_i)
 # %%
 # DataLoad
 train_x, train_y, test_x, test_token = PathManager.load_data(**setting_i)
-sample_i = 1
-print(test_token[sample_i])
-print(train_x[sample_i].shape)
-print(test_x[sample_i].shape)
-# %%
-# ModelBuild
+# Modeling
 model = Modeler(**setting_i)
 model.fit(train_x, train_y)
-print(setting_i)
-print(model.model_params)
-test_y = model.hsmm.decode(test_x[sample_i])
-print(test_token[sample_i])
-y_pred = np.array(model.K)[test_y]
+
 # %%
-# まずモーラは錯覚されている。
-print(setting_i)
-fig, axs = plt.subplots(2)
-fig.suptitle('Vertically stacked subplots')
-# xはmsに直すと一気にわかりやすくなる
-x = [i*Preprocessor.frame_stride*1_000 for i in range(len(y_pred))]
-label = model.feature_label
-for idx, l in enumerate(label):
-    axs[0].plot(x, test_x[sample_i][:, idx], label=l)
-    axs[0].legend()
-y_set = set(y_pred)
-for l in y_set:
-    # 非該当にはnanを置く
-    low_high = [y_i.count("H") if y_i == l else np.nan for y_i in y_pred]  # 0--1
-    axs[1].plot(x, low_high, label=l)
-    axs[1].legend()
-plt.show()
+# Experiment
+# 無音時間が長すぎるとだめ？
+for sample_i, test_token_i in enumerate(test_token):
+    test_y = model.hsmm.decode(test_x[sample_i])
+    print(test_token_i)
+    y_pred = np.array(model.K)[test_y]
+
+    # まずモーラは錯覚されている。
+    print(setting_i)
+    fig, axs = plt.subplots(2)
+    fig.suptitle('Vertically stacked subplots')
+    # xはmsに直すと一気にわかりやすくなる
+    x = [i*Preprocessor.frame_stride*1_000 for i in range(len(y_pred))]
+    label = model.feature_label
+    for idx, l in enumerate(label):
+        if not model.is_multi:
+            axs[0].plot(x, test_x[sample_i], label=l)
+        elif model.is_multi:
+            axs[0].plot(x, test_x[sample_i][:, idx], label=l)
+        axs[0].set_ylabel("(Hz)")
+        axs[0].legend()
+    y_set = set(y_pred)
+    for l in y_set:
+        # 非該当にはnanを置く
+        low_high = [y_i.count("H") if y_i ==
+                    l else np.nan for y_i in y_pred]  # 0--1
+        axs[1].plot(x, low_high, label=l)
+        # axs[1].title("sin")
+        axs[1].set_ylabel("Pitch")
+        axs[1].legend()
+        axs[1].set_xlabel("(ms)")
+    plt.show()
 # %%
 test_x[sample_i].shape
 # test_y
