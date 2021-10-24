@@ -3,7 +3,6 @@ from typing import List
 import matplotlib.pyplot as plt
 import more_itertools
 import numpy as np
-import pandas as pd
 import rle
 from hsmmlearn.hsmm import GaussianHSMM, MultivariateGaussianHSMM
 
@@ -70,11 +69,53 @@ class Modeler:
             self.hsmm = MultivariateGaussianHSMM(**params)
         return self.hsmm
 
-    def predict(self, X, show=False):
-        y = self.hsmm.predict(X)
-        # plt.plot(X, y, color='green', linestyle='dashed', marker='o', markerfacecolor='blue', markersize=12).
-        # ビジュアルも出してほしい
-        pass
+    def predict(self, X, visual=False):
+        """
+        X: 入力
+            if not sllf.is_multi: (n_sample, )
+            if not sllf.is_multi: (n_sample, n_feature)
+        """
+        y_pred = self.hsmm.decode(X)  # index
+        y_pred = np.array(self.K)[y_pred]  # label
+        if visual:
+            fig, axs = plt.subplots(2)
+            fig.suptitle('Vertically stacked subplots')
+            time = [i*Preprocessor.frame_stride *
+                    1_000 for i in range(len(y_pred))]
+            label = self.feature_label
+            for idx, l in enumerate(label):
+                if self.is_multi:
+                    # 多次元の描画
+                    axs[0].plot(time, X[:, idx], label=l)
+                else:
+                    axs[0].plot(time, X, label=l)
+                axs[0].set_ylabel("(Hz)")
+                axs[0].legend()
+            y_set = set(y_pred)
+            for l in y_set:
+                # 非該当にはnanを置く
+                low_high = [
+                    y_i.count("H") if y_i == l else np.nan
+                    for y_i in y_pred
+                ]  # 0--1
+                axs[1].plot(time, low_high, label=l)
+                # axs[1].title("sin")
+                axs[1].set_ylabel("Pitch")
+                axs[1].legend()
+                axs[1].set_xlabel("(ms)")
+            plt.show()
+        return y_pred
+
+    @staticmethod
+    def to_pattern(y_seq):
+        seq, _ = rle.encode(y_seq)
+        seq = [seq_i.replace("d", "")for seq_i in seq]
+        res = []
+        for seq_i in seq:
+            assert len(seq_i) == 2  # 各系列(d抜き)は長さ2
+            pitch, length = seq_i[0], seq_i[1]
+            res.extend([pitch]*int(length))
+        return "".join(res)
 
     def duration_log(self):
         # log
