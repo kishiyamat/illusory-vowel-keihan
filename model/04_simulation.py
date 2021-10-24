@@ -39,18 +39,16 @@ fig, axs = plt.subplots(2)
 fig.suptitle('Vertically stacked subplots')
 # xはmsに直すと一気にわかりやすくなる
 x = [i*Preprocessor.frame_stride*1_000 for i in range(len(y_pred))]
-#
-label = ["A", "B"] # TODO: model.feature_label を使う
+label = model.feature_label
 for idx, l in enumerate(label):
     axs[0].plot(x, test_x[sample_i][:, idx], label=l)
     axs[0].legend()
-# 非該当にはnanを置く
 y_set = set(y_pred)
 for l in y_set:
+    # 非該当にはnanを置く
     low_high = [y_i.count("H") if y_i == l else np.nan for y_i in y_pred]  # 0--1
     axs[1].plot(x, low_high, label=l)
     axs[1].legend()
-# axs[1].plot(x, y_pred)
 plt.show()
 # %%
 test_x[sample_i].shape
