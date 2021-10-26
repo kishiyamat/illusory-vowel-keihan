@@ -1,5 +1,5 @@
 Cython==0.29.24
--e git+https://github.com/kishiyamat/hsmmlearn.git
+-e git+https://github.com/kishiyamat/hsmmlearn.git#egg=hsmmlearn
 numba==0.53.1
 librosa==0.8.1
 praat-parselmouth
