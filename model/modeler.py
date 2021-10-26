@@ -159,6 +159,7 @@ class Modeler:
     def _startprob_tmat(y: List[np.ndarray], K):
         """
         y: 観測数ごとにListにしたList(n_samples, )
+        K: カテゴリーの集合
         """
         assert more_itertools.is_sorted(K)
         # 0. np.zerosで K+1 x K+1 の行列を作成(silを足すためK+1になる)

@@ -22,8 +22,17 @@ def test_duration_by_K():
 
 
 def test_startprob_tmat():
-    Modeler._startprob_tmat
-    pass
+    src_1 = [["L1", "L1", "L1", "H1", "H1", "H1"],
+             ["L1", "L1", "L1", "H2", "H2", "H2"], ]
+    src_2 = ["H1", "H2", "L1", ]
+    # TODO: 「どこにも行かない」を表現する方法を検討(eos の追加など)
+    tgt_tmat = [[1, 0, 0],
+                [0, 1, 0],
+                [0.5, 0.5, 0], ]
+    tgt_startprob = [0, 0, 1]
+    res_1, res_2 = Modeler._startprob_tmat(src_1, src_2)
+    assert res_1.tolist() == tgt_startprob
+    assert res_2.tolist() == tgt_tmat
 
 
 def test_duration_dist():
