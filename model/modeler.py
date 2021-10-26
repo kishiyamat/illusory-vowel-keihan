@@ -208,7 +208,9 @@ class Modeler:
             raise ValueError(
                 "max of the input exceeded the assumed the max value"
             )
-        count, _ = np.histogram(arr, bins=int(frame_max_len/conv), range=(1, frame_max_len))
+        count, _ = np.histogram(arr,
+                                bins=int(frame_max_len/conv),
+                                range=(1, frame_max_len))
         count = count/conv  # convで割っておく
         x = np.concatenate([[i]*conv for i in count])
         duration = x/np.sum(x)

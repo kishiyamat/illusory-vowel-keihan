@@ -39,12 +39,12 @@ def test_data_path():
 def test_is_illusory():
     train_wav = 'esuko-LHH-1.wav'
     test_wav = 'esko-L_H-2.wav'
-    assert PathManager.is_illusory(train_wav) == False
-    assert PathManager.is_illusory(test_wav) == True
+    assert not PathManager.is_illusory(train_wav)
+    assert PathManager.is_illusory(test_wav)
 
 
 def test_is_not_illusory():
     train_wav = 'esuko-LHH-1.wav'
     test_wav = 'esko-L_H-2.wav'
-    assert PathManager.is_not_illusory(train_wav) == True
-    assert PathManager.is_not_illusory(test_wav) == False
+    assert PathManager.is_not_illusory(train_wav)
+    assert not PathManager.is_not_illusory(test_wav)

@@ -1,4 +1,3 @@
-from librosa.core.audio import resample
 from model.modeler import Modeler
 import pytest
 
@@ -28,7 +27,7 @@ def test_startprob_tmat():
 
 
 def test_duration_dist():
-    dur_list = [8, 8, 10, 10, 20]
+    dur_list = [8, 8, 10, 10, 20]  # 17--20 のintegralは0.2になる
     tgt = [0.00, 0.00, 0.00, 0.00,
            0.10, 0.10, 0.10, 0.10,
            0.10, 0.10, 0.10, 0.10,
@@ -39,4 +38,3 @@ def test_duration_dist():
     with pytest.raises(ValueError):
         dur_list = [8, 8, 10, 10, 100]
         Modeler._duration_dist(dur_list, frame_max_len=20, conv=4)
-    # pass
