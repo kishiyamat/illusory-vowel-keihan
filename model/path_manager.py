@@ -1,12 +1,14 @@
 # %%
-import numpy as np
 from glob import glob
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
 
 
 class PathManager:
     project_dir = Path("../")
+    test_dir = Path("./tests/")
     label_by_encode = {
         "base": {
             "HL": "HL",
@@ -36,17 +38,17 @@ class PathManager:
     accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
               # HLL を許すとHLLになる。むしろ、話者もそうなのか？
               "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
-    tone_df = pd.read_csv(project_dir/"src/list/axb_list.csv")\
-        .query("type=='filler'")
-    setting_df = pd.read_csv(project_dir/"model/setting.csv")
 
     @classmethod
-    def data_path(cls, data_type, wav_path=""):
+    def data_path(cls, data_type, wav_path="", is_test=False) -> Path:
         """
         wav_path: wav_path じゃなくても良い(どのみち処理するので)
         """
         # 参照したいタイプを渡すとパスを返す
-        project_dir = cls.project_dir
+        if is_test:
+            project_dir = cls.test_dir
+        else:
+            project_dir = cls.project_dir
         # NOTE: 予測に失敗した時、近畿のLHH拒否が原因かもしれない
         accepted_types = [
             "original", "downsample", "feature", "pitch_delta",
@@ -66,8 +68,13 @@ class PathManager:
         return data_path_map[data_type]
 
     @classmethod
-    def train_test_wav(cls):
-        tone_df = cls.tone_df[["a", "x", "b"]]
+    def train_test_wav(cls, is_test=False):
+        if is_test:
+            tone_df = pd.read_csv(cls.test_dir/"src/list/axb_list.csv")\
+                .query("type=='filler'")[["a", "x", "b"]]
+        else:
+            tone_df = pd.read_csv(cls.project_dir/"src/list/axb_list.csv")\
+                .query("type=='filler'")[["a", "x", "b"]]
         wav_list_set = set(
             tone_df.a.values.tolist() +
             tone_df.x.values.tolist() +
@@ -96,7 +103,7 @@ class PathManager:
         return not bool(path.split("/")[-1].count("_"))
 
     @classmethod
-    def load_data(cls, area, encoding, feature, **kwargs) -> tuple:
+    def load_data(cls, area, encoding, feature, is_test=False, **kwargs) -> tuple:
         # check if the settings are just right
         spaces = ["kinki", "tokyo"]
         encoding_methods = ["base", "rle", "rle_delta"]
@@ -126,6 +133,7 @@ class PathManager:
         train_x = []
         for t in train_token:
             pitch = np.load(cls.data_path("feature", t))[0, :].reshape(1, -1)
+            # TODO: ここで計算くっつけるのをやめる
             delta = np.load(cls.data_path("pitch_delta", t))
             if feature == "pitch":
                 train_x.append(pitch)

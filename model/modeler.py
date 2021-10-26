@@ -99,7 +99,6 @@ class Modeler:
                     for y_i in y_pred
                 ]  # 0--1
                 axs[1].plot(time, low_high, label=label_i)
-                # axs[1].title("sin")
                 axs[1].set_ylabel("Pitch")
                 axs[1].legend()
                 axs[1].set_xlabel("(ms)")
