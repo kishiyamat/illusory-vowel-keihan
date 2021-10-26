@@ -1,0 +1,2 @@
+task,item_id,type,pair,condition,base,correct,item_a,item_x,item_b,v1,c1,v2-a,v2-x,v2-b,c2,v3,pitch_a,pitch_x,pitch_b,speaker_1,speaker_2,speaker_3,a,x,b,request_to_1,request_to_2,request_to_3
+axb,56,filler,5,devoiced,,b,esuko-LHH,esko-L_H,esko-L_H,e,s,u,,,k,o,-LHH,-L_H,-L_H,1,2,3,esuko-LHH-1.wav,esko-L_H-2.wav,esko-L_H-3.wav,,,

@@ -1,6 +1,7 @@
 # %%
 import pandas as pd
-from plotnine import *
+from plotnine import (aes, element_text, facet_grid, geom_histogram, ggplot,
+                      theme)
 
 from modeler import Modeler
 from path_manager import PathManager

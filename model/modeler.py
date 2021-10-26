@@ -19,7 +19,7 @@ class Modeler:
         self.model_params = {}
         self.log = ""
         self.dur_std = None
-        self.resolusion = 4
+        self.conv = 4
         self.hsmm = None
         self.K = []
         # その他のあり得るハイパラ
@@ -59,7 +59,7 @@ class Modeler:
         dur_max = np.max(durations)  # 24のbinがあるこれを1/4のサイズにする。
         # dur_max に std のint分は上限を追加する
         params["durations"] = np.array(
-            [self._duration_dist(duration_by_K[k], dur_max+int(dur_std_mean), self.resolusion)
+            [self._duration_dist(duration_by_K[k], dur_max+int(dur_std_mean), self.conv)
              for k in K]
         )
         self.model_params = params
@@ -83,23 +83,22 @@ class Modeler:
             time = [i*Preprocessor.frame_stride *
                     1_000 for i in range(len(y_pred))]
             label = self.feature_label
-            for idx, l in enumerate(label):
+            for idx, tone_label in enumerate(label):
                 if self.is_multi:
                     # 多次元の描画
-                    axs[0].plot(time, X[:, idx], label=l)
+                    axs[0].plot(time, X[:, idx], label=tone_label)
                 else:
-                    axs[0].plot(time, X, label=l)
+                    axs[0].plot(time, X, label=tone_label)
                 axs[0].set_ylabel("(Hz)")
                 axs[0].legend()
             y_set = set(y_pred)
-            for l in y_set:
+            for label_i in y_set:
                 # 非該当にはnanを置く
                 low_high = [
-                    y_i.count("H") if y_i == l else np.nan
+                    y_i.count("H") if y_i == label_i else np.nan
                     for y_i in y_pred
                 ]  # 0--1
-                axs[1].plot(time, low_high, label=l)
-                # axs[1].title("sin")
+                axs[1].plot(time, low_high, label=label_i)
                 axs[1].set_ylabel("Pitch")
                 axs[1].legend()
                 axs[1].set_xlabel("(ms)")
@@ -130,7 +129,7 @@ class Modeler:
         )
         print("assuming that the distribution is bellcurve")
         print(
-            f"the resolution is set to {self.resolusion}, which is supposed to be 2*sd"
+            f"the conv is set to {self.conv}, which is supposed to be 2*sd"
         )
 
     @staticmethod
@@ -160,6 +159,7 @@ class Modeler:
     def _startprob_tmat(y: List[np.ndarray], K):
         """
         y: 観測数ごとにListにしたList(n_samples, )
+        K: カテゴリーの集合
         """
         assert more_itertools.is_sorted(K)
         # 0. np.zerosで K+1 x K+1 の行列を作成(silを足すためK+1になる)
@@ -194,17 +194,26 @@ class Modeler:
         return startprob, tmat
 
     @staticmethod
-    def _duration_dist(arr, max, res):
+    def _duration_dist(arr, frame_max_len, conv):
         """
+        histotram を1--maxの値を取る確率分布に変換する
+        convが4でmaxが20なら、20を5つのbinに潰すことになる。
         arr: 求めたい分布のarr
-        max: クラスK_i の arr だけではなく、全Kのarrのmax
-        res: 1塊とするframeの個数
-            strideが25msでresが4のとき、100msをひとかたまりとする。
-            このresの値はbelcurveの時の sd の 2倍が適切
+        frame_max_len: クラスK_i の arr だけではなく、全Kのarrのmax (frameの数)
+        conv: 1塊とするframeの個数(4なら4を潰して1にする。)
+            frameのstrideが25msでconvが4のとき、100ms が一塊となる。
+            max が 1000ms だとすると、250msで一塊になる。
+            このconvの値はbell-curveの時の sd の 2倍が適切
         """
-        count, _ = np.histogram(arr, bins=int(max/res), range=(1, max))
-        count = count/res  # resで割っておく
-        x = np.concatenate([[i]*res for i in count])
+        if max(arr) > frame_max_len:
+            raise ValueError(
+                "max of the input exceeded the assumed the max value"
+            )
+        count, _ = np.histogram(arr,
+                                bins=int(frame_max_len/conv),
+                                range=(1, frame_max_len))
+        count = count/conv  # convで割っておく
+        x = np.concatenate([[i]*conv for i in count])
         duration = x/np.sum(x)
         assert np.isclose(np.sum(duration), 1, rtol=1e-10, atol=1e-10)
         return duration
