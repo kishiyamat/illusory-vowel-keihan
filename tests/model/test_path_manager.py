@@ -11,7 +11,7 @@ def test_trian_test_wav():
 
 def test_data_path():
     # TODO: src_2 を wav に限定しない
-    src_1, src_2 = "original", 'esuko-LHH-1.wa'
+    src_1, src_2 = "original", 'esuko-LHH-1.wav'
     tgt = Path("../src/audio/output/esuko-LHH-1.wav")
     assert PathManager.data_path(src_1, src_2) == tgt
     src_1, src_2 = "downsample", 'esuko-LHH-1.wav'
