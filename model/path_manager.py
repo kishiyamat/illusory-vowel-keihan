@@ -43,7 +43,7 @@ class PathManager:
     @classmethod
     def data_path(cls, data_type, wav_path=""):
         """
-        wav_path: wav_path じゃなくても良い(どのみち処理するので) 
+        wav_path: wav_path じゃなくても良い(どのみち処理するので)
         """
         # 参照したいタイプを渡すとパスを返す
         project_dir = cls.project_dir

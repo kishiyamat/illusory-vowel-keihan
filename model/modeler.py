@@ -83,22 +83,22 @@ class Modeler:
             time = [i*Preprocessor.frame_stride *
                     1_000 for i in range(len(y_pred))]
             label = self.feature_label
-            for idx, l in enumerate(label):
+            for idx, tone_label in enumerate(label):
                 if self.is_multi:
                     # 多次元の描画
-                    axs[0].plot(time, X[:, idx], label=l)
+                    axs[0].plot(time, X[:, idx], label=tone_label)
                 else:
-                    axs[0].plot(time, X, label=l)
+                    axs[0].plot(time, X, label=tone_label)
                 axs[0].set_ylabel("(Hz)")
                 axs[0].legend()
             y_set = set(y_pred)
-            for l in y_set:
+            for label_i in y_set:
                 # 非該当にはnanを置く
                 low_high = [
-                    y_i.count("H") if y_i == l else np.nan
+                    y_i.count("H") if y_i == label_i else np.nan
                     for y_i in y_pred
                 ]  # 0--1
-                axs[1].plot(time, low_high, label=l)
+                axs[1].plot(time, low_high, label=label_i)
                 # axs[1].title("sin")
                 axs[1].set_ylabel("Pitch")
                 axs[1].legend()
