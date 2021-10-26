@@ -82,7 +82,9 @@ class PathManager:
         )
         # _を含むのはH_Lのようなテストデータ
         train_wav_list = list(
-            filter(lambda s: s.count("_") == 0, wav_list_set))
+            filter(lambda s: s.count("_") == 0,
+                   wav_list_set)
+        )
         test_wav_list = list(filter(lambda s: s.count("_") != 0, wav_list_set))
         return train_wav_list, test_wav_list
 
