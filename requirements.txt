@@ -1,0 +1,10 @@
+Cython==0.29.24
+numba==0.53.1
+SoundFile==0.10.3.post1
+librosa==0.8.1
+praat-parselmouth
+plotnine
+python-rle
+more-itertools
+pytest
+flake8
