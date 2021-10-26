@@ -107,7 +107,10 @@ class Modeler:
         return y_pred
 
     @staticmethod
-    def to_pattern(y_seq):
+    def to_pattern(y_seq: List[str]) -> str:
+        """
+        y_seq: ["H2", "H2", "H2", "dL1", "dL1"] など
+        """
         seq, _ = rle.encode(y_seq)
         seq = [seq_i.replace("d", "")for seq_i in seq]
         res = []
