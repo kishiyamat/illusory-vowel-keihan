@@ -47,8 +47,10 @@ class GaussianMixtureEmissions(AbstractEmissions):
         # 状態のインデックス順の分布を当てはめていく
         # https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html
         # (n_cat, len_obs) なのかな？
-        ll = np.vstack([gm.score_samples(obs) for gm in gms] )
+        # exp したらできた...? loglikelihood じゃなくて likelihood だから？
+        ll = np.vstack([np.exp(gm.score_samples(obs)) for gm in gms] )
         print(ll.shape)
+        print(ll)
         # score_samples
         return ll
 
