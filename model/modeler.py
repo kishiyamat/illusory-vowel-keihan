@@ -52,6 +52,7 @@ class Modeler:
         params["tmat"] = tmat
         params["startprob"] = startprob
         # Duration
+        # todo: oneline
         duration_by_K = self._duration_by_K(y, K)
         dur_std_mean = np.mean([np.std(duration_by_K[k]) for k in K])
         self._dur_std_mean = dur_std_mean

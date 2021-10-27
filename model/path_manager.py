@@ -68,6 +68,14 @@ class PathManager:
         return data_path_map[data_type]
 
     @classmethod
+    def setting_df(cls,is_test=False):
+        if is_test:
+            setting_df = pd.read_csv(cls.test_dir/"model/setting.csv")
+        else:
+            setting_df = pd.read_csv(cls.project_dir/"model/setting.csv")
+        return setting_df
+
+    @classmethod
     def train_test_wav(cls, is_test=False):
         if is_test:
             tone_df = pd.read_csv(cls.test_dir/"src/list/axb_list.csv")\
