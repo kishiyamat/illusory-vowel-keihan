@@ -9,10 +9,13 @@ from path_manager import PathManager
 # %%
 # Setting for experiment
 # TODO: duration の設定などの追加
+# TODO: 混合を使うかの設定
 if __name__ == "__main__":
     print("04_simulation.py")
     # %%
     setting = PathManager.setting_df()
+    setting["model"] = "GM"
+    # setting["model"] = ""
     setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
 
     results_list = []
@@ -49,6 +52,8 @@ if __name__ == "__main__":
     results_df.to_csv("artifacts/results.csv")
 
 # %%
+# 非mixtureだと rle&pitch:pitch_delta が微妙. そもそも L_H で LHH がでない
+# mixture にすると rle&pitch:pitch_delta が LHH を出すし、L_ も妥当になる
 results_df.head()
 def combine_lambda(x): return '{}&{}'.format(x.encoding, x.feature)
 

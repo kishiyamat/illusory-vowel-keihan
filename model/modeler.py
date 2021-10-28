@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import more_itertools
 import numpy as np
 import rle
-from hsmmlearn.hsmm import GaussianHSMM
+from hsmmlearn.hsmm import GaussianHSMM, MultivariateGaussianHSMM
 from sklearn.mixture import GaussianMixture
 
 from models import GaussianMixtureHSMM
@@ -12,7 +12,7 @@ from preprocessor import Preprocessor
 
 
 class Modeler:
-    def __init__(self, area, feature, encoding, **kwargs):
+    def __init__(self, area, feature, encoding, model, **kwargs):
         # TODO: 全てのKでsortを保証
         self.area, self.feature, self.encoding = area, feature, encoding
         self.kwargs = kwargs
@@ -24,6 +24,7 @@ class Modeler:
         self.conv = 4
         self.hsmm = None
         self.K = []
+        self.model = model
         # その他のあり得るハイパラ
         # - meanにするか、medianにするか(meanにするには0が多い)
         # - scaleも調整が必要
@@ -46,9 +47,7 @@ class Modeler:
         if not self.is_multi:
             params["means"] = np.array([np.mean(X_by_K[K_i]) for K_i in K])
             params["scales"] = np.array([np.std(X_by_K[K_i]) for K_i in K])
-        elif self.is_multi:
-            # params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
-            # params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+        elif self.model == "GM":
             # 混合分布に対応
             gm_list = []
             for k in K:
@@ -57,6 +56,10 @@ class Modeler:
                 gm_list.append(
                     GaussianMixture(n_components=2, random_state=0).fit(X_by_k))
             params["gm_list"] = gm_list
+        else:
+            params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
+            params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+
         # Beta(遷移確率)
         startprob, tmat = self._startprob_tmat(y, K)
         params["tmat"] = tmat
@@ -76,9 +79,10 @@ class Modeler:
         self.model_params = params
         if not self.is_multi:
             self.hsmm = GaussianHSMM(**params)
-        elif self.is_multi:
-            # self.hsmm = MultivariateGaussianHSMM(**params)
+        elif self.model == "GM":
             self.hsmm = GaussianMixtureHSMM(**params)
+        else:
+            self.hsmm = MultivariateGaussianHSMM(**params)
         return self.hsmm
 
     def predict(self, X, visual=False):
