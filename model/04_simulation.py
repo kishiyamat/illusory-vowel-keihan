@@ -12,7 +12,7 @@ from path_manager import PathManager
 if __name__ == "__main__":
     print("04_simulation.py")
     # %%
-    setting = PathManager.setting_df
+    setting = PathManager.setting_df()
     setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
 
     results_list = []
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
 # %%
 results_df.head()
-def combine_lambda(x): return '{}+{}'.format(x.encoding, x.feature)
+def combine_lambda(x): return '{}&{}'.format(x.encoding, x.feature)
 
 
 results_df["conditions"] = results_df.apply(combine_lambda, axis=1)

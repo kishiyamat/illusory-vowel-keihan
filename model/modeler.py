@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import more_itertools
 import numpy as np
 import rle
-from hsmmlearn.hsmm import GaussianHSMM, MultivariateGaussianHSMM
+from hsmmlearn.hsmm import GaussianHSMM
+from sklearn.mixture import GaussianMixture
 
+from models import GaussianMixtureHSMM
 from preprocessor import Preprocessor
 
 
@@ -45,8 +47,16 @@ class Modeler:
             params["means"] = np.array([np.mean(X_by_K[K_i]) for K_i in K])
             params["scales"] = np.array([np.std(X_by_K[K_i]) for K_i in K])
         elif self.is_multi:
-            params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
-            params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+            # params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
+            # params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+            # 混合分布に対応
+            gm_list = []
+            for k in K:
+                X_by_k = X_by_K[k].T
+                # TODO: n_components も本当で手動で決定
+                gm_list.append(
+                    GaussianMixture(n_components=2, random_state=0).fit(X_by_k))
+            params["gm_list"] = gm_list
         # Beta(遷移確率)
         startprob, tmat = self._startprob_tmat(y, K)
         params["tmat"] = tmat
@@ -67,7 +77,8 @@ class Modeler:
         if not self.is_multi:
             self.hsmm = GaussianHSMM(**params)
         elif self.is_multi:
-            self.hsmm = MultivariateGaussianHSMM(**params)
+            # self.hsmm = MultivariateGaussianHSMM(**params)
+            self.hsmm = GaussianMixtureHSMM(**params)
         return self.hsmm
 
     def predict(self, X, visual=False):
