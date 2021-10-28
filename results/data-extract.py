@@ -4,7 +4,7 @@ import pandas as pd
 import base64
 from ffmpy import FFmpeg
 
-N_TRIALS = 10
+N_TRIALS = 14
 # FIXME: ここの名前を考え直す
 csv_path = "illusory-vowel-keihan.csv"
 # 事前に webm や wav の中身は空にしないといけない
@@ -21,7 +21,8 @@ run_id_subj_id = run_id_subj_id[run_id_subj_id['response'].str.contains("subject
 print(run_id_subj_id)
 run_id_subj_id["response"] = run_id_subj_id.response.apply(lambda res: int(eval(res)["subject_id"]))
 print(len(run_id_subj_id))
-assert len(run_id_subj_id) == N_TRIALS
+if not len(run_id_subj_id) == N_TRIALS:
+    raise ValueError(f"{len(run_id_subj_id)} != {N_TRIALS}")
 #%%
 # run_id -- wav
 columns = ["run_id", "type", "task", "item_id", "read", "audio_data"]

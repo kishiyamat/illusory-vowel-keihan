@@ -28,7 +28,8 @@ library(tidyr)
 * `span_kinki`: 近畿で居住歴
 
 ```{r}
-pilot_runid <- c(3, 8, 10, 11)
+# pilot_runid <- c(3, 8, 10, 11)
+pilot_runid <- c()
 illusory_vowel_keihan <- read_csv("illusory-vowel-keihan.csv") %>%
   filter(!run_id %in% pilot_runid) %>%
   filter(task != "production")
@@ -45,7 +46,9 @@ runid_subject <-
   pivot_wider(names_from = key, values_from = value)
 
 illusory_vowel_keihan <- merge(illusory_vowel_keihan, runid_subject, on = "item_id")
-illusory_vowel_keihan
+head(illusory_vowel_keihan)
+print(unique(illusory_vowel_keihan$run_id))
+print(unique(illusory_vowel_keihan$subject_id))
 ```
 
 タスクの確認
@@ -153,5 +156,9 @@ axb_results_tone %>%
   ggplot() +
   facet_wrap(correct ~ span_kinki) +
   geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+```
+
+```{r}
+axb_results_tone 
 ```
 
