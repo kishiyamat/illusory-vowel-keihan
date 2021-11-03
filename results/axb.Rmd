@@ -30,7 +30,8 @@ library(tidyr)
 ```{r}
 pilot_runid <- c(3, 8, 10, 11)
 # pilot_runid <- c()
-illusory_vowel_keihan <- read_csv("illusory-vowel-keihan.csv") %>%
+illusory_vowel_keihan <-
+  read_csv("illusory-vowel-keihan.csv") %>%
   filter(!run_id %in% pilot_runid) %>%
   filter(task != "production")
 
@@ -46,8 +47,11 @@ runid_subject <-
   pivot_wider(names_from = key, values_from = value)
 
 illusory_vowel_keihan <- merge(illusory_vowel_keihan, runid_subject, on = "item_id")
-head(illusory_vowel_keihan)
+head(illusory_vowel_keihan)  # 被験者
 # print(unique(illusory_vowel_keihan$run_id))
+
+illusory_vowel_keihan %>% group_by(run_id) %>% summarise(min_elapsed = max(time_elapsed)/1000/60) %>% print
+# print(unique($subject_id))
 print(unique(illusory_vowel_keihan$subject_id))
 ```
 
@@ -73,7 +77,7 @@ unique(illusory_vowel_keihan$task)
 # illusory_vowel_keihan <-
 axb_results <- illusory_vowel_keihan %>%
   filter(task == "axb") %>%
-  select(c(run_id, item_id, is_correct, rt, span_kinki)) %>%
+  select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(rt = as.numeric(rt)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
@@ -109,7 +113,8 @@ axb_results_devoice %>%
 
 ### トーン
 
-https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
+- 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
+- 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
 
 ```{r}
 # 文脈などのカラムをひっぱるのも可能
@@ -130,7 +135,8 @@ axb_results_tone <- axb_results_tone %>%
     tone == "-HHL" ~ 0,
     tone == "-LHH" ~ 1,
     tone == "-LLH" ~ 0
-  ))
+  )) %>% 
+  mutate(tokyo_weight = span_tokyo/(span_kinki+span_tokyo))
 head(axb_results_tone)
 ```
 
@@ -144,27 +150,60 @@ axb_results_tone %>%
 
 ```{r}
 axb_results_tone %>%
-  mutate(span_kinki = span_kinki > 5) %>%
+  mutate(span_kinki = case_when(
+    span_kinki >= 5 ~ "Kinki",
+    span_kinki < 5 ~ "Tokyo" )) %>% 
   ggplot() +
   facet_wrap(correct ~ span_kinki) +
   geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
 ```
 
 ```{r}
-tgt  = c("-HHL","-HLL","-LHH","-LLH")
+# tgt  = c("-HHL","-HLL")
+tgt  = c("-HHL","-HLL","-LHH","-LLH")  # HLは近畿にもある。東京とは言えない。
 
 axb_results_tone %>%
-  mutate(span_kinki = span_kinki > 5) %>%
-  filter(tone %in% tgt ) %>% 
+  mutate(span_kinki = case_when(
+    span_kinki >= 5 ~ "Kinki",
+    span_kinki < 5 ~ "Tokyo" )) %>% 
+  filter(tone %in% tgt ) %>%
   ggplot() +
-  facet_wrap(~ span_kinki) +
+  facet_wrap(~span_kinki) +
+  # facet_wrap(run_id~span_kinki) +
   # facet_wrap(correct ~ span_kinki) +
-  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  # ggtitle("Accuracy by Tone and Region") +
+  xlab("Tone Type") + ylab("Accuracy") +
+  theme(legend.position = "none")
 
+ggsave("axb_results_tone.png", width = 7, height = 7, units = "cm")
 # 交互作用はありそうだが、
 # 近畿では効果が微妙...
 # 東京への接触とか関係ある？
 # factとして、東京方言話者はHHLやLLHでは錯覚しづらい。
+```
+```{r}
+# tokyo = c("-LHH", "-HLL")
+tokyo = c("-HLL")
+analysis = axb_results_tone %>%
+  mutate(span_kinki = as.integer(span_kinki > 5)) %>%
+  filter(tone %in% tgt ) %>% 
+  mutate(tone_tokyo = as.integer(tone %in% tokyo)) %>% 
+  mutate(is_correct = as.integer(is_correct)) %>% 
+  mutate(run_id = as.factor(run_id)) %>% 
+  mutate(item_id = as.factor(item_id)) %>% 
+  mutate(precedes = as.factor(correct=="a")) %>% 
+  select(is_correct, span_kinki,tone_tokyo, run_id, item_id, tone, precedes, is_tokyo, tokyo_weight) 
+
+head(analysis)
+```
+
+```{r}
+library(lme4)
+model = glmer(is_correct~span_kinki*tone_tokyo+precedes+(1|run_id)+(1|item_id), data=analysis, family=binomial)
+# model = glmer(is_correct~tokyo_weight*tone_tokyo+precedes+(1|run_id)+(1|item_id), data=analysis, family=binomial)
+summary(model)
 ```
 
 ```{r}
