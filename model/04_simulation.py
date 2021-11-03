@@ -12,14 +12,19 @@ from path_manager import PathManager
 if __name__ == "__main__":
     print("04_simulation.py")
     # %%
-    setting = PathManager.setting_df
-    setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-
     results_list = []
+
+    setting = PathManager.setting_df()
+    setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
     for condition_i, setting_i in enumerate(setting_dicts):
+        # LLHやLHHの数、HLLやHLLの数で最適化しよう
+        setting_i["n_components"] = 3  # not multivariate
+        setting_i["delta_dist"] = 8  # 8個前を見る
+        setting_i["delta_range"] = 8  # 平均を取る幅
+        setting_i["aug_methods"] = None  # not multivariate
         # DataLoad
-        train_x, train_y, test_x, test_token = PathManager\
-            .load_data(**setting_i)
+        train_x, train_y, test_x, test_token = \
+            PathManager.load_data(**setting_i)
         # TODO: Data Augmentation(train, test)
         # train は duration の調整+幅の調整(特徴量を作る段階じゃん...)
         # test は duration の要因化
@@ -49,8 +54,10 @@ if __name__ == "__main__":
     results_df.to_csv("artifacts/results.csv")
 
 # %%
+# 非mixtureだと rle&pitch:pitch_delta が微妙. そもそも L_H で LHH がでない
+# mixture にすると rle&pitch:pitch_delta が LHH を出すし、L_ も妥当になる
 results_df.head()
-def combine_lambda(x): return '{}+{}'.format(x.encoding, x.feature)
+def combine_lambda(x): return '{}&{}'.format(x.encoding, x.feature)
 
 
 results_df["conditions"] = results_df.apply(combine_lambda, axis=1)

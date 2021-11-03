@@ -22,7 +22,8 @@ if __name__ == "__main__":
             plt.show()
         pitch_i[pitch_i == 0] = "nan"  # 計算時にnanを無視させる目的
         pitch_delta = Preprocessor.delta_ensemble(
-            pitch_i, width_list=compare_with)
+            pitch_i, width_list=compare_with
+        )
         pitch_delta[np.isnan(pitch_delta)] = 0
         if 'get_ipython' in globals():
             plt.plot(pitch_delta)

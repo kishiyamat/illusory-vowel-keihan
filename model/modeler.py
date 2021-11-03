@@ -5,23 +5,26 @@ import more_itertools
 import numpy as np
 import rle
 from hsmmlearn.hsmm import GaussianHSMM, MultivariateGaussianHSMM
+from sklearn.mixture import GaussianMixture
 
+from models import MultivariateGaussianMixtureHSMM
 from preprocessor import Preprocessor
 
 
 class Modeler:
-    def __init__(self, area, feature, encoding, **kwargs):
+    def __init__(self, area, feature, encoding, n_components, **kwargs):
         # TODO: 全てのKでsortを保証
+        self.hsmm = None
         self.area, self.feature, self.encoding = area, feature, encoding
         self.kwargs = kwargs
         self.feature_label = feature.split(":")
+        self.n_feature = len(self.feature_label)
         self.is_multi = len(feature.split(":")) >= 2
         self.model_params = {}
         self.log = ""
-        self.dur_std = None
         self.conv = 4
-        self.hsmm = None
         self.K = []
+        self.n_components = n_components
         # その他のあり得るハイパラ
         # - meanにするか、medianにするか(meanにするには0が多い)
         # - scaleも調整が必要
@@ -33,25 +36,28 @@ class Modeler:
         X: 観測数ごとにListにした (n_features, n_samples)
         y: 観測数ごとにListにした(n_samples, )
         """
+        params = {}
         # Alpha(射出確率)
         # カテゴリーごとにXを取得して射出確率の計算に使う
         K = list(set(np.concatenate(y)))  # ordered list
         K.sort()
         self.K = K
         X_by_K = self._X_by_K(X, y, K)
-        # feature によって射出モデルとパラメータは変わる
-        params = {}
-        if not self.is_multi:
-            params["means"] = np.array([np.mean(X_by_K[K_i]) for K_i in K])
-            params["scales"] = np.array([np.std(X_by_K[K_i]) for K_i in K])
-        elif self.is_multi:
-            params["means"] = [np.mean(X_by_K[K_i], axis=1) for K_i in K]
-            params["cov_list"] = [np.cov(X_by_K[K_i]) for K_i in K]  # 2次元の時
+        gmms = []
+        for k in K:
+            X_by_k = X_by_K[k].reshape(-1, self.n_feature)  # (n_sample, n_features)
+            gmm_k = GaussianMixture(n_components=self.n_components, random_state=0)\
+                .fit(X_by_k)
+            gmms.append(gmm_k)
+        params["gmms"] = gmms
+        params["n_feature"] = self.n_feature
+
         # Beta(遷移確率)
         startprob, tmat = self._startprob_tmat(y, K)
         params["tmat"] = tmat
         params["startprob"] = startprob
         # Duration
+        # TODO: oneline
         duration_by_K = self._duration_by_K(y, K)
         dur_std_mean = np.mean([np.std(duration_by_K[k]) for k in K])
         self._dur_std_mean = dur_std_mean
@@ -63,19 +69,14 @@ class Modeler:
              for k in K]
         )
         self.model_params = params
-        if not self.is_multi:
-            self.hsmm = GaussianHSMM(**params)
-        elif self.is_multi:
-            self.hsmm = MultivariateGaussianHSMM(**params)
+        self.hsmm = MultivariateGaussianMixtureHSMM(**params)
         return self.hsmm
 
     def predict(self, X, visual=False):
         """
-        X: 入力
-            if not sllf.is_multi: (n_sample, )
-            if not sllf.is_multi: (n_sample, n_feature)
+        X: (n_feature, n_sample)
         """
-        y_pred = self.hsmm.decode(X)  # index
+        y_pred = self.hsmm.decode(X.T)
         y_pred = np.array(self.K)[y_pred]  # label
         if visual:
             fig, axs = plt.subplots(2)

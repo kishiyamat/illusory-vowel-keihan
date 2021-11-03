@@ -68,6 +68,14 @@ class PathManager:
         return data_path_map[data_type]
 
     @classmethod
+    def setting_df(cls, is_test=False):
+        if is_test:
+            setting_df = pd.read_csv(cls.test_dir/"model/setting.csv")
+        else:
+            setting_df = pd.read_csv(cls.project_dir/"model/setting.csv")
+        return setting_df
+
+    @classmethod
     def train_test_wav(cls, is_test=False):
         if is_test:
             tone_df = pd.read_csv(cls.test_dir/"src/list/axb_list.csv")\
@@ -154,15 +162,16 @@ class PathManager:
         for t in test_token:
             pitch = np.load(cls.data_path("feature", t))[0, :].reshape(1, -1)
             delta = np.load(cls.data_path("pitch_delta", t))
-            # testはそのままdecodeできる値にする。
-            # pitch や pitch_delta は GausianHSMM
-            # pitch:pitch_delta は Multivariate の入力になる
+            pitch_pitch_delta = np.concatenate([pitch, delta])
             if feature == "pitch":
-                test_x.append(pitch.flatten())
+                test_x.append(pitch)
+                assert pitch.shape[0] == 1
             elif feature == "pitch:pitch_delta":
-                test_x.append(np.concatenate([pitch, delta]).T)
+                test_x.append(pitch_pitch_delta)
+                assert pitch_pitch_delta.shape[0] == 2
             elif feature == "pitch_delta":
-                test_x.append(delta.flatten())
+                test_x.append(delta)
+                assert pitch.shape[0] == 1
             else:
                 raise NotImplementedError
         return train_x, train_y, test_x, test_token
