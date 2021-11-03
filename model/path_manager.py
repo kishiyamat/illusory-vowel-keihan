@@ -3,8 +3,9 @@ from glob import glob
 from pathlib import Path
 
 import numpy as np
-from preprocessor import Preprocessor
 import pandas as pd
+
+from preprocessor import Preprocessor
 
 
 class PathManager:
@@ -135,19 +136,15 @@ class PathManager:
             lambda s: s.split("-")[1] in cls.accept[area],
             train_token
         ))
+
         # Xの組み合わせは3種類ある
+        # TODO: train_xとtest_xで操作が同じなのでrefactor
         feature_set = ["pitch", "pitch:pitch_delta", "pitch_delta"]
         train_x = []
         for t in train_token:
-            pitch = np.load(cls.data_path("feature", t))[0, :].reshape(1, -1)
             pitch_1d = np.load(cls.data_path("feature", t))[0, :]
-            pitch_1d[pitch_1d == 0] = "nan"  # 計算時にnanを無視させる目的
-            compare_with = list(range(delta_dist-delta_range, delta_dist+delta_range))
-            pitch_delta = Preprocessor.delta_ensemble(
-                pitch_1d, width_list=compare_with
-            )
-            pitch_delta[np.isnan(pitch_delta)] = 0
-            pitch_delta = pitch_delta.reshape(1, -1)
+            pitch = pitch_1d.reshape(1, -1)
+            pitch_delta = cls.delta(pitch_1d, delta_dist, delta_range)
             if feature == "pitch":
                 train_x.append(pitch)
             elif feature == "pitch:pitch_delta":
@@ -159,15 +156,9 @@ class PathManager:
 
         test_x = []
         for t in test_token:
-            pitch = np.load(cls.data_path("feature", t))[0, :].reshape(1, -1)  # (1, n_sample)
             pitch_1d = np.load(cls.data_path("feature", t))[0, :]
-            pitch_1d[pitch_1d == 0] = "nan"  # 計算時にnanを無視させる目的
-            compare_with = list(range(delta_dist-delta_range, delta_dist+delta_range))
-            pitch_delta = Preprocessor.delta_ensemble(
-                pitch_1d, width_list=compare_with
-            )
-            pitch_delta[np.isnan(pitch_delta)] = 0
-            pitch_delta = pitch_delta.reshape(1, -1)
+            pitch = pitch_1d.reshape(1, -1)
+            pitch_delta = cls.delta(pitch_1d, delta_dist, delta_range)
             if feature == "pitch":
                 test_x.append(pitch)
                 assert pitch.shape[0] == 1
@@ -186,3 +177,16 @@ class PathManager:
             for t in train_token
         ]
         return train_x, train_y, test_x, test_token
+
+    @staticmethod
+    def delta(arr_1d, delta_dist, delta_range):
+        arr_1d[arr_1d == 0] = "nan"  # 計算時にnanを無視させる目的
+        compare_with = list(
+            range(delta_dist-delta_range, delta_dist+delta_range))
+        pitch_delta = Preprocessor.delta_ensemble(
+            arr_1d, width_list=compare_with
+        )
+        pitch_delta[np.isnan(pitch_delta)] = 0
+        pitch_delta = pitch_delta.reshape(1, -1)
+        arr_1d[np.isnan(arr_1d)] = 0  # 副作用？
+        return pitch_delta

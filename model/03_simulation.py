@@ -19,11 +19,13 @@ if __name__ == "__main__":
         # LLHやLHHの数、HLLやHLLの数で最適化しよう(trainデータで)
         setting_i["n_components"] = 3  # not multivariate
         setting_i["delta_dist"] = 9  # 9個前を見る
-        setting_i["delta_range"] = 4  # 平均を取る幅の半分(1なら前後1を見る)
+        setting_i["delta_range"] = 2  # 平均を取る幅の半分(1なら前後1を見る)
         setting_i["aug_methods"] = None  # not multivariate
         # DataLoad
         train_x, train_y, test_x, test_token = \
             PathManager.load_data(**setting_i)
+        # print(train_x)
+        # print(test_x)
         # TODO: Data Augmentation(train, test)
         # Modeling
         model = Modeler(**setting_i)
