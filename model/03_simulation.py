@@ -10,24 +10,21 @@ from path_manager import PathManager
 # Setting for experiment
 # TODO: duration の設定などの追加
 if __name__ == "__main__":
-    print("04_simulation.py")
+    print("03_simulation.py")
     # %%
     results_list = []
-
     setting = PathManager.setting_df()
     setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
     for condition_i, setting_i in enumerate(setting_dicts):
-        # LLHやLHHの数、HLLやHLLの数で最適化しよう
+        # LLHやLHHの数、HLLやHLLの数で最適化しよう(trainデータで)
         setting_i["n_components"] = 3  # not multivariate
-        setting_i["delta_dist"] = 8  # 8個前を見る
-        setting_i["delta_range"] = 8  # 平均を取る幅
+        setting_i["delta_dist"] = 9  # 9個前を見る
+        setting_i["delta_range"] = 4  # 平均を取る幅の半分(1なら前後1を見る)
         setting_i["aug_methods"] = None  # not multivariate
         # DataLoad
         train_x, train_y, test_x, test_token = \
             PathManager.load_data(**setting_i)
         # TODO: Data Augmentation(train, test)
-        # train は duration の調整+幅の調整(特徴量を作る段階じゃん...)
-        # test は duration の要因化
         # Modeling
         model = Modeler(**setting_i)
         # TODO: Model のパラメータチェック(bell curve, tmat, duration)
