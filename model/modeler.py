@@ -205,6 +205,7 @@ class Modeler:
             frameのstrideが25msでconvが4のとき、100ms が一塊となる。
             max が 1000ms だとすると、250msで一塊になる。
             このconvの値はbell-curveの時の sd の 2倍が適切
+        TODO: smoothing
         """
         if max(arr) > frame_max_len:
             raise ValueError(
@@ -213,8 +214,10 @@ class Modeler:
         count, _ = np.histogram(arr,
                                 bins=int(frame_max_len/conv),
                                 range=(1, frame_max_len))
+                                # range=(1, frame_max_len+1)) # 1くらい(25s)は足しておく
         count = count/conv  # convで割っておく
         x = np.concatenate([[i]*conv for i in count])
+        # x += 0.001  # smoothing
         duration = x/np.sum(x)
         assert np.isclose(np.sum(duration), 1, rtol=1e-10, atol=1e-10)
         return duration

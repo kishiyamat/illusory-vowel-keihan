@@ -12,14 +12,6 @@ class PathManager:
     project_dir = Path("../")
     test_dir = Path("./tests/")
     label_by_encode = {
-        "base": {
-            "HL": "HL",
-            "HHL": "HHL",
-            "HLL": "HLL",
-            "LL": "LL",
-            "LHH": "LHH",
-            "LLH": "LLH",
-        },
         "rle": {
             "HL": ["H1", "L1"],
             "HHL": ["H2", "H2", "L1"],
@@ -37,7 +29,8 @@ class PathManager:
             "LLH": ["L2", "L2", "dH1"],
         },
     }
-    accept = {"tokyo": ["HL", "LH", "LHH", "HLL"],
+    # https://www.akenotsuki.com/kyookotoba/accent/bumpu.html
+    accept = {"tokyo": ["HL", "LH", "LHH", "HLL", ],
               # HLL を許すとHLLになる。むしろ、話者もそうなのか？
               "kinki": ["HL", "HH", "LH", "LL", "LLH", "HLL", "HHL", ]}
 
@@ -114,10 +107,10 @@ class PathManager:
         return not bool(path.split("/")[-1].count("_"))
 
     @classmethod
-    def load_data(cls, area, encoding, feature, delta_dist, delta_range, aug_methods, is_test=False, **kwargs) -> tuple:
+    def load_data(cls, area, encoding, feature, delta_dist, delta_range, is_test=False, **kwargs) -> tuple:
         # check if the settings are just right
         spaces = ["kinki", "tokyo"]
-        encoding_methods = ["base", "rle", "rle_delta"]
+        encoding_methods = ["rle", "rle_delta"]
         feature_set = ["pitch", "pitch:pitch_delta", "pitch_delta"]
         assert area in spaces \
             and encoding in encoding_methods \
@@ -171,11 +164,14 @@ class PathManager:
                 assert pitch.shape[0] == 1
             else:
                 raise NotImplementedError
-        # TODO: train_x と train_y を aug_methods に基づいて拡張
         train_y = [
             np.load(cls.data_path(f"label_{encoding}", t))
             for t in train_token
         ]
+        # TODO: train_x と train_y を aug_methods に基づいて拡張
+        # if aug_methods=="duration":
+        #     train_x, train_y
+        #     pass
         return train_x, train_y, test_x, test_token
 
     @staticmethod
