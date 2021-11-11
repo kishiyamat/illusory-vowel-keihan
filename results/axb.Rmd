@@ -26,15 +26,22 @@ library(tidyr)
 * `subject_id`: 実験実施者から与えられた番号
 * `span_tokyo`: 東京の居住歴
 * `span_kinki`: 近畿で居住歴
+```{r}
+illusory_vowel_keihan <-
+  read_csv("illusory-vowel-keihan.csv")
+  # read_csv("illusory-vowel-keihan-cw.csv")
+```
 
 ```{r}
-pilot_runid <- c(3, 8, 10, 11)
+# pilot_runid <- c(3, 8, 10, 11)
 # pilot_runid <- c()
 illusory_vowel_keihan <-
+  # read_csv("illusory-vowel-keihan-cw.csv") %>%
   read_csv("illusory-vowel-keihan.csv") %>%
   filter(!run_id %in% pilot_runid) %>%
   filter(task != "production")
 
+# ここがおかしい(cwは数字とは限らない)
 runid_subject <-
   illusory_vowel_keihan %>%
   filter(trial_type == "survey-html-form") %>%
@@ -143,9 +150,13 @@ head(axb_results_tone)
 ```{r}
 axb_results_tone %>%
   mutate(span_kinki = span_kinki > 5) %>%
+  filter(!span_kinki) %>%
   ggplot() +
   facet_wrap(run_id ~ span_kinki) +
   geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+
+# ggsave("axb_results_tone_kinki.png", width = 20, height = 20, units = "cm")
+ggsave("axb_results_tone_tokyo.png", width = 20, height = 20, units = "cm")
 ```
 
 ```{r}
@@ -159,7 +170,7 @@ axb_results_tone %>%
 ```
 
 ```{r}
-# tgt  = c("-HHL","-HLL")
+#tgt  = c("-HHL","-HLL")
 tgt  = c("-HHL","-HLL","-LHH","-LLH")  # HLは近畿にもある。東京とは言えない。
 
 axb_results_tone %>%
