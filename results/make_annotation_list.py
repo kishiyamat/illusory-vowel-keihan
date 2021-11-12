@@ -16,6 +16,6 @@ lines.sort()
 lines
 # %%
 with open("_devoicing_annotation.csv", 'w') as file:  # -> wav
-    lines.insert(0, ",".join(["filename", "item_id", "order", "devoiced"]))
+    lines.insert(0, ",".join(["filename", "item_id", "order", "voiced"]))
     file.write("\n".join(lines))
 # %%
