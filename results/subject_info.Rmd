@@ -3,6 +3,19 @@ title: "subject_info"
 output: html_document
 ---
 
+* 被験者情報の取得
+  * 被験者ごと
+  * 被験者:アイテム
+* 無声化率の可視化・分析
+  * `無声化率 ~ 東京方言への接触 + n_mora + is_onset + is_HL`
+    * `mora`: モーラ数
+    * `mora_dur`: モーラの時間(無声化するかで変わってしまうので却下)
+  * 東京方言への接触は複数のパターンで示せる
+    * span_tokyo
+    * span_tokyo - span_kinki
+    * span_tokyo / age
+    * (span_tokyo - span_kinki) / age
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
@@ -10,83 +23,36 @@ library(ggplot2)
 library(readr)
 library(stringr)
 library(tidyr)
-order_by_run_id <- function(df) {
-  df %>%
-    filter(task == "production" & type == "target") %>%
-    mutate(
-      run_id = as.integer(run_id),
-      item_id = as.integer(item_id),
-      present_order = as.integer(trial_index)
-    ) %>%
-    select(c(run_id, item_id, present_order))
-}
-library(tibble)
-extract_columns <- function(df, data_src) {
-  if (!data_src %in% c("cw", "sone")) {
-    stop("NotImplementedError")
-  }
-  cols <- c(age = NA)
-  base_df <- df %>%
-    filter(task != "production") %>%
-    filter(trial_type == "survey-html-form") %>%
-    select(c(run_id, response)) %>%
-    mutate(
-      run_id = as.integer(run_id),
-      "key" = str_extract(response, "[a-z_]+"),
-      "value" = response
-    ) %>%
-    select(-response) %>%
-    pivot_wider(names_from = key, values_from = value) %>%
-    mutate(span_tokyo = as.integer(str_extract(span_tokyo, "[0-9]+"))) %>%
-    mutate(span_kinki = as.integer(str_extract(span_kinki, "[0-9]+"))) %>%
-    mutate(subject_id = str_match(subject_id, ':"(.*?)"')[, 2]) %>%
-    # パイロットのときのデータを除外
-    filter(!subject_id %in% c("2000", "9001", "9002", "9003")) %>%
-    mutate(subj_id = paste0(run_id, "_", subject_id)) %>%
-    select(-c(subject_id)) %>%
-    # age がないと
-    add_column(!!!cols[!names(cols) %in% names(.)]) %>%
-    mutate(age = case_when(
-      data_src == "sone" ~ span_tokyo + span_kinki,
-      data_src == "cw" ~ as.integer(str_extract(age, "[0-9]+"))
-    )) %>%
-    mutate(
-      data_src = data_src,
-      span_unknown = age - (span_tokyo + span_kinki)
-    )
-}
-
-results_table <- function(annotated_df) {
-  annotated_df %>%
-    mutate(
-      subj_id = substr(filename, 0, nchar(filename) - 2),
-      item_id = as.integer(item_id),
-      production_order = as.integer(order)
-    ) %>%
-    select(-c("filename", "order"))
-}
+source("src/subject_info.R")
 ```
 
 ```{r}
 annotation <- read_csv("devoicing_annotation.csv") %>% results_table()
-order_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>% order_by_run_id()
-order_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>% order_by_run_id()
-subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>% extract_columns(data_src = "cw")
-subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>% extract_columns(data_src = "sone")
 
-results_cw <- annotation %>%
-  inner_join(subject_info_cw) %>%
-  left_join(order_cw)
+# 曽根さん実験
+order_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>% order_by_run_id()
+subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>% extract_columns(data_src = "sone")
 results_sone <- annotation %>%
   inner_join(subject_info_sone) %>%
   left_join(order_sone)
 
-results <- rbind(results_sone, results_cw)
+# クラウドワークス実験
+order_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>% order_by_run_id()
+subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>% extract_columns(data_src = "cw")
+results_cw <- annotation %>%
+  inner_join(subject_info_cw) %>%
+  left_join(order_cw)
+
+# マージ + devoiced のカラムを追加
+results <- rbind(results_sone, results_cw) %>% 
+  mutate(devoiced= 1- voiced)
 ```
+
 ```{r}
 results_mean_by_item <- results %>%
   group_by(subj_id, item_id) %>%
-  mutate(voiced = mean(voiced)) %>%
+  mutate(voiced = mean(voiced), 
+         devoiced = mean(devoiced)) %>%
   ungroup() %>%
   select(-c(production_order)) %>%
   distinct()
@@ -102,39 +68,40 @@ summary(results_mean_by_item)
 results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_kinki / age, y = voiced))
+  geom_point(aes(x = span_kinki / age, y = devoiced))
 
 # tokyoの在住歴
 results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_tokyo / age, y = voiced))
+  geom_point(aes(x = span_tokyo / age, y = devoiced))
 
 # dominance
 results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_kinki - span_tokyo, y = voiced))
+  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
 
 # dominance/年齢
 results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
-  geom_point(aes(x = (span_kinki - span_tokyo) / age, y = voiced))
+  geom_point(aes(x = (span_kinki - span_tokyo) / age, y = devoiced))
 ```
 
 ```{r}
 # dominance
 results_mean_by_item %>%
   ggplot() +
-  geom_point(aes(x = span_kinki - span_tokyo, y = voiced, color=as.factor(item_id)))
+  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced, color=as.factor(item_id)))
 ```
 
 
 ```{r}
 results_mean_by_subject <- results %>%
   group_by(subj_id) %>%
-  mutate(voiced = mean(voiced)) %>%
+  mutate(voiced = mean(voiced),
+         devoiced = mean(devoiced)) %>%
   ungroup() %>%
   select(-c(production_order, item_id, present_order)) %>%
   distinct() %>% drop_na()
@@ -142,7 +109,7 @@ results_mean_by_subject <- results %>%
 results_mean_by_subject  # トーンの分析にはこれを使う
 results_mean_by_subject %>%
   ggplot() +
-  geom_point(aes(x = span_kinki - span_tokyo, y = voiced))
+  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
 ```
 
 傾向くらいはありそう。
