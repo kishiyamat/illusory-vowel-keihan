@@ -84,7 +84,7 @@ results_sone <- annotation %>%
 results <- rbind(results_sone, results_cw)
 ```
 ```{r}
-results_mean <- results %>%
+results_mean_by_item <- results %>%
   group_by(subj_id, item_id) %>%
   mutate(devoiced = mean(devoiced)) %>%
   ungroup() %>%
@@ -92,39 +92,66 @@ results_mean <- results %>%
   distinct()
 ```
 ```{r}
-head(results_mean)
+head(results_mean_by_item)
+summary(results_mean_by_item)
 ```
 
 
 ```{r}
 # kinkiの在住歴
-results_mean %>%
+results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
   geom_point(aes(x = span_kinki / age, y = devoiced))
 
 # tokyoの在住歴
-results_mean %>%
+results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
   geom_point(aes(x = span_tokyo / age, y = devoiced))
 
 # dominance
-results_mean %>%
+results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
   geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
 
 # dominance/年齢
-results_mean %>%
+results_mean_by_item %>%
   ggplot() +
   facet_wrap(. ~ item_id) +
   geom_point(aes(x = (span_kinki - span_tokyo) / age, y = devoiced))
 ```
 
-傾向くらいはありそう
+```{r}
+# dominance
+results_mean_by_item %>%
+  ggplot() +
+  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced, color=as.factor(item_id)))
+```
+
+
+```{r}
+results_mean_by_subject <- results %>%
+  group_by(subj_id) %>%
+  mutate(devoiced = mean(devoiced)) %>%
+  ungroup() %>%
+  select(-c(production_order, item_id, present_order)) %>%
+  distinct() %>% drop_na()
+
+results_mean_by_subject  # トーンの分析にはこれを使う
+results_mean_by_subject %>%
+  ggplot() +
+  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
+```
+
+傾向くらいはありそう。
 
 TODO
 
-* 1や2ではなく単語にする
-* これらを要因とする
+* 1や2ではなく単語にして可視化
+* これらを要因としてトーンの分析を再実施す
+
+```{r}
+print("EOF")
+```
