@@ -1,0 +1,28 @@
+---
+title: "subject_info"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(tidyr)
+```
+
+```{r}
+read_csv("csv/illusory-vowel-keihan-cw.csv") %>% 
+  filter(task != "production") %>% 
+  filter(trial_type == "survey-html-form") %>%
+  select(c(run_id, response)) %>%
+  mutate(
+    "key" = str_extract(response, "[a-z_]+"),
+    "value" = response
+    # "value" = as.numeric(str_extract(response, "[0-9]+"))
+  ) %>%
+  select(-response) %>%
+  pivot_wider(names_from = key, values_from = value)
+```
+

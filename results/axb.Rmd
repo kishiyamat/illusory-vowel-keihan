@@ -28,7 +28,7 @@ library(tidyr)
 * `span_kinki`: 近畿で居住歴
 ```{r}
 illusory_vowel_keihan <-
-  read_csv("illusory-vowel-keihan.csv")
+  read_csv("csv/illusory-vowel-keihan.csv")
   # read_csv("illusory-vowel-keihan-cw.csv")
 ```
 
