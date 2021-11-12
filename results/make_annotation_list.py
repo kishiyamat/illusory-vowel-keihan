@@ -1,4 +1,5 @@
 # %%
+# アノテーションに使うcsvの雛形を作成
 import glob
 from pathlib import Path
 

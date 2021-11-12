@@ -1,4 +1,5 @@
 # %%
+# cognition の結果から wav を抽出
 import base64
 
 import pandas as pd
