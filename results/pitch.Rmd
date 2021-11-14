@@ -1,0 +1,137 @@
+---
+title: "Pitch"
+output: html_notebook
+---
+
+TODO
+
+* 被験者ごとに差を見る(HHL-HLLのスコア、など)
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(tidyr)
+source("script/subject_info.R")
+```
+
+```{r}
+# TODO: データソースの抽象化
+item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, pitch_a, pitch_b))
+devoice_list <- read_csv("devoicing_by_subj.csv")
+devoice_list %>% head()
+
+subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv")
+
+tone_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
+  filter(task == "axb") %>%
+  select(c(run_id, item_id, is_correct, rt, trial_index)) %>%
+  mutate(data_src = "sone")
+
+tone_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
+  filter(task == "axb") %>%
+  select(c(run_id, item_id, is_correct, rt, trial_index)) %>%
+  mutate(data_src = "cw")
+
+results <- rbind(tone_sone, tone_cw) %>%
+  left_join(devoice_list, by = c("run_id", "data_src")) %>%
+  merge(item_list, on = "item_id") %>%
+  filter(type != "target") %>%
+  mutate(
+    tone = case_when(
+      correct == "a" ~ pitch_b,
+      correct == "b" ~ pitch_a
+    )
+  ) %>%
+  mutate(is_tokyo = case_when(
+    tone %in% c("-HL", "-HLL", "-LHH") ~ "Tokyo",
+    tone %in% c("-LL", "-HHL", "-LLH") ~ "Kinki"
+  )) %>%
+  drop_na()
+
+summary(results)
+head(results, 100)
+```
+```{r}
+results_mean <- results %>%
+  group_by(subj_id, correct, is_tokyo) %>%
+  mutate(
+    correct_mean = mean(as.logical(is_correct)),
+    rt_mean = mean(as.numeric(rt))
+  ) %>%
+  select(-c(is_correct, rt, trial_index, item_id)) %>%
+  distinct()
+```
+
+```{r}
+results_mean %>% ggplot() +
+  facet_wrap(is_tokyo ~ correct) +
+  geom_point(aes(y = correct_mean, x = devoiced))
+
+summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
+```
+
+```{r}
+results_mean %>% ggplot() +
+  facet_wrap(. ~ correct) +
+  geom_point(aes(y = correct_mean, x = span_tokyo_span_kinki))
+
+summary(lm(correct_mean ~ span_tokyo_span_kinki, results_mean))
+```
+
+
+```{r}
+results %>%
+  mutate(tokyo_exp = case_when(
+    span_tokyo_span_kinki >= 0 ~ "Tokyo",
+    span_tokyo_span_kinki < 0 ~ "Kinki"
+  )) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ correct) +
+  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+```
+```{r}
+order <- "b"
+results %>%
+  filter(correct == order) %>%
+  mutate(tokyo_exp = case_when(
+    span_kinki_span_tokyo >= 0 ~ "Kinki",
+    span_kinki_span_tokyo < 0 ~ "Tokyo"
+  )) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ subj_id) +
+  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+ggsave(paste0("artifact/test_", order, ".png"), unit = "cm", width = 20, height = 20)
+```
+
+```{r}
+tgt <- c("-HHL", "-HLL", "-LHH", "-LLH") # HLは近畿にもある。東京とは言えない。
+# tgt  = c("-HHL","-HLL")  # HLは近畿にもある。東京とは言えない。
+
+order <- "a"
+th <- -20
+results %>%
+  filter(correct == order) %>%
+  mutate(tokyo_exp = case_when(
+    span_tokyo_span_kinki >= th ~ "Tokyo",
+    span_tokyo_span_kinki < th ~ "Kinki"
+  )) %>%
+  filter(tone %in% tgt) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ subj_id) +
+  # facet_wrap(tokyo_exp~correct) +
+  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  # ggtitle("Accuracy by Tone and Region") +
+  xlab("Tone Type") +
+  ylab("Accuracy") +
+  theme(legend.position = "none")
+
+ggsave(paste0("artifact/correct_", order, "_", th, ".png"), unit = "cm", width = 20, height = 20)
+```
+
+
+```{r}
+print("EOF")
+```

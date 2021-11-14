@@ -1,5 +1,5 @@
 ---
-title: "axb"
+title: "Phoneme"
 output: html_notebook
 ---
 
@@ -26,6 +26,7 @@ library(tidyr)
 * `subject_id`: 実験実施者から与えられた番号
 * `span_tokyo`: 東京の居住歴
 * `span_kinki`: 近畿で居住歴
+
 ```{r}
 illusory_vowel_keihan <-
   read_csv("csv/illusory-vowel-keihan.csv")

@@ -1,6 +1,23 @@
 library(tibble)
 
 item_id2char <- function(item_id) {
+  # see read_csv("../src/list/production_list.csv")
+  case_when(
+    item_id == 1 ~ "KUTouten",
+    item_id == 2 ~ "aKUTenkou",
+    item_id == 3 ~ "eSUPeranto",
+    item_id == 4 ~ "SUPootsu",
+    item_id == 5 ~ "ePUSon",
+    item_id == 6 ~ "PUSan-meibutsu",
+    item_id == 7 ~ "oTSUKai",
+    item_id == 8 ~ "TSUKebarai"
+  )
+}
+
+item_id2tone <- function(item_id) {
+  # see read_csv("../src/list/production_list.csv")
+  # tobe implemented
+  # アクセント核なんかも考慮すべき？
   NULL
 }
 

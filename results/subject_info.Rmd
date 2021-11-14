@@ -7,14 +7,17 @@ output: html_document
   * 被験者ごと
   * 被験者:アイテム
 * 無声化率の可視化・分析
-  * `無声化率 ~ 東京方言への接触 + n_mora + is_onset + is_HL`
+  * `無声化率 ~ 東京方言への接触 + n_mora + is_onset + is_HL + is_sp + is_hoge + is_hoge + is_hoge + is_jpn + is_eng `
     * `mora`: モーラ数
     * `mora_dur`: モーラの時間(無声化するかで変わってしまうので却下)
-  * 東京方言への接触は複数のパターンで示せる
+    * `is_CC`: CCのダミーコーディング
+  * 東京方言への接触は複数のパターンで示せる(+以下をageで標準化したもの)
     * span_tokyo
     * span_tokyo - span_kinki
-    * span_tokyo / age
-    * (span_tokyo - span_kinki) / age
+    * span_tokyo - (span_kinki+span_unknown)
+    * span_kinki
+    * span_kinki - span_tokyo
+    * span_kinki - (span_tokyo+span_unknown)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -23,8 +26,10 @@ library(ggplot2)
 library(readr)
 library(stringr)
 library(tidyr)
-source("src/subject_info.R")
+source("script/subject_info.R")
 ```
+
+## データ統合・整形
 
 ```{r}
 annotation <- read_csv("devoicing_annotation.csv") %>% results_table()
@@ -43,78 +48,78 @@ results_cw <- annotation %>%
   inner_join(subject_info_cw) %>%
   left_join(order_cw)
 
-# マージ + devoiced のカラムを追加
-results <- rbind(results_sone, results_cw) %>% 
-  mutate(devoiced= 1- voiced)
+# マージ + devoiced のカラムを追加、年齢の抽出
+x_var_list <- c("span_tokyo", "span_kinki", "span_tokyo_span_kinki", "span_tokyo_span_other", "span_kinki_span_tokyo", "span_kinki_span_other")
+results <- rbind(results_sone, results_cw) %>%
+  mutate(devoiced = 1 - voiced) %>%
+  mutate(
+    span_tokyo_span_kinki = span_tokyo - span_kinki,
+    span_tokyo_span_other = span_tokyo - (span_kinki + span_unknown),
+    span_kinki_span_tokyo = span_kinki - span_tokyo,
+    span_kinki_span_other = span_kinki - (span_tokyo + span_unknown)
+  )
 ```
 
+## 可視化
+
+* アイテムごとに平均
+* 可視化
+
 ```{r}
-results_mean_by_item <- results %>%
-  group_by(subj_id, item_id) %>%
-  mutate(voiced = mean(voiced), 
-         devoiced = mean(devoiced)) %>%
+for (x_var in x_var_list) {
+  # 指標(Year)を縦持ちに変更
+  # 可視化のため平均化
+  result_x_var <- results %>%
+  pivot_longer(x_var_list, names_to = "span", values_to = "year")%>% 
+    group_by(subj_id, item_id) %>% 
+    filter(span == x_var) %>% mutate(devoiced_mean=mean(devoiced))%>% 
+    ungroup() %>%
+    select(-c(production_order)) %>%
+    distinct()
+  result_x_var %>%
+    ggplot() +
+    facet_wrap(. ~ item_id2char(item_id)) +
+    geom_point(aes(x = year, y = devoiced_mean))+
+    ggtitle(x_var)
+  ggsave(paste0("artifact/devoiced_mean_",x_var,".png"))
+}
+```
+試しに `span_tokyo_span_kinki` を可視化
+
+```{r}
+# 可視化のため平均を取る
+x_var = "span_tokyo_span_kinki"
+result_x_var <- results %>%
+  pivot_longer(x_var_list, names_to = "span", values_to = "year")%>% 
+  filter(span == x_var) %>%
+  group_by(subj_id, item_id) %>% 
+   mutate(devoiced_mean=mean(devoiced))%>% 
   ungroup() %>%
   select(-c(production_order)) %>%
   distinct()
-```
-```{r}
-head(results_mean_by_item)
-summary(results_mean_by_item)
-```
-
-
-```{r}
-# kinkiの在住歴
-results_mean_by_item %>%
+result_x_var %>%
   ggplot() +
-  facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_kinki / age, y = devoiced))
-
-# tokyoの在住歴
-results_mean_by_item %>%
-  ggplot() +
-  facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_tokyo / age, y = devoiced))
-
-# dominance
-results_mean_by_item %>%
-  ggplot() +
-  facet_wrap(. ~ item_id) +
-  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
-
-# dominance/年齢
-results_mean_by_item %>%
-  ggplot() +
-  facet_wrap(. ~ item_id) +
-  geom_point(aes(x = (span_kinki - span_tokyo) / age, y = devoiced))
-```
-
-```{r}
-# dominance
-results_mean_by_item %>%
-  ggplot() +
-  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced, color=as.factor(item_id)))
+  facet_wrap(. ~ item_id2char(item_id)) +
+  geom_point(aes(x = year, y = devoiced_mean))+
+  ggtitle(x_var)
 ```
 
 
 ```{r}
-results_mean_by_subject <- results %>%
+subject_info_df <- results %>%
   group_by(subj_id) %>%
-  mutate(voiced = mean(voiced),
-         devoiced = mean(devoiced)) %>%
+  mutate(
+    voiced = mean(voiced),
+    devoiced = mean(devoiced)
+  ) %>%
   ungroup() %>%
   select(-c(production_order, item_id, present_order)) %>%
-  distinct() %>% drop_na()
+  distinct() %>%
+  drop_na()
 
-results_mean_by_subject  # トーンの分析にはこれを使う
-results_mean_by_subject %>%
-  ggplot() +
-  geom_point(aes(x = span_kinki - span_tokyo, y = devoiced))
+head(subject_info_df) # トーンの分析にはこれを使う
+write_csv(subject_info_df, "devoicing_by_subj.csv")
 ```
-
-傾向くらいはありそう。
-
-TODO
 
 * 1や2ではなく単語にして可視化
 * これらを要因としてトーンの分析を再実施す
