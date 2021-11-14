@@ -5,9 +5,11 @@ output: html_notebook
 
 - [ ] `正答率~近畿`
   - 「正答率」は aとbのどちらに寄せるか。
-    - 平均で良いか(前と後ろの選好性を平均する)、掛け算はどうか
+    - 平均で(前と後ろの選好性を平均する)
+    -掛け算
 - [ ] 被験者ごとに差を見る(HHL-HLLのスコア、など)
-- [ ] 外れ値の除外
+- [ ] 外れ値の除外(正答率、反応時間)
+- 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
 ```{r}
 library(dplyr)
@@ -76,14 +78,14 @@ results_mean %>%
   mutate(tokyo_pref_HLL = `-HLL`-`-HHL`,
          tokyo_pref_LLH = `-LHH`-`-LLH`,
          span_kinki_span_tokyo_age = span_kinki_span_tokyo/age) %>% 
-  lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
+  # lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
   # lm(formula=tokyo_pref_HLL~ devoiced) %>% summary
   # lm(formula=tokyo_pref_LLH~ devoiced) %>% summary
-#  ggplot() +
-#   # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
-#   # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
-#   geom_bin2d(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
-#   # geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
+  ggplot() +
+   # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
+   # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
+   geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
+   # geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
 ```
 
 ```{r}
