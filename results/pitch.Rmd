@@ -3,9 +3,11 @@ title: "Pitch"
 output: html_notebook
 ---
 
-TODO
-
-* 被験者ごとに差を見る(HHL-HLLのスコア、など)
+- [ ] `正答率~近畿`
+  - 「正答率」は aとbのどちらに寄せるか。
+    - 平均で良いか(前と後ろの選好性を平均する)、掛け算はどうか
+- [ ] 被験者ごとに差を見る(HHL-HLLのスコア、など)
+- [ ] 外れ値の除外
 
 ```{r}
 library(dplyr)
@@ -51,25 +53,47 @@ results <- rbind(tone_sone, tone_cw) %>%
   drop_na()
 
 summary(results)
-head(results, 100)
+head(results, 1000)
 ```
 ```{r}
 results_mean <- results %>%
-  group_by(subj_id, correct, is_tokyo) %>%
+  group_by(subj_id, tone) %>%
   mutate(
-    correct_mean = mean(as.logical(is_correct)),
-    rt_mean = mean(as.numeric(rt))
+    correct_mean = mean(as.logical(is_correct))# ,
+    # rt_mean = mean(as.numeric(rt))
   ) %>%
-  select(-c(is_correct, rt, trial_index, item_id)) %>%
+  select(-c(is_correct, rt, trial_index, item_id, correct)) %>%
+  ungroup %>% 
   distinct()
+results_mean %>% head()
+```
+```{r}
+# 横持ちにして HLL-HHL などを計算
+results_mean %>%
+    select(-c(pitch_a, pitch_b, type, is_tokyo)) %>% 
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
+  pivot_wider(names_from=tone, values_from = correct_mean, values_fn=mean) %>% 
+  mutate(tokyo_pref_HLL = `-HLL`-`-HHL`,
+         tokyo_pref_LLH = `-LHH`-`-LLH`,
+         span_kinki_span_tokyo_age = span_kinki_span_tokyo/age) %>% 
+  lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
+  # lm(formula=tokyo_pref_HLL~ devoiced) %>% summary
+  # lm(formula=tokyo_pref_LLH~ devoiced) %>% summary
+#  ggplot() +
+#   # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
+#   # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
+#   geom_bin2d(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
+#   # geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
 ```
 
 ```{r}
-results_mean %>% ggplot() +
-  facet_wrap(is_tokyo ~ correct) +
+results_mean %>%
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
+  filter(rt_mean < 2000) %>% 
+ ggplot() +
+  facet_grid(.~ tone) +
   geom_point(aes(y = correct_mean, x = devoiced))
-
-summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
+# summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
 ```
 
 ```{r}
