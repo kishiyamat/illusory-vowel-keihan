@@ -28,7 +28,7 @@ source("script/subject_info.R")
 
 ```{r}
 item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, pitch_a, pitch_b))
-devoice_list <- read_csv("devoicing_by_subj.csv")  # アノテーションデータ
+devoice_list <- read_csv("devoicing_by_subj.csv") # アノテーションデータ
 
 tone_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   filter(task == "axb") %>%
@@ -63,39 +63,41 @@ head(results, 1000)
 results_mean <- results %>%
   group_by(subj_id, tone) %>%
   mutate(
-    correct_mean = mean(as.logical(is_correct))# ,
+    correct_mean = mean(as.logical(is_correct)) # ,
     # rt_mean = mean(as.numeric(rt))
   ) %>%
   select(-c(is_correct, rt, trial_index, item_id, correct)) %>%
-  ungroup %>% 
+  ungroup() %>%
   distinct()
 results_mean %>% head()
 ```
 ```{r}
 # 横持ちにして HLL-HHL などを計算
 results_mean %>%
-    select(-c(pitch_a, pitch_b, type, is_tokyo)) %>% 
-  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
-  pivot_wider(names_from=tone, values_from = correct_mean, values_fn=mean) %>% 
-  mutate(tokyo_pref_HLL = `-HLL`-`-HHL`,
-         tokyo_pref_LLH = `-LHH`-`-LLH`,
-         span_kinki_span_tokyo_age = span_kinki_span_tokyo/age) %>% 
+  select(-c(pitch_a, pitch_b, type, is_tokyo)) %>%
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
+  pivot_wider(names_from = tone, values_from = correct_mean, values_fn = mean) %>%
+  mutate(
+    tokyo_pref_HLL = `-HLL` - `-HHL`,
+    tokyo_pref_LLH = `-LHH` - `-LLH`,
+    span_kinki_span_tokyo_age = span_kinki_span_tokyo / age
+  ) %>%
   # lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
   # lm(formula=tokyo_pref_HLL~ devoiced) %>% summary
   # lm(formula=tokyo_pref_LLH~ devoiced) %>% summary
   ggplot() +
-   # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
-   # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
-   geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
-   # geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
+  # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
+  # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
+  geom_point(aes(y = tokyo_pref_HLL, x = devoiced)) # span_tokyoとかと比べると傾くんだなぁ
+# geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
 ```
 
 ```{r}
 results_mean %>%
-  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
-  filter(rt_mean < 2000) %>% 
- ggplot() +
-  facet_grid(.~ tone) +
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
+  filter(rt_mean < 2000) %>%
+  ggplot() +
+  facet_grid(. ~ tone) +
   geom_point(aes(y = correct_mean, x = devoiced))
 # summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
 ```

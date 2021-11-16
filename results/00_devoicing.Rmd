@@ -1,5 +1,5 @@
 ---
-title: "subject_info"
+title: "devoicing"
 output: html_document
 ---
 
@@ -18,6 +18,9 @@ output: html_document
     * span_kinki
     * span_kinki - span_tokyo
     * span_kinki - (span_tokyo+span_unknown)
+* データの保存
+  * `devoicing_by_subj.csv`
+  * `devoicing_by_subj_phoneme.csv`
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -70,37 +73,38 @@ for (x_var in x_var_list) {
   # 指標(Year)を縦持ちに変更
   # 可視化のため平均化
   result_x_var <- results %>%
-  pivot_longer(x_var_list, names_to = "span", values_to = "year")%>% 
-    group_by(subj_id, item_id) %>% 
-    filter(span == x_var) %>% mutate(devoiced_mean=mean(devoiced))%>% 
+    pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
+    group_by(subj_id, item_id) %>%
+    filter(span == x_var) %>%
+    mutate(devoiced_mean = mean(devoiced)) %>%
     ungroup() %>%
     select(-c(production_order)) %>%
     distinct()
   result_x_var %>%
     ggplot() +
     facet_wrap(. ~ item_id2char(item_id)) +
-    geom_point(aes(x = year, y = devoiced_mean))+
+    geom_point(aes(x = year, y = devoiced_mean)) +
     ggtitle(x_var)
-  ggsave(paste0("artifact/devoiced_mean_",x_var,".png"))
+  ggsave(paste0("artifact/devoiced_mean_", x_var, ".png"))
 }
 ```
 試しに `span_tokyo_span_kinki` を可視化
 
 ```{r}
 # 可視化のため平均を取る
-x_var = "span_tokyo_span_kinki"
+x_var <- "span_tokyo_span_kinki"
 result_x_var <- results %>%
-  pivot_longer(x_var_list, names_to = "span", values_to = "year")%>% 
+  pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
   filter(span == x_var) %>%
-  group_by(subj_id, item_id) %>% 
-   mutate(devoiced_mean=mean(devoiced))%>% 
+  group_by(subj_id, item_id) %>%
+  mutate(devoiced_mean = mean(devoiced)) %>%
   ungroup() %>%
   select(-c(production_order)) %>%
   distinct()
 result_x_var %>%
   ggplot() +
   facet_wrap(. ~ item_id2char(item_id)) +
-  geom_point(aes(x = year, y = devoiced_mean))+
+  geom_point(aes(x = year, y = devoiced_mean)) +
   ggtitle(x_var)
 ```
 

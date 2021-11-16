@@ -39,11 +39,14 @@ subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   extract_columns(data_src = "sone")
 subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   extract_columns(data_src = "cw")
-subject_info = rbind(subject_info_sone,subject_info_cw)
+subject_info <- rbind(subject_info_sone, subject_info_cw)
 
-results =  rbind(read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src="sone"),
-  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src="cw")) %>% filter(task=="axb") %>% 
-  left_join(subject_info, by = c("run_id", "data_src")) %>% 
+results <- rbind(
+  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
+  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
+) %>%
+  filter(task == "axb") %>%
+  left_join(subject_info, by = c("run_id", "data_src")) %>%
   select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo, span_unknown, age, data_src, correct)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(rt = as.numeric(rt)) %>%
