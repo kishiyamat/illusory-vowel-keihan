@@ -22,9 +22,6 @@ def test_data_path():
     src_1, src_2 = "feature", 'esuko-LHH-1.wav'
     tgt = Path("../model/feature/esuko-LHH-1.npy")
     assert PathManager.data_path(src_1, src_2) == tgt
-    src_1, src_2 = "pitch_delta", 'esuko-LHH-1.wav'
-    tgt = Path("../model/pitch_delta/esuko-LHH-1.npy")
-    assert PathManager.data_path(src_1, src_2) == tgt
     src_1, src_2 = "label_base", 'esuko-LHH-1.wav'
     tgt = Path("../model/label_base/esuko-LHH-1.npy")
     assert PathManager.data_path(src_1, src_2) == tgt
