@@ -3,6 +3,12 @@ title: "Pitch"
 output: html_notebook
 ---
 
+- 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
+- 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
+
+行う分析チェックリスト
+
+- [ ] アクセントパターンでの分析
 - [ ] `正答率~近畿`
   - 「正答率」は aとbのどちらに寄せるか。
     - 平均で(前と後ろの選好性を平均する)
@@ -21,12 +27,8 @@ source("script/subject_info.R")
 ```
 
 ```{r}
-# TODO: データソースの抽象化
 item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, pitch_a, pitch_b))
-devoice_list <- read_csv("devoicing_by_subj.csv")
-devoice_list %>% head()
-
-subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv")
+devoice_list <- read_csv("devoicing_by_subj.csv")  # アノテーションデータ
 
 tone_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   filter(task == "axb") %>%

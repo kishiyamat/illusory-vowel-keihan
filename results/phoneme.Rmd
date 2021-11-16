@@ -11,58 +11,7 @@ output: html_notebook
     * AXB
     * 判定課題
   * トーンの復元
-
-```{r}
-library(dplyr)
-library(ggplot2)
-library(readr)
-library(stringr)
-library(tidyr)
-```
-
-## 被験者情報
-
-* `run_id`: cognition.run が割り振った番号
-* `subject_id`: 実験実施者から与えられた番号
-* `span_tokyo`: 東京の居住歴
-* `span_kinki`: 近畿で居住歴
-
-```{r}
-illusory_vowel_keihan <-
-  read_csv("csv/illusory-vowel-keihan.csv")
-  # read_csv("illusory-vowel-keihan-cw.csv")
-```
-
-```{r}
-# pilot_runid <- c(3, 8, 10, 11)
-# pilot_runid <- c()
-illusory_vowel_keihan <-
-  # read_csv("illusory-vowel-keihan-cw.csv") %>%
-  read_csv("illusory-vowel-keihan.csv") %>%
-  filter(!run_id %in% pilot_runid) %>%
-  filter(task != "production")
-
-# ここがおかしい(cwは数字とは限らない)
-runid_subject <-
-  illusory_vowel_keihan %>%
-  filter(trial_type == "survey-html-form") %>%
-  select(c(run_id, response)) %>%
-  mutate(
-    "key" = str_extract(response, "[a-z_]+"),
-    "value" = as.numeric(str_extract(response, "[0-9]+"))
-  ) %>%
-  select(-response) %>%
-  pivot_wider(names_from = key, values_from = value)
-
-illusory_vowel_keihan <- merge(illusory_vowel_keihan, runid_subject, on = "item_id")
-head(illusory_vowel_keihan)  # 被験者
-# print(unique(illusory_vowel_keihan$run_id))
-
-illusory_vowel_keihan %>% group_by(run_id) %>% summarise(min_elapsed = max(time_elapsed)/1000/60) %>% print
-# print(unique($subject_id))
-print(unique(illusory_vowel_keihan$subject_id))
-```
-
+  
 タスクの確認
 
 item_id がないのは練習問題
@@ -76,37 +25,43 @@ item_id がないのは練習問題
   * item_id でタスクが分かれる
 
 ```{r}
-unique(illusory_vowel_keihan$task)
-# head()
-# filter(task == "axb") %>%
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(tidyr)
 ```
 
 ```{r}
-# illusory_vowel_keihan <-
-axb_results <- illusory_vowel_keihan %>%
-  filter(task == "axb") %>%
-  select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo)) %>%
+source("script/subject_info.R")
+# TODO: devocingのデータをマージしたほうが早い。
+subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
+  extract_columns(data_src = "sone")
+subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
+  extract_columns(data_src = "cw")
+subject_info = rbind(subject_info_sone,subject_info_cw)
+
+results =  rbind(read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src="sone"),
+  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src="cw")) %>% filter(task=="axb") %>% 
+  left_join(subject_info, by = c("run_id", "data_src")) %>% 
+  select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo, span_unknown, age, data_src, correct)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(rt = as.numeric(rt)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(is_correct = is_correct == "true") %>%
   drop_na()
-
-axb_results
+head(results)
 ```
 
-## ABX
-
-### 無声化
+無声化
 
 https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
 
 ```{r}
 # 文脈などのカラムをひっぱるのも可能
 # type==target が 無声化, filler がトーンの知覚
-item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, condition, correct))
-axb_results_devoice <- merge(axb_results, item_list, on = "item_id") %>% filter(type == "target")
-axb_results_devoice
+item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, condition, correct, item_a, item_x, item_b))
+axb_results_devoice <- merge(results, item_list, on = "item_id") %>% filter(type == "target")
 ```
 
 a を違うと早とちりするとこうなる。
@@ -118,107 +73,3 @@ axb_results_devoice %>%
   facet_grid(correct ~ span_kinki) +
   geom_histogram(aes(x = condition, color = is_correct, fill = is_correct), stat = "count", position = "fill")
 ```
-
-### トーン
-
-- 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
-- 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
-
-```{r}
-# 文脈などのカラムをひっぱるのも可能
-# type==target が 無声化, filler がトーンの知覚
-item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, pitch_a, pitch_b))
-axb_results_tone <- merge(axb_results, item_list, on = "item_id") %>% filter(type != "target")
-axb_results_tone <- axb_results_tone %>%
-  mutate(
-    tone = case_when(
-      correct == "a" ~ pitch_b,
-      correct == "b" ~ pitch_a
-    )
-  ) %>%
-  mutate(is_tokyo = case_when(
-    tone == "-HL" ~ 1,
-    tone == "-LL" ~ 0,
-    tone == "-HLL" ~ 1,
-    tone == "-HHL" ~ 0,
-    tone == "-LHH" ~ 1,
-    tone == "-LLH" ~ 0
-  )) %>% 
-  mutate(tokyo_weight = span_tokyo/(span_kinki+span_tokyo))
-head(axb_results_tone)
-```
-
-```{r}
-axb_results_tone %>%
-  mutate(span_kinki = span_kinki > 5) %>%
-  filter(!span_kinki) %>%
-  ggplot() +
-  facet_wrap(run_id ~ span_kinki) +
-  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
-
-# ggsave("axb_results_tone_kinki.png", width = 20, height = 20, units = "cm")
-ggsave("axb_results_tone_tokyo.png", width = 20, height = 20, units = "cm")
-```
-
-```{r}
-axb_results_tone %>%
-  mutate(span_kinki = case_when(
-    span_kinki >= 5 ~ "Kinki",
-    span_kinki < 5 ~ "Tokyo" )) %>% 
-  ggplot() +
-  facet_wrap(correct ~ span_kinki) +
-  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
-```
-
-```{r}
-#tgt  = c("-HHL","-HLL")
-tgt  = c("-HHL","-HLL","-LHH","-LLH")  # HLは近畿にもある。東京とは言えない。
-
-axb_results_tone %>%
-  mutate(span_kinki = case_when(
-    span_kinki >= 5 ~ "Kinki",
-    span_kinki < 5 ~ "Tokyo" )) %>% 
-  filter(tone %in% tgt ) %>%
-  ggplot() +
-  facet_wrap(~span_kinki) +
-  # facet_wrap(run_id~span_kinki) +
-  # facet_wrap(correct ~ span_kinki) +
-  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-  # ggtitle("Accuracy by Tone and Region") +
-  xlab("Tone Type") + ylab("Accuracy") +
-  theme(legend.position = "none")
-
-ggsave("axb_results_tone.png", width = 7, height = 7, units = "cm")
-# 交互作用はありそうだが、
-# 近畿では効果が微妙...
-# 東京への接触とか関係ある？
-# factとして、東京方言話者はHHLやLLHでは錯覚しづらい。
-```
-```{r}
-# tokyo = c("-LHH", "-HLL")
-tokyo = c("-HLL")
-analysis = axb_results_tone %>%
-  mutate(span_kinki = as.integer(span_kinki > 5)) %>%
-  filter(tone %in% tgt ) %>% 
-  mutate(tone_tokyo = as.integer(tone %in% tokyo)) %>% 
-  mutate(is_correct = as.integer(is_correct)) %>% 
-  mutate(run_id = as.factor(run_id)) %>% 
-  mutate(item_id = as.factor(item_id)) %>% 
-  mutate(precedes = as.factor(correct=="a")) %>% 
-  select(is_correct, span_kinki,tone_tokyo, run_id, item_id, tone, precedes, is_tokyo, tokyo_weight) 
-
-head(analysis)
-```
-
-```{r}
-library(lme4)
-model = glmer(is_correct~span_kinki*tone_tokyo+precedes+(1|run_id)+(1|item_id), data=analysis, family=binomial)
-# model = glmer(is_correct~tokyo_weight*tone_tokyo+precedes+(1|run_id)+(1|item_id), data=analysis, family=binomial)
-summary(model)
-```
-
-```{r}
-axb_results_tone 
-```
-
