@@ -10,7 +10,7 @@ output: html_notebook
 
 - 独立変数
   - 被験者要因(居住歴|無声化率)
-    - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo, span_kinki_span_tokyo_age
+    - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo(閾値が面倒)
     - 無声化率: devoicing_by_subj
   - アイテム要因(東京|アクセントタイプ)
     - 地域ごと: HLL+LHH OR HHL+LLH
@@ -19,6 +19,11 @@ output: html_notebook
 - 従属変数
   - 正答率の差
   - 反応時間の差
+
+方針
+
+1. 全てのカラムをDFに落とし込む
+1. formula で可視化と分析を実施
 
 TODO 
 
@@ -38,10 +43,9 @@ library(readr)
 library(stringr)
 library(tidyr)
 source("script/subject_info.R")
-```
 
-```{r}
-item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, pitch_a, pitch_b))
+item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, item_a, item_x, item_b, pitch_a, pitch_x, pitch_b))
+# read_csv("../src/list/axb_list.csv") %>% head
 devoice_list <- read_csv("devoicing_by_subj.csv") # アノテーションデータ
 
 tone_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
@@ -59,23 +63,106 @@ results <- rbind(tone_sone, tone_cw) %>%
   merge(item_list, on = "item_id") %>%
   filter(type != "target") %>%
   mutate(
-    tone = case_when(
-      correct == "a" ~ pitch_b,
+    pitch_to = case_when(
+      correct == "a" ~ pitch_b, # 反対が母音あり版
       correct == "b" ~ pitch_a
-    )
+    ),
+    pitch_from = case_when(
+      correct == "a" ~ pitch_a, # 反対が母音あり版
+      correct == "b" ~ pitch_b
+    ),
+    phoneme= as.factor(str_sub(item_x, 1, -nchar(pitch_x)-1))
   ) %>%
-  mutate(is_tokyo = case_when(
-    tone %in% c("-HL", "-HLL", "-LHH") ~ "Tokyo",
-    tone %in% c("-LL", "-HHL", "-LLH") ~ "Kinki"
+  mutate(pitch_type = case_when(
+    pitch_to %in% c("-HL", "-HLL", "-LHH") ~ "Tokyo",
+    pitch_to %in% c("-LL", "-HHL", "-LLH") ~ "Kinki"
   )) %>%
-  drop_na()
+  filter(pitch_to %in%  c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
+  drop_na() %>% 
+  mutate(is_correct=as.logical(is_correct),
+         rt=as.numeric(rt), 
+         voiced=as.numeric(voiced))
 
 summary(results)
+results
+```
+```{r}
+# 基本的に真ん中が足りないもの。
 head(results, 1000)
 ```
 ```{r}
+# TODO: etsuto-HLL - etsuto-HHL を見る(東京バイアス)
+# ただし、a--b や 音素の情報は潰したくない
+# Yを計算
+results_by_subject <- results %>%
+  select(c(phoneme, pitch_to, run_id, data_src, is_correct)) %>%
+  group_by(phoneme, pitch_to, run_id, data_src) %>%
+  mutate(is_correct_mean = mean(is_correct)) %>%
+  ungroup() %>%
+  select(-c(is_correct)) %>%
+  distinct() %>%
+  mutate(phoneme_pitch_to = paste0(phoneme, pitch_to)) %>%
+  select(-c(phoneme, pitch_to)) %>%
+  pivot_wider(names_from = phoneme_pitch_to, values_from = is_correct_mean) %>%
+  # TODO: ここの値を保証する
+  mutate(
+    etsto_H_L_tokyo = `etsto-HLL` - `etsto-HHL`,
+    esko_H_L_tokyo = `esko-HLL` - `esko-HHL`,
+    etsto_L_H_tokyo = `etsto-LHH` - `etsto-LLH`,
+    esko_L_H_tokyo = `esko-LHH` - `esko-LLH`
+  ) %>%
+  select(c(run_id, data_src, etsto_H_L_tokyo, esko_H_L_tokyo, etsto_L_H_tokyo, esko_L_H_tokyo)) %>%
+  pivot_longer(cols = c(etsto_H_L_tokyo, esko_H_L_tokyo, etsto_L_H_tokyo, esko_L_H_tokyo), names_to = "item", values_to = "tokyo_pref") %>%
+  mutate(
+    phoneme = case_when(
+      grepl("etsto", item, fixed=TRUE) ~ "etsto",
+      grepl("esko", item, fixed=TRUE) ~ "esko"
+    ),
+    pitch_from = case_when(
+      grepl("H_L", item, fixed=TRUE) ~ "H_L",
+      grepl("L_H", item, fixed=TRUE) ~ "L_H"
+    )
+  ) %>% 
+  left_join(devoice_list, by = c("run_id", "data_src"))
+
+results_by_subject
+```
+```{r}
+# H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
+results_by_subject %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(phoneme~pitch_from) +
+  geom_boxplot(aes(x=as.factor(floor(scale(voiced))), y=tokyo_pref))
+
+results_by_subject %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(phoneme~pitch_from) +
+  geom_boxplot(aes(x=as.factor(floor(scale(span_kinki))), y=tokyo_pref))
+  # geom_violin(aes(x=as.factor(floor(scale(span_kinki_span_tokyo))), y=tokyo_pref))
+```
+
+```{r}
+# 基本的に、つねにHHLの時に気づけている
+# 対して、LHHでもLLHでもそんなに変わらなさそう
+# 東京バイアスなら引き算でよくね？
+# aとbでは大きな差があるが
+# 一応、異なる話者では分けてあるこれで十分計算はできるはず。
+results %>% 
+  group_by(phoneme, pitch_to, subj_id, correct) %>% 
+  mutate(is_correct_mean = mean(is_correct)) %>% 
+  pivot_wider()
+  ggplot() +
+  facet_grid(phoneme+correct~pitch_to) +
+  # geom_point(aes(x=scale(voiced), y=is_correct_mean, color=pitch_x)) +
+  geom_violin(aes(x=span_kinki_span_other>10, y=is_correct_mean, color=pitch_x))
+```
+
+
+```{r}
 results_mean <- results %>%
-  group_by(subj_id, tone) %>%
+  group_by(subj_id, pitch) %>%
   mutate(
     correct_mean = mean(as.logical(is_correct)) # ,
     # rt_mean = mean(as.numeric(rt))
