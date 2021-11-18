@@ -132,15 +132,16 @@ results_by_subject
 results_by_subject %>% 
   group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
-  facet_grid(phoneme~pitch_from) +
+  facet_grid(.~pitch_from) +
   geom_boxplot(aes(x=as.factor(floor(scale(voiced))), y=tokyo_pref))
+  # geom_violin(aes(x=as.factor(floor(scale(voiced))), y=tokyo_pref))
 
-results_by_subject %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
-  ggplot() +
-  facet_grid(phoneme~pitch_from) +
-  geom_boxplot(aes(x=as.factor(floor(scale(span_kinki))), y=tokyo_pref))
-  # geom_violin(aes(x=as.factor(floor(scale(span_kinki_span_tokyo))), y=tokyo_pref))
+# results_by_subject %>% 
+#   group_by(phoneme, pitch_from, subj_id) %>% 
+#   ggplot() +
+#   facet_grid(phoneme~pitch_from) +
+#   # geom_boxplot(aes(x=as.factor(floor(scale(span_tokyo))), y=tokyo_pref))
+#   geom_violin(aes(x=as.factor(floor(scale(span_kinki_span_tokyo))), y=tokyo_pref))
 ```
 
 ```{r}
@@ -156,7 +157,6 @@ results %>%
   ggplot() +
   facet_grid(phoneme+correct~pitch_to) +
   # geom_point(aes(x=scale(voiced), y=is_correct_mean, color=pitch_x)) +
-  geom_violin(aes(x=span_kinki_span_other>10, y=is_correct_mean, color=pitch_x))
 ```
 
 
