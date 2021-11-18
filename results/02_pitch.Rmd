@@ -6,7 +6,21 @@ output: html_notebook
 - 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
 - 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
 
-行う分析チェックリスト
+行う分析(可視化, 統計)
+
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+    - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo, span_kinki_span_tokyo_age
+    - 無声化率: devoicing_by_subj
+  - アイテム要因(東京|アクセントタイプ)
+    - 地域ごと: HLL+LHH OR HHL+LLH
+    - アクセントタイプごと: HLL OR LHH OR HHL OR LLH
+      (分析が難しい. 差の差の分析にする)
+- 従属変数
+  - 正答率の差
+  - 反応時間の差
+
+TODO 
 
 - [ ] アクセントパターンでの分析
 - [ ] `正答率~近畿`
@@ -17,7 +31,7 @@ output: html_notebook
 - [ ] 外れ値の除外(正答率、反応時間)
 - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
-```{r}
+```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
 library(readr)

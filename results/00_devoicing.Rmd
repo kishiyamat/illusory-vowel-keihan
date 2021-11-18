@@ -3,6 +3,15 @@ title: "devoicing"
 output: html_document
 ---
 
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+    - 居住歴: span_kinki, span_tokyo_span_kinki, span_kinki_span_tokyo_age
+    - 無声化率:
+  - アイテム要因(東京|アクセントタイプ)
+- 従属変数
+  - 正答率 
+  - 反応時間
+
 * 被験者情報の取得
   * 被験者ごと
   * 被験者:アイテム
