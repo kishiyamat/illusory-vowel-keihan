@@ -17,7 +17,9 @@ output: html_notebook
     - アクセントタイプごと: HLL OR LHH OR HHL OR LLH
       (分析が難しい. 差の差の分析にする)
 - 従属変数
-  - 正答率の差
+  - 正答率(錯覚しないか)
+  - 正答率の差 (HHL-HLL, LLH-LHH): わかりづらいな。
+    - <- 東京アクセントへの選好性/錯覚のしやすさ ((-HLL) - (-HHL)) 
   - 反応時間の差
 
 方針
@@ -44,86 +46,88 @@ library(stringr)
 library(tidyr)
 source("script/subject_info.R")
 
-item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, correct, item_a, item_x, item_b, pitch_a, pitch_x, pitch_b))
-# read_csv("../src/list/axb_list.csv") %>% head
-devoice_list <- read_csv("devoicing_by_subj.csv") # アノテーションデータ
+# 補足データ
+item_list <- "../src/list/axb_list.csv" %>%
+  read_csv() %>%
+  select(c(item_id, type, correct, item_a, item_x, item_b, pitch_a, pitch_x, pitch_b))
+devoicing_annotation_subj <- read_csv("devoicing_by_subj.csv") # 被験者(data_src, run_id)ごとアノテーション
 
+# 実験データ
 tone_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   filter(task == "axb") %>%
   select(c(run_id, item_id, is_correct, rt, trial_index)) %>%
   mutate(data_src = "sone")
-
 tone_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   filter(task == "axb") %>%
   select(c(run_id, item_id, is_correct, rt, trial_index)) %>%
   mutate(data_src = "cw")
 
+# 統合と列生成
 results <- rbind(tone_sone, tone_cw) %>%
-  left_join(devoice_list, by = c("run_id", "data_src")) %>%
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>%
   merge(item_list, on = "item_id") %>%
-  filter(type != "target") %>%
+  filter(type != "target") %>% # toneの実験は "target" ではない
   mutate(
-    pitch_to = case_when(
-      correct == "a" ~ pitch_b, # 反対が母音あり版
-      correct == "b" ~ pitch_a
-    ),
     pitch_from = case_when(
-      correct == "a" ~ pitch_a, # 反対が母音あり版
+      correct == "a" ~ pitch_a, # 提示されたピッチ(e.g. H_L)
       correct == "b" ~ pitch_b
     ),
-    phoneme= as.factor(str_sub(item_x, 1, -nchar(pitch_x)-1))
+    pitch_to = case_when(
+      correct == "a" ~ pitch_b, # 反対が母音あり版(e.g. HHL)
+      correct == "b" ~ pitch_a
+    ),
+    phoneme = as.factor(str_sub(item_x, 1, -nchar(pitch_x) - 1))
   ) %>%
   mutate(pitch_type = case_when(
     pitch_to %in% c("-HL", "-HLL", "-LHH") ~ "Tokyo",
     pitch_to %in% c("-LL", "-HHL", "-LLH") ~ "Kinki"
   )) %>%
-  filter(pitch_to %in%  c("-HLL", "-LHH", "-HHL", "-LLH")) %>% 
-  drop_na() %>% 
-  mutate(is_correct=as.logical(is_correct),
-         rt=as.numeric(rt), 
-         voiced=as.numeric(voiced))
+  filter(pitch_to %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
+  drop_na() %>%
+  mutate(
+    is_correct = as.logical(is_correct),
+    rt = as.numeric(rt),
+    voiced = as.numeric(voiced),
+    devoiced = as.numeric(devoiced)
+  )
 
-summary(results)
-results
-```
-```{r}
-# 基本的に真ん中が足りないもの。
-head(results, 1000)
-```
-```{r}
-# TODO: etsuto-HLL - etsuto-HHL を見る(東京バイアス)
-# ただし、a--b や 音素の情報は潰したくない
-# Yを計算
+# 東京バイアスを計算
 results_by_subject <- results %>%
   select(c(phoneme, pitch_to, run_id, data_src, is_correct)) %>%
   group_by(phoneme, pitch_to, run_id, data_src) %>%
+  # axb の a と b を潰し、phoneme, pitch_to, 被験者ごとに正答率を平均する
   mutate(is_correct_mean = mean(is_correct)) %>%
   ungroup() %>%
   select(-c(is_correct)) %>%
   distinct() %>%
+  # 被験者ごとにピッチ間(HLL--HHL)で差を見てバイアスの値とする
   mutate(phoneme_pitch_to = paste0(phoneme, pitch_to)) %>%
   select(-c(phoneme, pitch_to)) %>%
   pivot_wider(names_from = phoneme_pitch_to, values_from = is_correct_mean) %>%
-  # TODO: ここの値を保証する
   mutate(
-    etsto_H_L_tokyo = `etsto-HLL` - `etsto-HHL`,
-    esko_H_L_tokyo = `esko-HLL` - `esko-HHL`,
-    etsto_L_H_tokyo = `etsto-LHH` - `etsto-LLH`,
-    esko_L_H_tokyo = `esko-LHH` - `esko-LLH`
+    etsto_H_L_tokyo_bias = `etsto-HHL` - `etsto-HLL`,
+    esko_H_L_tokyo_bias = `esko-HHL` - `esko-HLL`,
+    etsto_L_H_tokyo_bias = `etsto-LLH` - `etsto-LHH`,
+    esko_L_H_tokyo_bias = `esko-LLH` - `esko-LHH`
   ) %>%
-  select(c(run_id, data_src, etsto_H_L_tokyo, esko_H_L_tokyo, etsto_L_H_tokyo, esko_L_H_tokyo)) %>%
-  pivot_longer(cols = c(etsto_H_L_tokyo, esko_H_L_tokyo, etsto_L_H_tokyo, esko_L_H_tokyo), names_to = "item", values_to = "tokyo_pref") %>%
+  select(c(run_id, data_src, etsto_H_L_tokyo_bias, esko_H_L_tokyo_bias, etsto_L_H_tokyo_bias, esko_L_H_tokyo_bias)) %>%
+  pivot_longer(
+    cols = c(etsto_H_L_tokyo_bias, esko_H_L_tokyo_bias, etsto_L_H_tokyo_bias, esko_L_H_tokyo_bias),
+    names_to = "item",
+    values_to = "tokyo_bias"
+  ) %>%
+  # 音素やH_Lの情報を復元
   mutate(
     phoneme = case_when(
-      grepl("etsto", item, fixed=TRUE) ~ "etsto",
-      grepl("esko", item, fixed=TRUE) ~ "esko"
+      grepl("etsto", item, fixed = TRUE) ~ "etsto",
+      grepl("esko", item, fixed = TRUE) ~ "esko"
     ),
     pitch_from = case_when(
-      grepl("H_L", item, fixed=TRUE) ~ "H_L",
-      grepl("L_H", item, fixed=TRUE) ~ "L_H"
+      grepl("H_L", item, fixed = TRUE) ~ "H_L",
+      grepl("L_H", item, fixed = TRUE) ~ "L_H"
     )
-  ) %>% 
-  left_join(devoice_list, by = c("run_id", "data_src"))
+  ) %>%
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src"))
 
 results_by_subject
 ```
@@ -132,16 +136,38 @@ results_by_subject
 results_by_subject %>% 
   group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
-  facet_grid(.~pitch_from) +
-  geom_boxplot(aes(x=as.factor(floor(scale(voiced))), y=tokyo_pref))
-  # geom_violin(aes(x=as.factor(floor(scale(voiced))), y=tokyo_pref))
+  # facet_grid(.~pitch_from) +
+  geom_boxplot(aes(x=as.factor(floor(devoiced/0.1)), y=tokyo_bias))
 
+results_by_subject %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  # facet_grid(.~pitch_from) +
+  geom_boxplot(aes(x=as.factor(floor(span_tokyo_span_other/10)), y=tokyo_bias))
+
+results_by_subject %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  # facet_grid(.~pitch_from) +
+  geom_boxplot(aes(x=as.factor(floor(span_tokyo_span_kinki/10)), y=tokyo_bias))
+  # geom_boxplot(aes(x=as.factor(floor(scale(span_tokyo_span_kinki))), y=tokyo_bias))
+# results_by_subject$devoiced
 # results_by_subject %>% 
 #   group_by(phoneme, pitch_from, subj_id) %>% 
 #   ggplot() +
 #   facet_grid(phoneme~pitch_from) +
 #   # geom_boxplot(aes(x=as.factor(floor(scale(span_tokyo))), y=tokyo_pref))
 #   geom_violin(aes(x=as.factor(floor(scale(span_kinki_span_tokyo))), y=tokyo_pref))
+# 年齢で標準化すると効果がでるのか...
+summary(lm(tokyo_bias~scale(span_tokyo/age)+pitch_from, results_by_subject))
+library(lme4)
+c(
+  tokyo_bias~scale(span_tokyo/age)+pitch_from ,
+  tokyo_bias~scale(span_tokyo/age)+pitch_from
+  )
+
+# summary(lmer(tokyo_bias~scale(span_tokyo/age)+pitch_from + (1|subj_id), results_by_subject))
+# summary(lm(tokyo_bias~scale(span_tokyo_span_other/age)+pitch_from, results_by_subject))
 ```
 
 ```{r}
