@@ -12,7 +12,7 @@ output: html_notebook
   - 被験者要因(居住歴|無声化率)
     - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo(閾値が面倒)
     - 無声化率: devoicing_by_subj
-  - アイテム要因(東京|アクセントタイプ)
+  - アイテム要因(東京|アクセントタイプ: ただしアイテムの効果かもしれない)
     - 地域ごと: HLL+LHH OR HHL+LLH
     - アクセントタイプごと: HLL OR LHH OR HHL OR LLH
       (分析が難しい. 差の差の分析にする)
@@ -32,13 +32,13 @@ TODO
 - [x] アクセントパターンでの分析
 - [x] 被験者ごとに差を見る(HHL-HLLのスコア、など)
   - 東京バイアス、とする。
-- [ ] 外れ値の除外 (正答率、反応時間)
-  - 正答率に関しては適当に受けるとチャンスレベルになるので問題
-  - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
-- [ ] `正答率~近畿` -> 保留
+- [x] `正答率~近畿` (Xは2パターンある。formulaかなにかで回す方がよい)
   - 「正答率」は aとbのどちらに寄せるか。
     - 平均で(前と後ろの選好性を平均する)
     -掛け算
+- [ ] 外れ値の除外 (正答率、反応時間)
+  - 正答率に関しては適当に受けるとチャンスレベルになるので問題
+  - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
 ### データ整形
 
@@ -119,7 +119,7 @@ results_by_subject <- results %>%
   pivot_longer(
     cols = c(etsto_H_L_tokyo_bias, esko_H_L_tokyo_bias, etsto_L_H_tokyo_bias, esko_L_H_tokyo_bias),
     names_to = "item",
-    values_to = "tokyo_bias"
+    values_to = "to_tokyo_pattern"
   ) %>%
   # 音素やH_Lの情報を復元
   mutate(
@@ -128,8 +128,8 @@ results_by_subject <- results %>%
       grepl("esko", item, fixed = TRUE) ~ "esko"
     ),
     pitch_from = case_when(
-      grepl("H_L", item, fixed = TRUE) ~ "H_L",
-      grepl("L_H", item, fixed = TRUE) ~ "L_H"
+      grepl("H_L", item, fixed = TRUE) ~ "From H_L",
+      grepl("L_H", item, fixed = TRUE) ~ "From L_H"
     )
   ) %>%
   left_join(devoicing_annotation_subj, by = c("run_id", "data_src"))
@@ -144,7 +144,8 @@ head(results_by_subject)
   * 被験者ごとの精度
   * アイテムごとの精度
 1. 統計(results_by_subject)
-  * 
+* 
+
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
@@ -152,44 +153,46 @@ results_by_subject %>%
   group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
   facet_grid(.~pitch_from) +
-  geom_boxplot(aes(x=as.factor(floor(devoiced)/0.1), y=tokyo_bias))
-
+  geom_violin(aes(x=as.factor(floor(devoiced/0.1)), y=to_tokyo_pattern))
+```
+```{r}
 results_by_subject %>% 
   group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
-  facet_grid(.~pitch_from) +
-  geom_boxplot(aes(x=as.factor(floor(span_tokyo_span_other/10)), y=tokyo_bias))
-
+  facet_grid(phoneme~pitch_from) +
+  geom_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=to_tokyo_pattern))
+```
+```{r}
 results_by_subject %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(phoneme~pitch_from) +
+  # geom_violin(aes(x=as.factor(floor(span_tokyo/age/0.1)), y=to_tokyo_pattern))
+  geom_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=to_tokyo_pattern)) 
+```
+```{r}
+results_by_subject %>% 
   ggplot() +
   # facet_grid(.~pitch_from) +
-  geom_boxplot(aes(x=as.factor(floor(span_tokyo_span_kinki/10)), y=tokyo_bias))
-  # geom_boxplot(aes(x=as.factor(floor(scale(span_tokyo_span_kinki))), y=tokyo_bias))
-# results_by_subject$devoiced
-# results_by_subject %>% 
-#   group_by(phoneme, pitch_from, subj_id) %>% 
-#   ggplot() +
-#   facet_grid(phoneme~pitch_from) +
-#   # geom_boxplot(aes(x=as.factor(floor(scale(span_tokyo))), y=tokyo_pref))
-#   geom_violin(aes(x=as.factor(floor(scale(span_kinki_span_tokyo))), y=tokyo_pref))
+  facet_grid(phoneme~pitch_from) +
+  geom_point(aes(x=span_tokyo_span_kinki/age, y=to_tokyo_pattern))+
+  geom_smooth(aes(x=span_tokyo_span_kinki/age, y=to_tokyo_pattern))
 ```
 
 ### 統計分析
 
 ```{r}
 # 年齢で標準化すると効果がでるのか...ちょっと行儀わるいけど
-# summary(lm(tokyo_bias~scale(span_tokyo/age)+pitch_from, results_by_subject))
+# summary(lm(to_tokyo_pattern~scale(span_tokyo/age)+pitch_from, results_by_subject))
 library(lme4)
 library(lmerTest)
 formula_list <- c(
-  tokyo_bias ~ scale(span_tokyo / age) + pitch_from,
-  tokyo_bias ~ scale(span_tokyo / age) + pitch_from
+  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from,
+  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from
 )
 
-summary(lmer(tokyo_bias ~ scale(span_tokyo / age) + pitch_from + (1 | subj_id) + (1 | phoneme), results_by_subject))
+summary(lmer(to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from + (1 | subj_id) + (1 | phoneme), results_by_subject))
 # results_by_subject
-# summary(lm(tokyo_bias~scale(span_tokyo_span_other/age)+pitch_from, results_by_subject))
+# summary(lm(to_tokyo_pattern~scale(span_tokyo_span_other/age)+pitch_from, results_by_subject))
 ```
 
 ```{r}
