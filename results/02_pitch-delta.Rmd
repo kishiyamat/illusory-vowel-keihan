@@ -98,12 +98,38 @@ head(results_by_subject)
 
 ### 可視化
 
+複数の列を作成して可視化
+
 1. 基本情報(results_pitch): 被験者間実験なので分散が大きい(Appendix行き)
   * 条件ごとの精度
   * 被験者ごとの精度
   * アイテムごとの精度
 1. 統計(results_by_subject)
-* 
+
+```{r}
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+factor = function(x, res) {as.factor(as.integer(floor(x*res)))}
+
+results_by_subject %>%
+  mutate(
+    x_devoiced = factor(range01(devoiced), 5),
+    x_tokyo_kinki =  factor(range01(span_tokyo_span_kinki),5),
+    x_tokyo_kinki_ratio =  factor(range01(span_tokyo_span_kinki/age),5 ),
+    x_tokyo_other =  factor(range01(span_tokyo_span_kinki),5),
+    x_tokyo_other_ratio =  factor(range01(span_tokyo_span_kinki/age),5 ),
+    x_tokyo = factor(range01(span_tokyo),5),
+    x_tokyo_ratio = factor(range01(span_tokyo/age),5),
+  ) %>% 
+  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(x_name~phoneme+pitch_from) +
+  geom_violin(aes(x=x_value, y=to_tokyo_pattern, color=x_name)) +
+  geom_boxplot(aes(x=x_value, y=to_tokyo_pattern, color=x_name))
+
+# まぁtokyo_ratioかなぁ
+cols()
+```
 
 
 ```{r}
