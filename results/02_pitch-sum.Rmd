@@ -60,7 +60,8 @@ results_by_subject <- results_pitch %>%
     tokyo_kinki_ratio=span_tokyo_span_kinki/age,
     tokyo_other_ratio=span_tokyo_span_other/age,
     tokyo_ratio=span_tokyo/age
-    )
+    ) %>% 
+  filter(age>18)
 ```
 
 ```{r}
@@ -71,6 +72,12 @@ head(results_by_subject)
 ## 可視化
 
 ### 被験者の分布
+
+```{r}
+results_by_subject %>% 
+  select(c(subj_id, age, span_tokyo, span_kinki)) %>% distinct() %>% 
+  nrow
+```
 
 ```{r}
 results_by_subject %>% 
@@ -96,7 +103,7 @@ results_by_subject %>%
        color = "Label",
        fill = "Label")
 
-ggsave(paste0("artifact/subject_dist.png"), unit = "cm", width = 8, height = 8)
+ggsave(paste0("artifact/subject_dist.png"), unit = "cm", width = 8, height = 4)
 ```
 
 

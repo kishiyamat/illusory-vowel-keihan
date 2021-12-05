@@ -96,10 +96,12 @@ results_by_subject <- results_pitch %>%
     tokyo_kinki_ratio=span_tokyo_span_kinki/age,
     tokyo_other_ratio=span_tokyo_span_other/age,
     tokyo_ratio=span_tokyo/age
-    )
+    ) %>% 
+  filter(age>18)
 ```
 
 ```{r}
+unique(results_by_subject$age)
 head(results_by_subject)
 ```
 
@@ -146,7 +148,7 @@ summary(model)
 ```{r}
 library(brms)
 model = brm(to_tokyo_pattern ~
-              tokyo_kinki_ratio + phoneme + pitch_from +
+              tokyo_kinki_ratio + phoneme*pitch_from +
               (1|subj_id),
             data=results_by_subject)
 ```
@@ -157,166 +159,10 @@ summary(model)
 ```
 
 ```{r}
-plot(model, variable = c("b_tokyo_kinki_ratio", "b_phonemeetsto", "b_pitch_fromFromL_H")) 
-```
-```{r}
-
-```
-
-## Devoicing
-
-### 可視化
-
-```{r}
-# H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
-results_by_subject %>% 
-  ggplot() +
-  facet_grid(pitch_from~phoneme) +
-  geom_violin(aes(x=factor(range01(devoiced), 5),
-                  y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
-  theme(legend.position="none") +
-  labs(title="Preference to Tokyo Pattern",
-       x ="Devoiced",
-       y = "Tokyo Preference")
-
-ggsave(paste0("artifact/preference_by_devoiced.png"), unit = "cm", width = 8, height = 8)
-```
-
-### 分析
-
-### 統計分析
-
-```{r}
-# 年齢で標準化すると効果がでるのか...ちょっと行儀わるいけど
-# summary(lm(to_tokyo_pattern~scale(span_tokyo/age)+pitch_from, results_by_subject))
-library(lme4)
-library(lmerTest)
-formula_list <- c(
-  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from,
-  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from
-)
-
-summary(lmer(to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from + (1 | subj_id) + (1 | phoneme), results_by_subject))
-# results_by_subject
-# summary(lm(to_tokyo_pattern~scale(span_tokyo_span_other/age)+pitch_from, results_by_subject))
-```
-
-```{r}
-# 基本的に、つねにHHLの時に気づけている
-# 対して、LHHでもLLHでもそんなに変わらなさそう
-# 東京バイアスなら引き算でよくね？
-# aとbでは大きな差があるが
-# 一応、異なる話者では分けてあるこれで十分計算はできるはず。
-results_pitch %>% 
-  group_by(phoneme, pitch_to, subj_id, correct) %>% 
-  mutate(is_correct_mean = mean(is_correct)) %>% 
-  pivot_wider()
-  ggplot() +
-  facet_grid(phoneme+correct~pitch_to) +
-  # geom_point(aes(x=scale(voiced), y=is_correct_mean, color=pitch_x)) +
-```
-
-
-```{r}
-results_mean <- results_pitch %>%
-  group_by(subj_id, pitch) %>%
-  mutate(
-    correct_mean = mean(as.logical(is_correct)) # ,
-    # rt_mean = mean(as.numeric(rt))
-  ) %>%
-  select(-c(is_correct, rt, trial_index, item_id, correct)) %>%
-  ungroup() %>%
-  distinct()
-results_mean %>% head()
-```
-
-```{r}
-# 横持ちにして HLL-HHL などを計算
-results_mean %>%
-  select(-c(pitch_a, pitch_b, type, is_tokyo)) %>%
-  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
-  pivot_wider(names_from = tone, values_from = correct_mean, values_fn = mean) %>%
-  mutate(
-    tokyo_pref_HLL = `-HLL` - `-HHL`,
-    tokyo_pref_LLH = `-LHH` - `-LLH`,
-    span_kinki_span_tokyo_age = span_kinki_span_tokyo / age
-  ) %>%
-  # lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
-  # lm(formula=tokyo_pref_HLL~ devoiced) %>% summary
-  # lm(formula=tokyo_pref_LLH~ devoiced) %>% summary
-  ggplot() +
-  # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
-  # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
-  geom_point(aes(y = tokyo_pref_HLL, x = devoiced)) # span_tokyoとかと比べると傾くんだなぁ
-# geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
-```
-
-```{r}
-results_mean %>%
-  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
-  filter(rt_mean < 2000) %>%
-  ggplot() +
-  facet_grid(. ~ tone) +
-  geom_point(aes(y = correct_mean, x = devoiced))
-# summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
-```
-
-```{r}
-results_mean %>% ggplot() +
-  facet_wrap(. ~ correct) +
-  geom_point(aes(y = correct_mean, x = span_tokyo_span_kinki))
-
-summary(lm(correct_mean ~ span_tokyo_span_kinki, results_mean))
-```
-
-
-```{r}
-results_pitch %>%
-  mutate(tokyo_exp = case_when(
-    span_tokyo_span_kinki >= 0 ~ "Tokyo",
-    span_tokyo_span_kinki < 0 ~ "Kinki"
-  )) %>%
-  ggplot() +
-  facet_wrap(tokyo_exp ~ correct) +
-  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
-```
-```{r}
-order <- "b"
-results_pitch %>%
-  filter(correct == order) %>%
-  mutate(tokyo_exp = case_when(
-    span_kinki_span_tokyo >= 0 ~ "Kinki",
-    span_kinki_span_tokyo < 0 ~ "Tokyo"
-  )) %>%
-  ggplot() +
-  facet_wrap(tokyo_exp ~ subj_id) +
-  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
-ggsave(paste0("artifact/test_", order, ".png"), unit = "cm", width = 20, height = 20)
-```
-
-```{r}
-tgt <- c("-HHL", "-HLL", "-LHH", "-LLH") # HLは近畿にもある。東京とは言えない。
-# tgt  = c("-HHL","-HLL")  # HLは近畿にもある。東京とは言えない。
-
-order <- "a"
-th <- -20
-results_pitch %>%
-  filter(correct == order) %>%
-  mutate(tokyo_exp = case_when(
-    span_tokyo_span_kinki >= th ~ "Tokyo",
-    span_tokyo_span_kinki < th ~ "Kinki"
-  )) %>%
-  filter(tone %in% tgt) %>%
-  ggplot() +
-  facet_wrap(tokyo_exp ~ subj_id) +
-  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-  # ggtitle("Accuracy by Tone and Region") +
-  xlab("Tone Type") +
-  ylab("Accuracy") +
-  theme(legend.position = "none")
-
-ggsave(paste0("artifact/correct_", order, "_", th, ".png"), unit = "cm", width = 20, height = 20)
+png("artifact/beta_list_2.png", unit = "px", width = 800, height = 800)
+plot(model, variable = "^b_", regex=TRUE)
+dev.off()
+# ?plot.brmsfit
 ```
 
 ## Appendix
