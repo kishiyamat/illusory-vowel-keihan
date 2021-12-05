@@ -1,3 +1,5 @@
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+factor = function(x, res) {as.factor(as.integer(floor(x*res)))}
 # 補足データ
 item_list <- "../src/list/axb_list.csv" %>%
   read_csv() %>%

@@ -91,8 +91,15 @@ results_by_subject <- results_pitch %>%
       grepl("L_H", item, fixed = TRUE) ~ "From L_H"
     )
   ) %>%
-  left_join(devoicing_annotation_subj, by = c("run_id", "data_src"))
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>% 
+  mutate(
+    tokyo_kinki_ratio=span_tokyo_span_kinki/age,
+    tokyo_other_ratio=span_tokyo_span_other/age,
+    tokyo_ratio=span_tokyo/age
+    )
+```
 
+```{r}
 head(results_by_subject)
 ```
 
@@ -106,55 +113,76 @@ head(results_by_subject)
   * アイテムごとの精度
 1. 統計(results_by_subject)
 
-```{r}
-range01 <- function(x){(x-min(x))/(max(x)-min(x))}
-factor = function(x, res) {as.factor(as.integer(floor(x*res)))}
+## 東京との接触
 
-results_by_subject %>%
-  mutate(
-    x_devoiced = factor(range01(devoiced), 5),
-    x_tokyo_kinki =  factor(range01(span_tokyo_span_kinki),5),
-    x_tokyo_kinki_ratio =  factor(range01(span_tokyo_span_kinki/age),5 ),
-    x_tokyo_other =  factor(range01(span_tokyo_span_kinki),5),
-    x_tokyo_other_ratio =  factor(range01(span_tokyo_span_kinki/age),5 ),
-    x_tokyo = factor(range01(span_tokyo),5),
-    x_tokyo_ratio = factor(range01(span_tokyo/age),5),
-  ) %>% 
-  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
-  ggplot() +
-  facet_grid(x_name~phoneme+pitch_from) +
-  geom_violin(aes(x=x_value, y=to_tokyo_pattern, color=x_name)) +
-  geom_boxplot(aes(x=x_value, y=to_tokyo_pattern, color=x_name))
-
-# まぁtokyo_ratioかなぁ
-cols()
-```
-
+### 可視化
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
 results_by_subject %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
-  facet_grid(.~pitch_from) +
-  geom_violin(aes(x=as.factor(floor(devoiced/0.1)), y=to_tokyo_pattern))
+  facet_grid(pitch_from~phoneme) +
+  geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
+                  y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
+  theme(legend.position="none") +
+  labs(title="Preference to Tokyo Pattern",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Tokyo Preference")
+
+ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 8)
+```
+
+### 分析
+
+ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
+
+```{r}
+library(lmerTest)
+model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + phoneme + pitch_from + (1|subj_id), data=results_by_subject)
+summary(model)
+?isSingular
 ```
 
 ```{r}
-results_by_subject %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
-  ggplot() +
-  facet_grid(phoneme~pitch_from) +
-  geom_flat_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=to_tokyo_pattern))
+library(brms)
+model = brm(to_tokyo_pattern ~
+              tokyo_kinki_ratio + phoneme + pitch_from +
+              (1|subj_id),
+            data=results_by_subject)
+```
+
+```{r}
+# Rhat が1なので収束している
+summary(model)
+```
+
+```{r}
+plot(model, variable = c("b_tokyo_kinki_ratio", "b_phonemeetsto", "b_pitch_fromFromL_H")) 
 ```
 ```{r}
+
+```
+
+## Devoicing
+
+### 可視化
+
+```{r}
+# H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
 results_by_subject %>% 
   ggplot() +
-  facet_grid(phoneme~pitch_from) +
-  # geom_violin(aes(x=as.factor(floor(span_tokyo/age/0.1)), y=to_tokyo_pattern))
-  geom_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=to_tokyo_pattern)) 
+  facet_grid(pitch_from~phoneme) +
+  geom_violin(aes(x=factor(range01(devoiced), 5),
+                  y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
+  theme(legend.position="none") +
+  labs(title="Preference to Tokyo Pattern",
+       x ="Devoiced",
+       y = "Tokyo Preference")
+
+ggsave(paste0("artifact/preference_by_devoiced.png"), unit = "cm", width = 8, height = 8)
 ```
+
+### 分析
 
 ### 統計分析
 
@@ -281,7 +309,6 @@ results_pitch %>%
   filter(tone %in% tgt) %>%
   ggplot() +
   facet_wrap(tokyo_exp ~ subj_id) +
-  # facet_wrap(tokyo_exp~correct) +
   geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   # ggtitle("Accuracy by Tone and Region") +
@@ -291,6 +318,31 @@ results_pitch %>%
 
 ggsave(paste0("artifact/correct_", order, "_", th, ".png"), unit = "cm", width = 20, height = 20)
 ```
+
+## Appendix
+
+かなり詳しい図
+
+```{r}
+results_by_subject %>%
+  mutate(
+    x_devoiced = factor(range01(devoiced), 5),
+    x_tokyo_kinki =  factor(range01(span_tokyo_span_kinki),5),
+    x_tokyo_kinki_ratio =  factor(range01(tokyo_kinki_ratio),5 ),
+    x_tokyo_other =  factor(range01(span_tokyo_span_other),5),
+    x_tokyo_other_ratio =  factor(range01(tokyo_other_ratio),5 ),
+    x_tokyo = factor(range01(span_tokyo),5),
+    x_tokyo_ratio = factor(range01(tokyo_ratio),5)
+  ) %>% 
+  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(x_name~pitch_from+phoneme) +
+  geom_violin(aes(x=x_value, y=to_tokyo_pattern, color=x_name))
+
+# まぁtokyo_ratioかtokyo-kinki-ratioかなぁ
+```
+
 
 
 ```{r}

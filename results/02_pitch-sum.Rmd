@@ -3,8 +3,8 @@ title: "Pitch Sum"
 output: html_notebook
 ---
 
-
-
+- 回答の正答率の平均
+- 被験者情報
 
 ### データ整形
 
@@ -18,7 +18,8 @@ source("script/subject_info.R")
 source("script/geom_flat_violin.R")
 source("script/results_pitch.R")
 
-# 東京バイアスを計算(統計用)
+# TODO: 共通部分を抜き出し
+# 天井効果などでないことを確認するため、正答率も確認
 results_by_subject <- results_pitch %>%
   select(c(phoneme, pitch_to, run_id, data_src, is_correct)) %>%
   group_by(phoneme, pitch_to, run_id, data_src) %>%
@@ -32,16 +33,16 @@ results_by_subject <- results_pitch %>%
   select(-c(phoneme, pitch_to)) %>%
   pivot_wider(names_from = phoneme_pitch_to, values_from = is_correct_mean) %>%
   mutate( # 東京バイアスの計算. 分かりづらいので良く説明
-    etsto_H_L_tokyo_acc = `etsto-HHL` + `etsto-HLL`,
-    esko_H_L_tokyo_acc = `esko-HHL` + `esko-HLL`,
-    etsto_L_H_tokyo_acc = `etsto-LLH` + `etsto-LHH`,
-    esko_L_H_tokyo_acc = `esko-LLH` + `esko-LHH`
+    etsto_H_L_tokyo_acc = (`etsto-HHL` + `etsto-HLL`)/2,
+    esko_H_L_tokyo_acc = (`esko-HHL` + `esko-HLL`)/2,
+    etsto_L_H_tokyo_acc = (`etsto-LLH` + `etsto-LHH`)/2,
+    esko_L_H_tokyo_acc = (`esko-LLH` + `esko-LHH`)/2
   ) %>%
   select(c(run_id, data_src, etsto_H_L_tokyo_acc, esko_H_L_tokyo_acc, etsto_L_H_tokyo_acc, esko_L_H_tokyo_acc)) %>%
   pivot_longer(
     cols = c(etsto_H_L_tokyo_acc, esko_H_L_tokyo_acc, etsto_L_H_tokyo_acc, esko_L_H_tokyo_acc),
     names_to = "item",
-    values_to = "accuracy_sum"
+    values_to = "accuracy_mean"
   ) %>%
   # 音素やH_Lの情報を復元
   mutate(
@@ -54,33 +55,80 @@ results_by_subject <- results_pitch %>%
       grepl("L_H", item, fixed = TRUE) ~ "From L_H"
     )
   ) %>%
-  left_join(devoicing_annotation_subj, by = c("run_id", "data_src"))
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>% 
+  mutate(
+    tokyo_kinki_ratio=span_tokyo_span_kinki/age,
+    tokyo_other_ratio=span_tokyo_span_other/age,
+    tokyo_ratio=span_tokyo/age
+    )
+```
 
+```{r}
 head(results_by_subject)
 ```
 
-### 可視化
+
+## 可視化
+
+### 被験者の分布
+
+```{r}
+results_by_subject %>% 
+  select(c(subj_id, age, span_tokyo, span_kinki)) %>% distinct() %>% 
+  mutate(
+    x_age = as.integer(age),
+    x_span_tokyo =  as.integer(span_tokyo),
+    x_kinki =  as.integer(span_kinki),
+  ) %>% 
+  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
+  mutate(x_name = case_when(
+    x_name=="x_age"~"Age",
+    x_name=="x_span_tokyo"~"Tokyo",
+    x_name=="x_kinki"~"Kinki")) %>% 
+  ggplot() +
+  facet_grid(.~x_name) +
+  geom_histogram(aes(x=x_value, color=x_name, fill=x_name))+
+  scale_y_log10() +
+  theme(legend.position="none") +
+  labs(title="Subject Distribution",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Count (Log)",
+       color = "Label",
+       fill = "Label")
+
+ggsave(paste0("artifact/subject_dist.png"), unit = "cm", width = 8, height = 8)
+```
+
+
+### 正答率
 
 1. 基本情報(results_pitch): 被験者間実験なので分散が大きい(Appendix行き)
   * 条件ごとの精度
   * 被験者ごとの精度
   * アイテムごとの精度
 1. 統計(results_by_subject)
-* 
 
 ```{r}
 results_by_subject %>% 
   group_by(phoneme, pitch_from, subj_id) %>% 
   ggplot() +
-  facet_grid(phoneme~pitch_from) +
-  geom_flat_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=accuracy_sum))
+  facet_grid(.~pitch_from) +
+  geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
+                  y=accuracy_mean,
+                  color=pitch_from, fill=pitch_from)) +
+  theme(legend.position="none") +
+  labs(title="Accuracy by Language",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Accuracy")
+
+ggsave(paste0("artifact/accuracy_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 4)
 ```
 ```{r}
 results_by_subject %>% 
   ggplot() +
   facet_grid(phoneme~pitch_from) +
   # geom_violin(aes(x=as.factor(floor(span_tokyo/age/0.1)), y=accuracy_sum)))
-  geom_violin(aes(x=as.factor(floor(span_tokyo_span_kinki/age/0.5)), y=accuracy_sum) 
+  geom_violin(aes(x=as.factor(floor(tokyo_kinki_ratio)), y=accuracy_sum))
 ```
 
 ### 統計分析
