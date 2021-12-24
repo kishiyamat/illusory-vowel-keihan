@@ -1,0 +1,196 @@
+---
+title: "Pitch Delta"
+output: html_notebook
+---
+
+- 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
+- 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
+
+行う分析(可視化, 統計)
+
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+    - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo(閾値が面倒)
+    - 無声化率: devoicing_by_subj
+  - アイテム要因(東京|アクセントタイプ: ただしアイテムの効果かもしれない)
+    - 地域ごと: HLL+LHH OR HHL+LLH
+    - アクセントタイプごと: HLL OR LHH OR HHL OR LLH
+      (分析が難しい. 差の差の分析にする)
+- 従属変数(メインの結果をわかりやすく)
+  - 正答率の差 (HHL-HLL, LLH-LHH): わかりづらいな。
+    - <- 東京アクセントへの選好性/錯覚のしやすさ ((-HLL) - (-HHL)) 
+  - 正答率(錯覚しないか)
+  - 反応時間の差
+
+方針
+
+1. 全てのカラムをDFに落とし込む
+1. formula で可視化と分析を実施
+
+TODO 
+
+- [x] アクセントパターンでの分析
+- [x] 被験者ごとに差を見る(HHL-HLLのスコア、など)
+  - 東京バイアス、とする。
+- [x] `正答率~近畿` (Xは2パターンある。formulaかなにかで回す方がよい)
+  - 「正答率」は aとbのどちらに寄せるか。
+    - 平均で(前と後ろの選好性を平均する)
+    -掛け算
+- [ ] 外れ値の除外 (正答率、反応時間)
+  - 正答率に関しては適当に受けるとチャンスレベルになるので問題
+  - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
+
+### データ整形
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(tidyr)
+source("script/subject_info.R")
+source("script/geom_flat_violin.R")
+source("script/results_pitch.R")  # load mutated data
+
+# 東京バイアスを計算(統計用)
+results_by_subject <- results_pitch %>%
+  select(c(phoneme, pitch_to, run_id, data_src, is_correct)) %>%
+  group_by(phoneme, pitch_to, run_id, data_src) %>%
+  # phoneme, pitch_to, 被験者ごとに、正答率を平均する(axbのaとbをまとめる)
+  mutate(is_correct_mean = mean(is_correct)) %>%
+  ungroup() %>%
+  select(-c(is_correct)) %>%
+  distinct() %>%
+  # 被験者ごとにピッチ間(HLL--HHL)で差を見てバイアスの値とする
+  mutate(phoneme_pitch_to = paste0(phoneme, pitch_to)) %>%
+  select(-c(phoneme, pitch_to)) %>%
+  pivot_wider(names_from = phoneme_pitch_to, values_from = is_correct_mean) %>%
+  mutate( # 東京バイアスの計算. 分かりづらいので良く説明. 音素とピッチは列名に含ませる
+    etsto_H_L_tokyo_bias = `etsto-HHL` - `etsto-HLL`,
+    esko_H_L_tokyo_bias = `esko-HHL` - `esko-HLL`,
+    etsto_L_H_tokyo_bias = `etsto-LLH` - `etsto-LHH`,
+    esko_L_H_tokyo_bias = `esko-LLH` - `esko-LHH`
+  ) %>%
+  select(c(
+    run_id, data_src,
+    etsto_H_L_tokyo_bias, esko_H_L_tokyo_bias, etsto_L_H_tokyo_bias, esko_L_H_tokyo_bias
+  )) %>%
+  pivot_longer(
+    cols = c(etsto_H_L_tokyo_bias, esko_H_L_tokyo_bias, etsto_L_H_tokyo_bias, esko_L_H_tokyo_bias),
+    names_to = "item",
+    values_to = "to_tokyo_pattern"
+  ) %>%
+  # 音素やH_Lの情報を復元
+  mutate(
+    phoneme = case_when(
+      grepl("etsto", item, fixed = TRUE) ~ "etsto",
+      grepl("esko", item, fixed = TRUE) ~ "esko"
+    ),
+    pitch_from = case_when(
+      grepl("H_L", item, fixed = TRUE) ~ "From H_L",
+      grepl("L_H", item, fixed = TRUE) ~ "From L_H"
+    )
+  ) %>%
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>% 
+  mutate(
+    tokyo_kinki_ratio=span_tokyo_span_kinki/age,
+    tokyo_other_ratio=span_tokyo_span_other/age,
+    tokyo_ratio=span_tokyo/age
+    ) %>% 
+  filter(age>18)
+```
+
+```{r}
+unique(results_by_subject$age)
+head(results_by_subject)
+```
+
+### 可視化
+
+複数の列を作成して可視化
+
+1. 基本情報(results_pitch): 被験者間実験なので分散が大きい(Appendix行き)
+  * 条件ごとの精度
+  * 被験者ごとの精度
+  * アイテムごとの精度
+1. 統計(results_by_subject)
+
+## 東京との接触
+
+### 可視化
+
+```{r}
+# H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
+results_by_subject %>% 
+  ggplot() +
+  facet_grid(pitch_from~phoneme) +
+  geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
+                  y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
+  theme(legend.position="none") +
+  labs(title="Preference to Tokyo Pattern",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Tokyo Preference")
+
+ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 8)
+```
+
+### 分析
+
+ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
+
+```{r}
+library(lmerTest)
+model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + phoneme + pitch_from + (1|subj_id), data=results_by_subject)
+summary(model)
+?isSingular
+```
+
+```{r}
+library(brms)
+model = brm(to_tokyo_pattern ~
+              tokyo_kinki_ratio + phoneme*pitch_from +
+              (1|subj_id),
+            data=results_by_subject)
+```
+
+```{r}
+# Rhat が1なので収束している
+summary(model)
+```
+
+```{r}
+png("artifact/beta_list_2.png", unit = "px", width = 800, height = 800)
+plot(model, variable = "^b_", regex=TRUE)
+dev.off()
+# ?plot.brmsfit
+```
+
+## Appendix
+
+かなり詳しい図
+
+```{r}
+results_by_subject %>%
+  mutate(
+    x_devoiced = factor(range01(devoiced), 5),
+    x_tokyo_kinki =  factor(range01(span_tokyo_span_kinki),5),
+    x_tokyo_kinki_ratio =  factor(range01(tokyo_kinki_ratio),5 ),
+    x_tokyo_other =  factor(range01(span_tokyo_span_other),5),
+    x_tokyo_other_ratio =  factor(range01(tokyo_other_ratio),5 ),
+    x_tokyo = factor(range01(span_tokyo),5),
+    x_tokyo_ratio = factor(range01(tokyo_ratio),5)
+  ) %>% 
+  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(x_name~pitch_from+phoneme) +
+  geom_violin(aes(x=x_value, y=to_tokyo_pattern, color=x_name))
+
+# まぁtokyo_ratioかtokyo-kinki-ratioかなぁ
+```
+
+
+
+```{r}
+print("EOF")
+```

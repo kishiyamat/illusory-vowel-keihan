@@ -3,6 +3,17 @@ title: "devoicing"
 output: html_document
 ---
 
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+    - 居住歴: span_kinki, span_tokyo_span_kinki, span_kinki_span_tokyo_age
+    - 無声化率:
+  - アイテム要因(東京|アクセントタイプ)
+- 従属変数
+  - 正答率 
+  - 反応時間
+
+被験者情報の取得(devoicing も)
+
 * 被験者情報の取得
   * 被験者ごと
   * 被験者:アイテム
@@ -30,6 +41,7 @@ library(readr)
 library(stringr)
 library(tidyr)
 source("script/subject_info.R")
+source("script/results_pitch.R") # load mutated data
 ```
 
 ## データ統合・整形
@@ -52,14 +64,19 @@ results_cw <- annotation %>%
   left_join(order_cw)
 
 # マージ + devoiced のカラムを追加、年齢の抽出
-x_var_list <- c("span_tokyo", "span_kinki", "span_tokyo_span_kinki", "span_tokyo_span_other", "span_kinki_span_tokyo", "span_kinki_span_other")
+x_var_list <- c(
+  "span_tokyo", "span_kinki", "span_tokyo_span_kinki", "span_tokyo_span_other",
+  "span_kinki_span_tokyo", "span_kinki_span_other",
+  "tokyo_kinki_ratio"
+)
 results <- rbind(results_sone, results_cw) %>%
   mutate(devoiced = 1 - voiced) %>%
   mutate(
     span_tokyo_span_kinki = span_tokyo - span_kinki,
     span_tokyo_span_other = span_tokyo - (span_kinki + span_unknown),
     span_kinki_span_tokyo = span_kinki - span_tokyo,
-    span_kinki_span_other = span_kinki - (span_tokyo + span_unknown)
+    span_kinki_span_other = span_kinki - (span_tokyo + span_unknown),
+    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age,
   )
 ```
 
@@ -69,30 +86,8 @@ results <- rbind(results_sone, results_cw) %>%
 * 可視化
 
 ```{r}
-for (x_var in x_var_list) {
-  # 指標(Year)を縦持ちに変更
-  # 可視化のため平均化
-  result_x_var <- results %>%
-    pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
-    group_by(subj_id, item_id) %>%
-    filter(span == x_var) %>%
-    mutate(devoiced_mean = mean(devoiced)) %>%
-    ungroup() %>%
-    select(-c(production_order)) %>%
-    distinct()
-  result_x_var %>%
-    ggplot() +
-    facet_wrap(. ~ item_id2char(item_id)) +
-    geom_point(aes(x = year, y = devoiced_mean)) +
-    ggtitle(x_var)
-  ggsave(paste0("artifact/devoiced_mean_", x_var, ".png"))
-}
-```
-試しに `span_tokyo_span_kinki` を可視化
-
-```{r}
 # 可視化のため平均を取る
-x_var <- "span_tokyo_span_kinki"
+x_var <- "tokyo_kinki_ratio"
 result_x_var <- results %>%
   pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
   filter(span == x_var) %>%
@@ -100,14 +95,51 @@ result_x_var <- results %>%
   mutate(devoiced_mean = mean(devoiced)) %>%
   ungroup() %>%
   select(-c(production_order)) %>%
-  distinct()
+  distinct() %>%
+  mutate(item_id = item_id2char(item_id)) %>%
+  mutate(item_type = case_when(
+    str_detect(item_id, "KUT") ~ "KUT",
+    str_detect(item_id, "SUP") ~ "SUP",
+    str_detect(item_id, "PUS") ~ "PUS",
+    str_detect(item_id, "TSUK") ~ "TSUK"
+  )) %>%
+  mutate(check_first = case_when(
+    str_detect(item_id, "aKUT") ~ "Not onset",
+    str_detect(item_id, "eSUP") ~ "Not onset",
+    str_detect(item_id, "ePUS") ~ "Not onset",
+    str_detect(item_id, "oTSUK") ~ "Not onset",
+    TRUE ~ "Onset"
+  ))
+
 result_x_var %>%
   ggplot() +
-  facet_wrap(. ~ item_id2char(item_id)) +
-  geom_point(aes(x = year, y = devoiced_mean)) +
-  ggtitle(x_var)
+  facet_grid(item_type ~ check_first) +
+  geom_violin(aes(x = factor(range01(year), 5), y = devoiced_mean, color = item_id, fill = item_id)) +
+  labs(
+    title = "Devoicing by Item",
+    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
+    y = "Devoicing Ratio",
+    color = "Text",
+    fill = "Text"
+  ) +
+  theme(legend.position = "none") +
+  ggsave(paste0("artifact/devoicing_by_item.png"), unit = "cm", width = 8, height = 8)
 ```
 
+## Stats
+
+```{r}
+head(result_x_var)
+```
+
+```{r}
+library(lme4)
+library(lmerTest)
+model <- lmer(devoiced_mean ~ year + item_type + check_first + (1 | subj_id), data = result_x_var)
+summary(model)
+```
+
+## CSV書き出し
 
 ```{r}
 subject_info_df <- results %>%
@@ -129,6 +161,30 @@ write_csv(subject_info_df, "devoicing_by_subj.csv")
 * これらを要因としてトーンの分析を再実施す
 * なんならここで統計分析に書けても良い
 
+## Appendix 
+
+細かい図
+
+```{r}
+for (x_var in x_var_list) {
+  # 指標(Year)を縦持ちに変更
+  # 可視化のため平均化
+  result_x_var <- results %>%
+    pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
+    group_by(subj_id, item_id) %>%
+    filter(span == x_var) %>%
+    mutate(devoiced_mean = mean(devoiced)) %>%
+    ungroup() %>%
+    select(-c(production_order)) %>%
+    distinct()
+  result_x_var %>%
+    ggplot() +
+    facet_wrap(. ~ item_id2char(item_id)) +
+    geom_point(aes(x = year, y = devoiced_mean)) +
+    ggtitle(x_var)
+  ggsave(paste0("artifact/devoiced_mean_", x_var, ".png"))
+}
+```
 ```{r}
 print("EOF")
 ```

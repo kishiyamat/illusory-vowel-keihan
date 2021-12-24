@@ -24,7 +24,7 @@ item_id がないのは練習問題
 * rate(音としてどれくらい良いか)
   * item_id でタスクが分かれる
 
-```{r}
+```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
 library(readr)

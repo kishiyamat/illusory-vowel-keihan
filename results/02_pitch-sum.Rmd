@@ -1,0 +1,280 @@
+---
+title: "Pitch Sum"
+output: html_notebook
+---
+
+- 回答の正答率の平均
+- 被験者情報
+
+### データ整形
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(tidyr)
+source("script/subject_info.R")
+source("script/geom_flat_violin.R")
+source("script/results_pitch.R")
+
+# TODO: 共通部分を抜き出し
+# 天井効果などでないことを確認するため、正答率も確認
+results_by_subject <- results_pitch %>%
+  select(c(phoneme, pitch_to, run_id, data_src, is_correct)) %>%
+  group_by(phoneme, pitch_to, run_id, data_src) %>%
+  # axb の a と b を潰し、phoneme, pitch_to, 被験者ごとに正答率を平均する
+  mutate(is_correct_mean = mean(is_correct)) %>%
+  ungroup() %>%
+  select(-c(is_correct)) %>%
+  distinct() %>%
+  # 被験者ごとにピッチ間(HLL--HHL)で差を見てバイアスの値とする
+  mutate(phoneme_pitch_to = paste0(phoneme, pitch_to)) %>%
+  select(-c(phoneme, pitch_to)) %>%
+  pivot_wider(names_from = phoneme_pitch_to, values_from = is_correct_mean) %>%
+  mutate( # 東京バイアスの計算. 分かりづらいので良く説明
+    etsto_H_L_tokyo_acc = (`etsto-HHL` + `etsto-HLL`)/2,
+    esko_H_L_tokyo_acc = (`esko-HHL` + `esko-HLL`)/2,
+    etsto_L_H_tokyo_acc = (`etsto-LLH` + `etsto-LHH`)/2,
+    esko_L_H_tokyo_acc = (`esko-LLH` + `esko-LHH`)/2
+  ) %>%
+  select(c(run_id, data_src, etsto_H_L_tokyo_acc, esko_H_L_tokyo_acc, etsto_L_H_tokyo_acc, esko_L_H_tokyo_acc)) %>%
+  pivot_longer(
+    cols = c(etsto_H_L_tokyo_acc, esko_H_L_tokyo_acc, etsto_L_H_tokyo_acc, esko_L_H_tokyo_acc),
+    names_to = "item",
+    values_to = "accuracy_mean"
+  ) %>%
+  # 音素やH_Lの情報を復元
+  mutate(
+    phoneme = case_when(
+      grepl("etsto", item, fixed = TRUE) ~ "etsto",
+      grepl("esko", item, fixed = TRUE) ~ "esko"
+    ),
+    pitch_from = case_when(
+      grepl("H_L", item, fixed = TRUE) ~ "From H_L",
+      grepl("L_H", item, fixed = TRUE) ~ "From L_H"
+    )
+  ) %>%
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>% 
+  mutate(
+    tokyo_kinki_ratio=span_tokyo_span_kinki/age,
+    tokyo_other_ratio=span_tokyo_span_other/age,
+    tokyo_ratio=span_tokyo/age
+    ) %>% 
+  filter(age>18)
+```
+
+```{r}
+head(results_by_subject)
+```
+
+
+## 可視化
+
+### 被験者の分布
+
+```{r}
+results_by_subject %>% 
+  select(c(subj_id, age, span_tokyo, span_kinki)) %>% distinct() %>% 
+  nrow
+```
+
+```{r}
+results_by_subject %>% 
+  select(c(subj_id, age, span_tokyo, span_kinki)) %>% distinct() %>% 
+  mutate(
+    x_age = as.integer(age),
+    x_span_tokyo =  as.integer(span_tokyo),
+    x_kinki =  as.integer(span_kinki),
+  ) %>% 
+  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
+  mutate(x_name = case_when(
+    x_name=="x_age"~"Age",
+    x_name=="x_span_tokyo"~"Tokyo",
+    x_name=="x_kinki"~"Kinki")) %>% 
+  ggplot() +
+  facet_grid(.~x_name) +
+  geom_histogram(aes(x=x_value, color=x_name, fill=x_name))+
+  scale_y_log10() +
+  theme(legend.position="none") +
+  labs(title="Subject Distribution",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Count (Log)",
+       color = "Label",
+       fill = "Label")
+
+ggsave(paste0("artifact/subject_dist.png"), unit = "cm", width = 8, height = 4)
+```
+
+
+### 正答率
+
+1. 基本情報(results_pitch): 被験者間実験なので分散が大きい(Appendix行き)
+  * 条件ごとの精度
+  * 被験者ごとの精度
+  * アイテムごとの精度
+1. 統計(results_by_subject)
+
+```{r}
+results_by_subject %>% 
+  group_by(phoneme, pitch_from, subj_id) %>% 
+  ggplot() +
+  facet_grid(.~pitch_from) +
+  geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
+                  y=accuracy_mean,
+                  color=pitch_from, fill=pitch_from)) +
+  theme(legend.position="none") +
+  labs(title="Accuracy by Language",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Accuracy")
+
+ggsave(paste0("artifact/accuracy_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 4)
+```
+```{r}
+results_by_subject %>% 
+  ggplot() +
+  facet_grid(phoneme~pitch_from) +
+  # geom_violin(aes(x=as.factor(floor(span_tokyo/age/0.1)), y=accuracy_sum)))
+  geom_violin(aes(x=as.factor(floor(tokyo_kinki_ratio)), y=accuracy_sum))
+```
+
+### 統計分析
+
+```{r}
+# 年齢で標準化すると効果がでるのか...ちょっと行儀わるいけど
+# summary(lm(to_tokyo_pattern~scale(span_tokyo/age)+pitch_from, results_by_subject))
+library(lme4)
+library(lmerTest)
+formula_list <- c(
+  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from,
+  to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from
+)
+
+summary(lmer(to_tokyo_pattern ~ scale(span_tokyo / age) + pitch_from + (1 | subj_id) + (1 | phoneme), results_by_subject))
+# results_by_subject
+# summary(lm(to_tokyo_pattern~scale(span_tokyo_span_other/age)+pitch_from, results_by_subject))
+```
+
+```{r}
+# 基本的に、つねにHHLの時に気づけている
+# 対して、LHHでもLLHでもそんなに変わらなさそう
+# 東京バイアスなら引き算でよくね？
+# aとbでは大きな差があるが
+# 一応、異なる話者では分けてあるこれで十分計算はできるはず。
+results_pitch %>% 
+  group_by(phoneme, pitch_to, subj_id, correct) %>% 
+  mutate(is_correct_mean = mean(is_correct)) %>% 
+  pivot_wider()
+  ggplot() +
+  facet_grid(phoneme+correct~pitch_to) +
+  # geom_point(aes(x=scale(voiced), y=is_correct_mean, color=pitch_x)) +
+```
+
+
+```{r}
+results_mean <- results_pitch %>%
+  group_by(subj_id, pitch) %>%
+  mutate(
+    correct_mean = mean(as.logical(is_correct)) # ,
+    # rt_mean = mean(as.numeric(rt))
+  ) %>%
+  select(-c(is_correct, rt, trial_index, item_id, correct)) %>%
+  ungroup() %>%
+  distinct()
+results_mean %>% head()
+```
+
+```{r}
+# 横持ちにして HLL-HHL などを計算
+results_mean %>%
+  select(-c(pitch_a, pitch_b, type, is_tokyo)) %>%
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
+  pivot_wider(names_from = tone, values_from = correct_mean, values_fn = mean) %>%
+  mutate(
+    tokyo_pref_HLL = `-HLL` - `-HHL`,
+    tokyo_pref_LLH = `-LHH` - `-LLH`,
+    span_kinki_span_tokyo_age = span_kinki_span_tokyo / age
+  ) %>%
+  # lm(formula=tokyo_pref_HLL~ span_kinki_span_tokyo_age) %>% summary
+  # lm(formula=tokyo_pref_HLL~ devoiced) %>% summary
+  # lm(formula=tokyo_pref_LLH~ devoiced) %>% summary
+  ggplot() +
+  # geom_point(aes(y = tokyo_pref_LHH, x = devoiced))
+  # geom_point(aes(y = tokyo_pref_HLL, x = span_tokyo_span_kinki))
+  geom_point(aes(y = tokyo_pref_HLL, x = devoiced)) # span_tokyoとかと比べると傾くんだなぁ
+# geom_point(aes(y = tokyo_pref_HLL, x = devoiced))  # span_tokyoとかと比べると傾くんだなぁ
+```
+
+```{r}
+results_mean %>%
+  filter(tone %in% c("-HLL", "-LHH", "-HHL", "-LLH")) %>%
+  filter(rt_mean < 2000) %>%
+  ggplot() +
+  facet_grid(. ~ tone) +
+  geom_point(aes(y = correct_mean, x = devoiced))
+# summary(lm(correct_mean ~ devoiced*is_tokyo+correct, results_mean))
+```
+
+```{r}
+results_mean %>% ggplot() +
+  facet_wrap(. ~ correct) +
+  geom_point(aes(y = correct_mean, x = span_tokyo_span_kinki))
+
+summary(lm(correct_mean ~ span_tokyo_span_kinki, results_mean))
+```
+
+
+```{r}
+results_pitch %>%
+  mutate(tokyo_exp = case_when(
+    span_tokyo_span_kinki >= 0 ~ "Tokyo",
+    span_tokyo_span_kinki < 0 ~ "Kinki"
+  )) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ correct) +
+  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+```
+```{r}
+order <- "b"
+results_pitch %>%
+  filter(correct == order) %>%
+  mutate(tokyo_exp = case_when(
+    span_kinki_span_tokyo >= 0 ~ "Kinki",
+    span_kinki_span_tokyo < 0 ~ "Tokyo"
+  )) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ subj_id) +
+  geom_histogram(aes(x = is_tokyo, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+ggsave(paste0("artifact/test_", order, ".png"), unit = "cm", width = 20, height = 20)
+```
+
+```{r}
+tgt <- c("-HHL", "-HLL", "-LHH", "-LLH") # HLは近畿にもある。東京とは言えない。
+# tgt  = c("-HHL","-HLL")  # HLは近畿にもある。東京とは言えない。
+
+order <- "a"
+th <- -20
+results_pitch %>%
+  filter(correct == order) %>%
+  mutate(tokyo_exp = case_when(
+    span_tokyo_span_kinki >= th ~ "Tokyo",
+    span_tokyo_span_kinki < th ~ "Kinki"
+  )) %>%
+  filter(tone %in% tgt) %>%
+  ggplot() +
+  facet_wrap(tokyo_exp ~ subj_id) +
+  # facet_wrap(tokyo_exp~correct) +
+  geom_histogram(aes(x = tone, color = is_correct, fill = is_correct), stat = "count", position = "fill") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  # ggtitle("Accuracy by Tone and Region") +
+  xlab("Tone Type") +
+  ylab("Accuracy") +
+  theme(legend.position = "none")
+
+ggsave(paste0("artifact/correct_", order, "_", th, ".png"), unit = "cm", width = 20, height = 20)
+```
+
+
+```{r}
+print("EOF")
+```
