@@ -6,7 +6,6 @@ venv
 .Rhistory
 
 results/illusory-vowel-keihan.csv
-results/csv/*
 results/wav/*
 results/webm/*
 results/*.html
