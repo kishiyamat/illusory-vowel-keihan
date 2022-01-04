@@ -4,6 +4,7 @@ factor = function(x, res) {as.factor(as.integer(floor(x*res)))}
 item_list <- "../src/list/axb_list.csv" %>%
   read_csv() %>%
   select(c(item_id, type, correct, item_a, item_x, item_b, pitch_a, pitch_x, pitch_b))
+# devoicing_by_subj.csv は 00_devoicing.Rmdで作成
 devoicing_annotation_subj <- read_csv("devoicing_by_subj.csv") # 被験者(data_src, run_id)ごとアノテーション
 
 # 実験データ
