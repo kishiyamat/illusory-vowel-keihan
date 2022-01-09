@@ -184,6 +184,7 @@ model = brm(to_tokyo_pattern ~
 summary(model)
 ```
 ```{r}
+library(bayestestR)
 describe_posterior(
   model,
   effects = "all",
