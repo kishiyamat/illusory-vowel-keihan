@@ -136,6 +136,21 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", widt
 
 ### 分析
 
+## 東京居住歴のみ
+
+```{r}
+library(lmerTest)
+model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
+```
+
+```{r}
+library(brms)
+model = brm(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
+```
+
+
+## 音素とピッチタイプ
+
 ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
 
 ```{r}
