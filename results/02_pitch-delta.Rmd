@@ -57,7 +57,7 @@ library(stringr)
 library(tidyr)
 source("script/subject_info.R")
 source("script/geom_flat_violin.R")
-source("script/results_pitch.R")  # load mutated data
+source("script/results_pitch.R") # load mutated data
 
 # 東京バイアスを計算(統計用)
 results_by_subject <- results_pitch %>%
@@ -98,14 +98,14 @@ results_by_subject <- results_pitch %>%
       grepl("L_H", item, fixed = TRUE) ~ "From L_H"
     )
   ) %>%
-  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>% 
+  left_join(devoicing_annotation_subj, by = c("run_id", "data_src")) %>%
   mutate(
-    tokyo_kinki_ratio=span_tokyo_span_kinki/age,
-    tokyo_other_ratio=span_tokyo_span_other/age,
-    tokyo_ratio=span_tokyo/age
-    ) %>% 
-  filter(age>18) %>% 
-  mutate(item_id = paste(sep="-", phoneme, pitch_from))
+    tokyo_kinki_ratio = span_tokyo_span_kinki / age,
+    tokyo_other_ratio = span_tokyo_span_other / age,
+    tokyo_ratio = span_tokyo / age
+  ) %>%
+  filter(age > 18) %>%
+  mutate(item_id = paste(sep = "-", phoneme, pitch_from))
 ```
 
 ```{r}
@@ -131,14 +131,16 @@ head(results_by_subject)
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
-results_by_subject %>% 
+results_by_subject %>%
   ggplot() +
-  geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 20), y=to_tokyo_pattern))+
+  geom_boxplot(aes(x = factor(range01(tokyo_kinki_ratio), 20), y = to_tokyo_pattern)) +
   # geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5), y=to_tokyo_pattern))+
-  theme(legend.position="none") +
-  labs(title="Preference to Tokyo Pattern",
-       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
-       y = "Tokyo Preference")
+  theme(legend.position = "none") +
+  labs(
+    title = "Preference to Tokyo Pattern",
+    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
+    y = "Tokyo Preference"
+  )
 ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"), unit = "cm", width = 8, height = 8)
 ```
 
@@ -146,17 +148,21 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"), unit = "cm
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
-results_by_subject %>% 
+results_by_subject %>%
   ggplot() +
-  facet_grid(pitch_from~phoneme) +
+  facet_grid(pitch_from ~ phoneme) +
   # geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 5),
   #                 y=to_tokyo_pattern, color=pitch_from))+
-  geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
-                  y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
-  theme(legend.position="none") +
-  labs(title="Preference to Tokyo Pattern",
-       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
-       y = "Tokyo Preference")
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 5),
+    y = to_tokyo_pattern, color = pitch_from, fill = pitch_from
+  )) +
+  theme(legend.position = "none") +
+  labs(
+    title = "Preference to Tokyo Pattern",
+    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
+    y = "Tokyo Preference"
+  )
 
 ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 8)
 ```
@@ -173,26 +179,37 @@ head(results_by_subject)
 - アイテムと被験者を要因としてモデルを組む
 
 ```{r}
-library(lmerTest)
-model = lmer(to_tokyo_pattern ~
-               tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
-               data=results_by_subject)
-```
-
-```{r}
 # install.packages("bayestestR")
 library(brms)
-model_0 = brm(to_tokyo_pattern ~
-               age + (1|subj_id) + (1|item_id),
-               data=results_by_subject,
-              save_all_pars = TRUE,
-              iter=10000)
 
-model_1 = brm(to_tokyo_pattern ~
-               tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
-               data=results_by_subject,
-              save_all_pars = TRUE,
-              iter=10000)
+# 切片のみ（帰無仮説）
+model_0 <- brm(
+  to_tokyo_pattern ~
+  1 + (1 | subj_id) + (1 | item_id),
+  data = results_by_subject,
+  save_all_pars = TRUE,
+  prior = prior(cauchy(0,10),class=b),
+  iter = 10000
+)
+
+model_1 <- brm(
+  to_tokyo_pattern ~
+  tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
+  data = results_by_subject,
+  save_all_pars = TRUE,
+  prior = prior(cauchy(0,10),class=b),
+  iter = 10000
+)
+
+# 試しに年齢を加えたモデル
+# model_1 <- brm(
+#   to_tokyo_pattern ~
+#   age + (1 | subj_id) + (1 | item_id),
+#   data = results_by_subject,
+#   save_all_pars = TRUE,
+#   iter = 10000
+# )
+
 ```
 
 ```{r}
@@ -204,27 +221,37 @@ summary(model_1)
 ```
 
 ```{r}
-library(bridgesampling)
-
+brms::bayes_factor(model_1, model_0)
 ```
 
 ## 音素とピッチタイプ
+
+```{r}
+library(lmerTest)
+model <- lmer(
+  to_tokyo_pattern ~
+  tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
+  data = results_by_subject
+)
+```
+
 
 ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
 
 ```{r}
 library(lmerTest)
-model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + phoneme + pitch_from + (1|subj_id), data=results_by_subject)
+model <- lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + phoneme + pitch_from + (1 | subj_id), data = results_by_subject)
 summary(model)
 ?isSingular
 ```
 
 ```{r}
 library(brms)
-model = brm(to_tokyo_pattern ~
-              tokyo_kinki_ratio + phoneme*pitch_from +
-              (1|subj_id),
-            data=results_by_subject)
+model <- brm(to_tokyo_pattern ~
+tokyo_kinki_ratio + phoneme * pitch_from +
+  (1 | subj_id),
+data = results_by_subject
+)
 ```
 
 ```{r}
@@ -234,7 +261,7 @@ summary(model)
 
 ```{r}
 png("artifact/beta_list_2.png", unit = "px", width = 800, height = 800)
-plot(model, variable = "^b_", regex=TRUE)
+plot(model, variable = "^b_", regex = TRUE)
 dev.off()
 # ?plot.brmsfit
 ```
@@ -247,18 +274,18 @@ dev.off()
 results_by_subject %>%
   mutate(
     x_devoiced = factor(range01(devoiced), 5),
-    x_tokyo_kinki =  factor(range01(span_tokyo_span_kinki),5),
-    x_tokyo_kinki_ratio =  factor(range01(tokyo_kinki_ratio),5 ),
-    x_tokyo_other =  factor(range01(span_tokyo_span_other),5),
-    x_tokyo_other_ratio =  factor(range01(tokyo_other_ratio),5 ),
-    x_tokyo = factor(range01(span_tokyo),5),
-    x_tokyo_ratio = factor(range01(tokyo_ratio),5)
-  ) %>% 
-  pivot_longer(cols = starts_with("x_"), names_to="x_name", values_to="x_value") %>% 
-  group_by(phoneme, pitch_from, subj_id) %>% 
+    x_tokyo_kinki = factor(range01(span_tokyo_span_kinki), 5),
+    x_tokyo_kinki_ratio = factor(range01(tokyo_kinki_ratio), 5),
+    x_tokyo_other = factor(range01(span_tokyo_span_other), 5),
+    x_tokyo_other_ratio = factor(range01(tokyo_other_ratio), 5),
+    x_tokyo = factor(range01(span_tokyo), 5),
+    x_tokyo_ratio = factor(range01(tokyo_ratio), 5)
+  ) %>%
+  pivot_longer(cols = starts_with("x_"), names_to = "x_name", values_to = "x_value") %>%
+  group_by(phoneme, pitch_from, subj_id) %>%
   ggplot() +
-  facet_grid(x_name~pitch_from+phoneme) +
-  geom_violin(aes(x=x_value, y=to_tokyo_pattern, color=x_name))
+  facet_grid(x_name ~ pitch_from + phoneme) +
+  geom_violin(aes(x = x_value, y = to_tokyo_pattern, color = x_name))
 
 # まぁtokyo_ratioかtokyo-kinki-ratioかなぁ
 ```
