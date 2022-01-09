@@ -42,9 +42,10 @@ TODO
 
 ### データ整形
 ```{r}
-remove.packages(c("StanHeaders", "rstan"))
-install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+# 上手く行かない場合はconsoleでDLする
+# remove.packages(c("StanHeaders", "rstan"))
+# install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+# install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 ```
 
 
