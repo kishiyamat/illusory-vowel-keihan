@@ -177,6 +177,7 @@ head(results_by_subject)
 ## 東京居住歴のみ
 
 - アイテムと被験者を要因としてモデルを組む
+- ベイズファクターの分析は保留(勉強不足)
 
 ```{r}
 # install.packages("bayestestR")
@@ -188,7 +189,7 @@ model_0 <- brm(
   1 + (1 | subj_id) + (1 | item_id),
   data = results_by_subject,
   save_all_pars = TRUE,
-  prior = prior(cauchy(0,10),class=b),
+  # prior = prior(cauchy(0,10),class=b),
   iter = 10000
 )
 
@@ -197,19 +198,9 @@ model_1 <- brm(
   tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
   data = results_by_subject,
   save_all_pars = TRUE,
-  prior = prior(cauchy(0,10),class=b),
+  # prior = prior(cauchy(0,10),class=b),
   iter = 10000
 )
-
-# 試しに年齢を加えたモデル
-# model_1 <- brm(
-#   to_tokyo_pattern ~
-#   age + (1 | subj_id) + (1 | item_id),
-#   data = results_by_subject,
-#   save_all_pars = TRUE,
-#   iter = 10000
-# )
-
 ```
 
 ```{r}
@@ -230,9 +221,16 @@ brms::bayes_factor(model_1, model_0)
 library(lmerTest)
 model <- lmer(
   to_tokyo_pattern ~
-  tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
+  tokyo_kinki_ratio + (1 | item_id),
   data = results_by_subject
 )
+# model <- lmer(
+#   to_tokyo_pattern ~
+#   tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
+#   data = results_by_subject
+# )
+?isSingular
+summary(model)
 ```
 
 
