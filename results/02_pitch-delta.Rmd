@@ -3,19 +3,21 @@ title: "Pitch Delta"
 output: html_notebook
 ---
 
-- 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
-- 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
+- [概要](https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing)
+- [作業説明](https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing)
 
 行う分析(可視化, 統計)
 
 - 独立変数
   - 被験者要因(居住歴|無声化率)
-    - 居住歴: span_kinki, span_kinki_span_other, span_kinki_span_tokyo(閾値が面倒)
-    - 無声化率: devoicing_by_subj
-  - アイテム要因(東京|アクセントタイプ: ただしアイテムの効果かもしれない)
+    - *居住歴* (*tokyo_kinki_ratio*, span_kinki, span_kinki_span_other, span_kinki_span_tokyo (閾値が面倒))
+    - 無声化率: devoicing_by_subj -> 効果なし
+  - ランダム効果  
+    - アイテム要因(東京|アクセントタイプ: ただしアイテムの効果かもしれない)
     - 地域ごと: HLL+LHH OR HHL+LLH
     - アクセントタイプごと: HLL OR LHH OR HHL OR LLH
       (分析が難しい. 差の差の分析にする)
+    - 音素タイプ
 - 従属変数(メインの結果をわかりやすく)
   - 正答率の差 (HHL-HLL, LLH-LHH): わかりづらいな。
     - <- 東京アクセントへの選好性/錯覚のしやすさ ((-HLL) - (-HHL)) 
