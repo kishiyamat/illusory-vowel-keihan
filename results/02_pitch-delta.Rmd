@@ -148,12 +148,16 @@ head(results_by_subject)
 
 ```{r}
 library(lmerTest)
-model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id) + (1|item_id), data=results_by_subject)
+model = lmer(to_tokyo_pattern ~
+               tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
+               data=results_by_subject)
 ```
 
 ```{r}
 library(brms)
-model = brm(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
+model = brm(to_tokyo_pattern ~
+               tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
+               data=results_by_subject)
 ```
 
 ```{r}
