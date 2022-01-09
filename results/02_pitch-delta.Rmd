@@ -175,10 +175,15 @@ model = lmer(to_tokyo_pattern ~
 ```{r}
 # install.packages("bayestestR")
 library(brms)
-model = brm(to_tokyo_pattern ~
+model_0 = brm(to_tokyo_pattern ~
+               1 + (1|subj_id) + (1|item_id),
+               data=results_by_subject,
+              save_all_pars = TRUE)
+
+model_1 = brm(to_tokyo_pattern ~
                tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
                data=results_by_subject,
-              save_all_pars = TRUE,)
+              save_all_pars = TRUE)
 ```
 
 ```{r}
