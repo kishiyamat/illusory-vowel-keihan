@@ -41,6 +41,12 @@ TODO
   - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
 ### データ整形
+```{r}
+remove.packages(c("StanHeaders", "rstan"))
+install.packages("StanHeaders", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+install.packages("rstan", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+```
+
 
 ```{r setup, include=FALSE}
 library(dplyr)
