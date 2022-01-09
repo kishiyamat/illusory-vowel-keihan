@@ -138,6 +138,8 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", widt
 
 ## 東京居住歴のみ
 
+- アイテムと被験者を要因としてモデルを組む
+
 ```{r}
 library(lmerTest)
 model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
@@ -146,6 +148,10 @@ model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by
 ```{r}
 library(brms)
 model = brm(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
+```
+
+```{r}
+summary(model)
 ```
 
 
