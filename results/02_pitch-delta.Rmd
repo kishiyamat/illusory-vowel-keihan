@@ -97,7 +97,8 @@ results_by_subject <- results_pitch %>%
     tokyo_other_ratio=span_tokyo_span_other/age,
     tokyo_ratio=span_tokyo/age
     ) %>% 
-  filter(age>18)
+  filter(age>18) %>% 
+  mutate(item_id = paste(sep="-", phoneme, pitch_from))
 ```
 
 ```{r}
@@ -136,13 +137,18 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", widt
 
 ### 分析
 
+```{r}
+head(results_by_subject)
+```
+
+
 ## 東京居住歴のみ
 
 - アイテムと被験者を要因としてモデルを組む
 
 ```{r}
 library(lmerTest)
-model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id), data=results_by_subject)
+model = lmer(to_tokyo_pattern ~ tokyo_kinki_ratio + (1|subj_id) + (1|item_id), data=results_by_subject)
 ```
 
 ```{r}
