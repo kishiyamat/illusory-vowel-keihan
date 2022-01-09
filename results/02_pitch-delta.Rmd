@@ -173,27 +173,22 @@ model = lmer(to_tokyo_pattern ~
 ```
 
 ```{r}
-install.packages("bayestestR")
+# install.packages("bayestestR")
 library(brms)
 model = brm(to_tokyo_pattern ~
                tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
-               data=results_by_subject)
+               data=results_by_subject,
+              save_all_pars = TRUE,)
 ```
 
 ```{r}
 summary(model)
 ```
-```{r}
-library(bayestestR)
-describe_posterior(
-  model,
-  effects = "all",
-  component = "all",
-  test = c("p_direction", "p_significance"),
-  centrality = "all"
-)
-```
 
+```{r}
+library(bridgesampling)
+
+```
 
 ## 音素とピッチタイプ
 
