@@ -120,11 +120,30 @@ head(results_by_subject)
 
 ### 可視化
 
+#### シンプル
+
+```{r}
+# H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
+results_by_subject %>% 
+  ggplot() +
+  geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 20), y=to_tokyo_pattern))+
+  # geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5), y=to_tokyo_pattern))+
+  theme(legend.position="none") +
+  labs(title="Preference to Tokyo Pattern",
+       x ="Tokyo--Kinki Ratio (Min/Max Scaled)",
+       y = "Tokyo Preference")
+ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"), unit = "cm", width = 8, height = 8)
+```
+
+#### アイテムごと
+
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
 results_by_subject %>% 
   ggplot() +
   facet_grid(pitch_from~phoneme) +
+  # geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 5),
+  #                 y=to_tokyo_pattern, color=pitch_from))+
   geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5),
                   y=to_tokyo_pattern, color=pitch_from, fill=pitch_from))+
   theme(legend.position="none") +
@@ -154,6 +173,7 @@ model = lmer(to_tokyo_pattern ~
 ```
 
 ```{r}
+install.packages("bayestestR")
 library(brms)
 model = brm(to_tokyo_pattern ~
                tokyo_kinki_ratio + (1|subj_id) + (1|item_id),
@@ -162,6 +182,15 @@ model = brm(to_tokyo_pattern ~
 
 ```{r}
 summary(model)
+```
+```{r}
+describe_posterior(
+  model,
+  effects = "all",
+  component = "all",
+  test = c("p_direction", "p_significance"),
+  centrality = "all"
+)
 ```
 
 
