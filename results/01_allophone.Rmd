@@ -1,7 +1,12 @@
 ---
-title: "Phoneme"
+title: "Allophone"
 output: html_notebook
 ---
+
+- 異音の分析なんだが、ツッコミから始まるアンチパターンに陥っている。
+- ポジティブな、理論的な貢献を視座高くして考えるべき。
+
+todo
 
 1. 被験者ごとのデータをまとめる
   * 産出課題: 無声化率(環境毎)
@@ -23,6 +28,9 @@ item_id がないのは練習問題
   * item_id でタスクが分かれる
 * rate(音としてどれくらい良いか)
   * item_id でタスクが分かれる
+  
+無声化
+https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
 
 ```{r setup, include=FALSE}
 library(dplyr)
@@ -51,23 +59,26 @@ results <- rbind(
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(rt = as.numeric(rt)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
-  mutate(is_correct = is_correct == "true") %>%
+  mutate(is_correct = is_correct == "true") %>%  # boolにしている
   drop_na()
 head(results)
 ```
 
-無声化
-
-https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
+アイテムリストのマージ
 
 ```{r}
 # 文脈などのカラムをひっぱるのも可能
 # type==target が 無声化, filler がトーンの知覚
 item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, condition, correct, item_a, item_x, item_b))
 axb_results_devoice <- merge(results, item_list, on = "item_id") %>% filter(type == "target")
+head(axb_results_devoice, 100)
 ```
 
-a を違うと早とちりするとこうなる。
+一旦、資料を見直す。
+
+- アイテムごとの分析
+- xには居住歴
+- 正答率
 
 ```{r}
 axb_results_devoice %>%
