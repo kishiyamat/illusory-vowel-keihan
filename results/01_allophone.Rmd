@@ -98,12 +98,12 @@ results$phoneme_envs%>% unique()
 ```{r}
 results %>%
   ggplot() +
-  facet_grid(pair ~ .) +
+  facet_grid(pair ~ condition) +
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 5),
     y = is_correct_mean,
-    color = condition,
-    fill = condition,
+    color = phoneme_envs,
+    fill = phoneme_envs,
   ))
 ```
 
@@ -116,10 +116,9 @@ results %>%
 library(lmerTest)
 model <- lmer(
   is_correct_mean ~
-  condition + tokyo_kinki_ratio + (1 | subject_id),
+  condition * pair + tokyo_kinki_ratio + (1 | subject_id),
   data = results)
 
-# まぁ、なんの効果もない
 summary(model)
 ```
 
