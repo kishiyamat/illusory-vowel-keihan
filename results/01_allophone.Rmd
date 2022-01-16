@@ -119,6 +119,12 @@ model <- lmer(
   condition * pair + tokyo_kinki_ratio + (1 | subject_id),
   data = results)
 
+# 居住歴の効果はない(トーンの錯覚とは対照的)
 summary(model)
 ```
 
+- voiced になると下がる(ベースライン)
+  - p-s, s-p では voiced になると上がる(先行研究と同じ)
+  - ts-k は下がる, k-t も下がる（おそらくベースライン）
+- p-s や p-s、ts-k は下がる
+  - 摩擦や破裂、といった要素でモデリングしたほうが良さそう
