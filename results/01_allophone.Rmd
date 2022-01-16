@@ -5,6 +5,7 @@ output: html_notebook
 
 - 異音の分析なんだが、ツッコミから始まるアンチパターンに陥っている。
 - ポジティブな、理論的な貢献を視座高くして考えるべき。
+- 行動実験の結果にはノイズが乗っているから、新しく要因とするには不安...
 
 todo
 
@@ -38,11 +39,13 @@ library(ggplot2)
 library(readr)
 library(stringr)
 library(tidyr)
+source("script/subject_info.R")
+source("script/results_pitch.R") # load mutated data
 ```
 
 ```{r}
-source("script/subject_info.R")
-# TODO: devocingのデータをマージしたほうが早い。
+item_list <- read_csv("../src/list/axb_list.csv") %>%
+  select(c(item_id, type, condition, correct, item_a, item_x, item_b, c1, c2))
 subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   extract_columns(data_src = "sone")
 subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
@@ -59,31 +62,64 @@ results <- rbind(
   mutate(item_id = as.numeric(item_id)) %>%
   mutate(rt = as.numeric(rt)) %>%
   mutate(item_id = as.numeric(item_id)) %>%
-  mutate(is_correct = is_correct == "true") %>%  # boolにしている
-  drop_na()
-head(results)
+  mutate(is_correct = is_correct == "true") %>%
+  # boolにしている
+  drop_na() %>%
+  mutate(
+    span_tokyo_span_kinki = span_tokyo - span_kinki,
+    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
+  ) %>%
+  filter(age > 18) %>%
+  merge(item_list, on = "item_id") %>%
+  filter(type == "target") %>%
+  group_by(c1, c2, run_id, data_src) %>%
+  mutate(
+    is_correct_mean = mean(is_correct),
+    phoneme_envs = paste0(c1, "-", c2),
+    subject_id = paste0(data_src, "-", run_id)
+  ) %>% 
+  mutate(
+    pair = case_when(
+      phoneme_envs %in% c("s-p", "z-b") ~ "s-p",
+      phoneme_envs %in% c("p-s", "b-z") ~ "p-s",
+      phoneme_envs %in% c("k-t", "g-d") ~ "k-t",
+      phoneme_envs %in% c("ts-k", "dz-g") ~ "ts-k"
+    ),
+  )
 ```
 
 アイテムリストのマージ
 
 ```{r}
-# 文脈などのカラムをひっぱるのも可能
-# type==target が 無声化, filler がトーンの知覚
-item_list <- read_csv("../src/list/axb_list.csv") %>% select(c(item_id, type, condition, correct, item_a, item_x, item_b))
-axb_results_devoice <- merge(results, item_list, on = "item_id") %>% filter(type == "target")
-head(axb_results_devoice, 100)
+head(results, 100)
+results$phoneme_envs%>% unique()
 ```
-
-一旦、資料を見直す。
-
-- アイテムごとの分析
-- xには居住歴
-- 正答率
 
 ```{r}
-axb_results_devoice %>%
-  mutate(span_kinki = span_kinki > 5) %>%
+results %>%
   ggplot() +
-  facet_grid(correct ~ span_kinki) +
-  geom_histogram(aes(x = condition, color = is_correct, fill = is_correct), stat = "count", position = "fill")
+  facet_grid(pair ~ .) +
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 5),
+    y = is_correct_mean,
+    color = condition,
+    fill = condition,
+  ))
 ```
+
+全体的に有声音の環境ではアイテムの作成の難しさから弁別が用意になっているかもしれない。
+
+- まぁ普通に近畿で錯覚が増えていることにはならない
+- bzの方がps より錯覚が起きやすい
+
+```{r}
+library(lmerTest)
+model <- lmer(
+  is_correct_mean ~
+  condition + tokyo_kinki_ratio + (1 | subject_id),
+  data = results)
+
+# まぁ、なんの効果もない
+summary(model)
+```
+

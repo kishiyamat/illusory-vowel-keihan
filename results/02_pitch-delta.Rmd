@@ -58,7 +58,6 @@ library(readr)
 library(stringr)
 library(tidyr)
 source("script/subject_info.R")
-source("script/geom_flat_violin.R")
 source("script/results_pitch.R") # load mutated data
 
 # 東京バイアスを計算(統計用)
