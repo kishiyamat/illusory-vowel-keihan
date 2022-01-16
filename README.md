@@ -113,6 +113,22 @@ assert を上手く使って想定内の挙動であることを保証し続け�
 
 ## 分析
 
+- データを取得
+  - crowdworks と soneさんでルートを分けているので、
+    `/Users/takeshi.kishiyama/illusory-vowel-keihan/results/csv` に
+    以下のファイルを配置
+    - `illusory-vowel-keihan.csv`
+    - `illusory-vowel-keihan-cw.csv`
+- 分析ファイルの実行
+  - アノテーション
+  - トーンの知覚
+    - pitch-delta: tokyo preference の分析
+    - pitch-delta: そもそもの正答率
+  - 異音の弁別
+    - allophone: 
+
+```
+```
 
 ### アノテーション
 
