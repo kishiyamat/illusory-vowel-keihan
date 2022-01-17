@@ -4,6 +4,7 @@ output: github_document
 ---
 
 1. 無理に前提を置く必要はない。
+https://github.com/kishiyamat/illusory-vowel-keihan/pull/118 をベースに資料を作成
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -16,9 +17,38 @@ library(tidyr)
 source("script/subject_info.R")
 ```
 
+単語とかはともかく、ピッチパターンが許容できるかを確認する
+
+東京パターンか否かで考える
+
+- 小豆(HHL-HLL-LHH)
+- カラス(HLL--LHH--LLH)
+- 言葉(HHL--HLL--LHH)
+- ウサギ(LHH--LLH)
+
 ```{r}
-results <- read_csv("follow-up.csv")
-View(results)
+results <- read_csv("follow-up.csv") %>% 
+  rename(
+    input_id = "クラウドワークスのワーカー名",
+    age = "現在の年齢",
+    ) %>% 
+  pivot_longer(
+    cols = contains("H"),
+    names_to = "stimuli",
+    values_to = "evaluation"
+  ) %>% 
+  select(
+    c(input_id, stimuli, evaluation)
+  ) %>% 
+  mutate(
+    tokyo_pattern = ,
+  )
+head(results)
+
+"よく聞く"
+"時々聞く"
+"あまり聞いたことがない"
+"全く聞いたことがない"
 ```
 
 ```{r}
@@ -32,26 +62,8 @@ subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
 subject_info <- rbind(subject_info_sone, subject_info_cw)
 ```
 
-## GitHub Documents
+```{r}
+head(subject_info)
 
-This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
-
-## Including Code
-
-You can include R code in the document as follows:
-
-```{r cars}
-summary(cars)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
 
