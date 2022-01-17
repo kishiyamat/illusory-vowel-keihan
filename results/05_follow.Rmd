@@ -15,22 +15,23 @@ library(readr)
 library(stringr)
 library(tidyr)
 source("script/subject_info.R")
+source("script/results_pitch.R") # load mutated data
 ```
 
 単語とかはともかく、ピッチパターンが許容できるかを確認する
 
 東京パターンか否かで考える
 
-- 小豆(HHL-HLL-LHH)
-- カラス(HLL--LHH--LLH)
-- 言葉(HHL--HLL--LHH)
-- ウサギ(LHH--LLH)
+- 小豆(HHL-HLL-*LHH*)
+- カラス(*HLL*--LHH--LLH)
+- 言葉(HHL--HLL--*LHH*)
+- ウサギ(*LHH*--LLH)
 
 ```{r}
 results <- read_csv("follow-up.csv") %>% 
   rename(
     input_id = "クラウドワークスのワーカー名",
-    age = "現在の年齢",
+    age = "現在の年齢"
     ) %>% 
   pivot_longer(
     cols = contains("H"),
@@ -41,14 +42,21 @@ results <- read_csv("follow-up.csv") %>%
     c(input_id, stimuli, evaluation)
   ) %>% 
   mutate(
-    tokyo_pattern = ,
-  )
-head(results)
-
-"よく聞く"
-"時々聞く"
-"あまり聞いたことがない"
-"全く聞いたことがない"
+    pattern = case_when(
+      stimuli %in% c("小豆（LHH）", "カラス（HLL）", "言葉（LHH）", "ウサギ（LHH）") ~ "tokyo",
+      TRUE ~ "other"),
+    eval_int = case_when(
+      evaluation=="よく聞く"~3,
+      evaluation=="時々聞く"~2,
+      evaluation=="あまり聞いたことがない"~1,
+      evaluation=="全く聞いたことがない"~0
+    )
+  ) %>% 
+  group_by(input_id, pattern) %>% 
+  # 最大値を取れば外れ値などは関係ない
+  # 平均は非東京パターンで割れたとき（0と3など）1.5などになってしまう。
+  summarise(eval_by_pattern = max(eval_int)) %>% ungroup
+results
 ```
 
 ```{r}
@@ -59,11 +67,46 @@ subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
 subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   extract_columns(data_src = "cw")
 # ここの input_id で合わせればいい
-subject_info <- rbind(subject_info_sone, subject_info_cw)
+subject_info
+subject_info <- rbind(subject_info_sone, subject_info_cw) %>% 
+  mutate(
+    span_tokyo_span_kinki = span_tokyo - span_kinki,
+    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
+  )
+```
+```{r}
+follow_list = results$input_id %>% unique
+follow_list
+```
+
+↑に存在するが↓に存在しないパターンがよろしくない。
+
+```{r}
+original_list = subject_info %>% filter(data_src=="cw") %>% select(input_id) %>% unlist %>% unique
+original_list
 ```
 
 ```{r}
-head(subject_info)
+# これらが問題
+`%notin%` <- Negate(`%in%`)
+follow_list[follow_list %notin% original_list]
+```
 
+28しかない。4件落ちている。年齢から推定する
+
+```{r}
+# head(subject_info)
+merged_results = results %>% merge(subject_info)
+head(merged_results)
+```
+
+```{r}
+merged_results %>% 
+  ggplot() +
+  facet_grid(pattern ~ .) +
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 5),
+    y = eval_by_pattern,
+  ))
 ```
 
