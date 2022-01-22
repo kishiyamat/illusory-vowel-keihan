@@ -1,6 +1,6 @@
 ---
 title: "Allophone"
-output: html_notebook
+output: github_document
 ---
 
 - 異音の分析なんだが、ツッコミから始まるアンチパターンに陥っている。
@@ -77,7 +77,7 @@ results <- rbind(
     is_correct_mean = mean(is_correct),
     phoneme_envs = paste0(c1, "-", c2),
     subject_id = paste0(data_src, "-", run_id)
-  ) %>% 
+  ) %>%
   mutate(
     pair = case_when(
       phoneme_envs %in% c("s-p", "z-b") ~ "s-p",
@@ -92,7 +92,7 @@ results <- rbind(
 
 ```{r}
 head(results, 100)
-results$phoneme_envs%>% unique()
+results$phoneme_envs %>% unique()
 ```
 
 ```{r}
@@ -117,7 +117,8 @@ library(lmerTest)
 model <- lmer(
   is_correct_mean ~
   condition * pair + tokyo_kinki_ratio + (1 | subject_id),
-  data = results)
+  data = results
+)
 
 # 居住歴の効果はない(トーンの錯覚とは対照的)
 summary(model)
