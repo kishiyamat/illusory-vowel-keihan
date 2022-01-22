@@ -54,7 +54,7 @@ extract_columns <- function(df, data_src) {
     # パイロットのときのデータを除外
     filter(!subject_id %in% c("2000", "9001", "9002", "9003")) %>%
     mutate(subj_id = paste0(run_id, "_", subject_id)) %>%
-    select(-c(subject_id)) %>%
+    rename(input_id = subject_id) %>%
     # age がないと下のcase_whenのsoneで失敗するので事前に追加
     add_column(!!!cols[!names(cols) %in% names(.)]) %>%
     mutate(age = case_when(
