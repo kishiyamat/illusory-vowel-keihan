@@ -1,6 +1,6 @@
 ---
 title: "Categorize"
-output: html_notebook
+output: github_document
 ---
 
 - 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing

@@ -111,7 +111,7 @@ result_x_var <- results %>%
     TRUE ~ "Onset"
   ))
 
-result_x_var %>%
+g <- result_x_var %>%
   ggplot() +
   facet_grid(item_type ~ check_first) +
   geom_violin(aes(x = factor(range01(year), 5), y = devoiced_mean, color = item_id, fill = item_id)) +
@@ -122,8 +122,8 @@ result_x_var %>%
     color = "Text",
     fill = "Text"
   ) +
-  theme(legend.position = "none") +
-  ggsave(paste0("artifact/devoicing_by_item.png"), unit = "cm", width = 8, height = 8)
+  theme(legend.position = "none")
+ggsave(paste0("artifact/devoicing_by_item.png"), g, unit = "cm", width = 8, height = 8)
 ```
 
 ## Stats
@@ -185,6 +185,7 @@ for (x_var in x_var_list) {
   ggsave(paste0("artifact/devoiced_mean_", x_var, ".png"))
 }
 ```
+
 ```{r}
 print("EOF")
 ```

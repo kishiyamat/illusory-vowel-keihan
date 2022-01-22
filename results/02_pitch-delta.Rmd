@@ -1,6 +1,6 @@
 ---
 title: "Pitch Delta"
-output: html_notebook
+output: github_document
 ---
 
 - [概要](https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing)
@@ -142,7 +142,9 @@ results_by_subject %>%
     x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
     y = "Tokyo Preference"
   )
-ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"), unit = "cm", width = 8, height = 8)
+ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"),
+  unit = "cm", width = 8, height = 8
+)
 ```
 
 #### アイテムごと
@@ -165,7 +167,9 @@ results_by_subject %>%
     y = "Tokyo Preference"
   )
 
-ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"), unit = "cm", width = 8, height = 8)
+ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"),
+  unit = "cm", width = 8, height = 8
+)
 ```
 
 ## 分析
@@ -292,8 +296,6 @@ results_by_subject %>%
 
 # まぁtokyo_ratioかtokyo-kinki-ratioかなぁ
 ```
-
-
 
 ```{r}
 print("EOF")

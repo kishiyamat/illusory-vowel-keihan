@@ -1,6 +1,6 @@
 ---
 title: "Pitch Mean"
-output: html_notebook
+output: github_document
 ---
 
 - 回答の正答率の平均
