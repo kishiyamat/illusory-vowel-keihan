@@ -17,5 +17,4 @@ model/wav/*
 !**/.gitkeep
 .Rproj.user
 *.npy
-*.png
 *.RData
