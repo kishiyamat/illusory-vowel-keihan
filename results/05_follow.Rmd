@@ -4,7 +4,8 @@ output: github_document
 ---
 
 1. 無理に前提を置く必要はない。
-https://github.com/kishiyamat/illusory-vowel-keihan/pull/118 をベースに資料を作成
+  - https://github.com/kishiyamat/illusory-vowel-keihan/pull/118 をベースに資料を作成
+  - https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
