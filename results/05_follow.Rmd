@@ -83,7 +83,9 @@ subject_info <- rbind(subject_info_sone, subject_info_cw) %>%
     span_tokyo_span_kinki = span_tokyo - span_kinki,
     tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
   )
+head(subject_info)
 ```
+
 ```{r}
 follow_list <- results$input_id %>% unique()
 # ↑に存在するが↓に存在しないパターンがよろしくない。
@@ -97,7 +99,6 @@ original_list <- subject_info %>%
 `%notin%` <- Negate(`%in%`)
 follow_list[follow_list %notin% original_list]
 ```
-
 
 ```{r}
 # head(subject_info)
@@ -132,6 +133,7 @@ g <- merged_results %>%
 
 ggsave(file = "artifact/follow_up.pdf", g, width = 8, height = 8, units = "cm")
 ggsave(file = "artifact/follow_up.png", g, width = 8, height = 8, units = "cm")
+g
 ```
 
 東京居住歴が長くて東京以外のパターンを聞いたことがある人はいないが、

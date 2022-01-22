@@ -2,8 +2,10 @@ Follow Up Survey
 ================
 
 1.  無理に前提を置く必要はない。
-    <https://github.com/kishiyamat/illusory-vowel-keihan/pull/118>
+
+-   <https://github.com/kishiyamat/illusory-vowel-keihan/pull/118>
     をベースに資料を作成
+-   <https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing>
 
 単語とかはともかく、ピッチパターンが許容できるかを確認する
 
@@ -15,41 +17,44 @@ Follow Up Survey
 -   ウサギ(*LHH*–LLH)
 
 ``` r
-results <- read_csv("follow-up.csv") %>% 
+results <- read_csv("follow-up.csv") %>%
   rename(
     input_id = "クラウドワークスのワーカー名",
     age = "現在の年齢"
-    ) %>% 
+  ) %>%
   pivot_longer(
     cols = contains("H"),
     names_to = "stimuli",
     values_to = "evaluation"
-  ) %>% 
+  ) %>%
   select(
     c(input_id, stimuli, evaluation)
-  ) %>% 
+  ) %>%
   mutate(
-    word =  gsub('[HL（）]', '', stimuli) ,
-    word  = case_when(
-      word=="ウサギ"~"usagi",
-      word=="カラス"~"karasu",
-      word=="言葉"~"kotoba",
-      word=="小豆"~"azuki",
-      TRUE ~ "other"),
+    word = gsub("[HL（）]", "", stimuli),
+    word = case_when(
+      word == "ウサギ" ~ "usagi",
+      word == "カラス" ~ "karasu",
+      word == "言葉" ~ "kotoba",
+      word == "小豆" ~ "azuki",
+      TRUE ~ "other"
+    ),
     pattern = case_when(
       stimuli %in% c("小豆（LHH）", "カラス（HLL）", "言葉（LHH）", "ウサギ（LHH）") ~ "tokyo",
-      TRUE ~ "other"),
+      TRUE ~ "other"
+    ),
     eval_int = case_when(
-      evaluation=="よく聞く"~3,
-      evaluation=="時々聞く"~2,
-      evaluation=="あまり聞いたことがない"~1,
-      evaluation=="全く聞いたことがない"~0
+      evaluation == "よく聞く" ~ 3,
+      evaluation == "時々聞く" ~ 2,
+      evaluation == "あまり聞いたことがない" ~ 1,
+      evaluation == "全く聞いたことがない" ~ 0
     )
-  ) %>% 
-  group_by(input_id, pattern, word) %>% 
+  ) %>%
+  group_by(input_id, pattern, word) %>%
   # 最大値を取れば外れ値などは関係ない
   # 平均は非東京パターンで割れたとき（0と3など）1.5などになってしまう。
-  summarise(eval_by_pattern = max(eval_int)) %>% ungroup
+  summarise(eval_by_pattern = max(eval_int)) %>%
+  ungroup()
 ```
 
     ## 
@@ -156,17 +161,34 @@ subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
 
 ``` r
 # ここの input_id で合わせればいい
-subject_info <- rbind(subject_info_sone, subject_info_cw) %>% 
+subject_info <- rbind(subject_info_sone, subject_info_cw) %>%
   mutate(
     span_tokyo_span_kinki = span_tokyo - span_kinki,
     tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
   )
+head(subject_info)
 ```
 
+    ## # A tibble: 6 x 10
+    ##   run_id input_id span_tokyo span_kinki subj_id   age data_src span_unknown
+    ##    <int> <chr>         <int>      <int> <chr>   <int> <chr>           <int>
+    ## 1    127 0007             55          0 127_00…    55 sone                0
+    ## 2    131 0008             38          0 131_00…    38 sone                0
+    ## 3    128 0009             29          7 128_00…    36 sone                0
+    ## 4    149 0005             25          0 149_00…    25 sone                0
+    ## 5    148 0006             10          0 148_00…    10 sone                0
+    ## 6    170 1003              1         55 170_10…    56 sone                0
+    ## # … with 2 more variables: span_tokyo_span_kinki <int>,
+    ## #   tokyo_kinki_ratio <dbl>
+
 ``` r
-follow_list = results$input_id %>% unique
+follow_list <- results$input_id %>% unique()
 # ↑に存在するが↓に存在しないパターンがよろしくない。
-original_list = subject_info %>% filter(data_src=="cw") %>% select(input_id) %>% unlist %>% unique
+original_list <- subject_info %>%
+  filter(data_src == "cw") %>%
+  select(input_id) %>%
+  unlist() %>%
+  unique()
 # これらが問題
 # 28しかない。4件落ちている。年齢から推定する(?)
 `%notin%` <- Negate(`%in%`)
@@ -177,7 +199,7 @@ follow_list[follow_list %notin% original_list]
 
 ``` r
 # head(subject_info)
-merged_results = results %>% merge(subject_info)
+merged_results <- results %>% merge(subject_info)
 head(merged_results)
 ```
 
@@ -205,7 +227,7 @@ head(merged_results)
 
 ``` r
 # -1から1の値を取る(まぁ0--4に分割、とかでいいか。)
-merged_results %>% 
+g <- merged_results %>%
   ggplot() +
   facet_grid(pattern ~ word) +
   geom_violin(aes(
@@ -213,7 +235,24 @@ merged_results %>%
     y = eval_by_pattern,
     color = pattern,
     fill = pattern
-  ))
+  )) +
+  theme_bw() +
+  scale_shape_manual(values = c(16, 21)) +
+  # scale_fill_manual(values = c("black", "white")) +
+  theme(
+    legend.position = "none",
+    axis.title.y = element_blank()
+  ) +
+  theme(
+    axis.text = element_text(size = 9),
+    axis.title = element_text(size = 12, face = "bold"),
+    strip.text.x = element_text(size = 9),
+    axis.title.x = element_blank()
+  )
+
+ggsave(file = "artifact/follow_up.pdf", g, width = 8, height = 8, units = "cm")
+ggsave(file = "artifact/follow_up.png", g, width = 8, height = 8, units = "cm")
+g
 ```
 
 ![](05_follow_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
@@ -251,7 +290,8 @@ library(lmerTest)
 model <- lmer(
   eval_by_pattern ~
   pattern * tokyo_kinki_ratio + (1 | input_id) + (1 | word),
-  data = merged_results)
+  data = merged_results
+)
 ```
 
 ``` r
@@ -296,3 +336,9 @@ summary(model)
     ## patterntoky -0.349              
     ## toky_knk_rt -0.064  0.048       
     ## pttrntky:__  0.033 -0.095 -0.512
+
+``` r
+print("EOF")
+```
+
+    ## [1] "EOF"
