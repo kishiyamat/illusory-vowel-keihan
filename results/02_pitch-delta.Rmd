@@ -180,6 +180,9 @@ head(results_by_subject)
 
 ### 東京居住歴のみ
 
+- 一番シンプルな形の分析
+  - 計算モデルしで
+
 #### LME
 
 ```{r}
@@ -242,7 +245,6 @@ brms::bayes_factor(model_1, model_0)
 
 ## 音素とピッチタイプ
 
-
 ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
 
 ```{r}
@@ -278,6 +280,7 @@ dev.off()
 かなり詳しい図
 
 ```{r}
+# tokyo_ratioかtokyo-kinki-ratioかなぁ
 results_by_subject %>%
   mutate(
     x_devoiced = factor(range01(devoiced), 5),
@@ -293,8 +296,6 @@ results_by_subject %>%
   ggplot() +
   facet_grid(x_name ~ pitch_from + phoneme) +
   geom_violin(aes(x = x_value, y = to_tokyo_pattern, color = x_name))
-
-# まぁtokyo_ratioかtokyo-kinki-ratioかなぁ
 ```
 
 ```{r}
