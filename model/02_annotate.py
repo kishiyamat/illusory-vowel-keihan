@@ -4,15 +4,14 @@ import numpy as np
 import optuna
 from scipy.signal import find_peaks
 from path_manager import PathManager
-
 # %%
 
 
 def objective(trial):
-    # 境界にあるデータが不安定なため、窓を当ててpeakから除外する。
+    # 境界にあるデータが不安定なため、窓を当ててpeakから除外
     # find_peaksは色々試したが、結果 percentile_lowerによる heightが大事だった
-    # window関数とパラメータをチューニングしてうまく割る
-    n_correct = 0
+    # window関数とパラメータをチューニングしてセグメント
+    n_correct = 0  # ピークの数とmora-1の数
     # params
     beta = trial.suggest_uniform("beta", 0.3, 3)
     percentile_lower = trial.suggest_int("percentile_lower", 3, 60)
