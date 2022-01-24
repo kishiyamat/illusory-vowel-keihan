@@ -7,7 +7,7 @@ import parselmouth
 import rle
 from hsmmlearn.emissions import AbstractEmissions
 from hsmmlearn.hsmm import HSMMModel
-from plotnine import aes, facet_wrap, geom_point, ggplot, labs
+from plotnine import aes, facet_wrap, geom_point, ggplot, labs, facet_grid
 from sklearn.cluster import KMeans
 from sklearn.impute import SimpleImputer
 from sklearn.mixture import GaussianMixture
@@ -20,28 +20,29 @@ train_wav_list, test_wav_list = PathManager.train_test_wav()
 data_list = []
 
 for wav_i in train_wav_list+test_wav_list:
+    # ファイル名から 1. 音素 2. ピッチラベル 3. 話者を取得
     phoneme, label_all, speaker = wav_i.split("-")
     vowels = "".join(label_all.split("_"))
+    # 母音の数を取得(モーラの数ではない cf. esko)
     n_vowel = len(vowels)
     snd = parselmouth.Sound(str(PathManager.data_path("downsample", wav_i)))
-    # FIXME: pitch_floor と pitch_ceiling は可視化しながら調整
+    check_octave_jump = False
     pitch = snd.to_pitch_ac(pitch_floor=60, pitch_ceiling=200)\
-        .selected_array['frequency']
+        .selected_array['frequency']  # pitch_floor と pitch_ceiling は可視化して調整(octave jump対策)
     n_data = len(pitch)
     pitch[pitch == 0] = np.nan  # 0はnanにする
-    time = np.arange(n_data)
-    # うまくクラスタリングできているかを ggplot で確認
+    time = np.arange(n_data)  # クラスタリングや可視化で使う
     pipe = Pipeline([
         ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
         ("cluster", KMeans(n_clusters=n_vowel, random_state=0))])
+    check_clustering = False  # 0か1かで十分分離できる
     arr = np.array([pitch > 0, time]).T
-    cluster = []
-    label = []
-    rle_label = []
-    rle_label_list = []  # run-lenght encoded labels
+    cluster,  label, rle_label, rle_label_list = [], [], [], []
     labels, durs = rle.encode(vowels)
     for label_i, dur_i in zip(labels, durs):
         rle_label_list.extend([label_i+str(dur_i)] * dur_i)
+    # clustering の結果は時系列と無関係なので順序を持たせる
+    # その順序を使って LやL2といったラベルを与える
     cluster_dict = {}
     for c in pipe.fit_predict(arr):
         if c not in cluster_dict:
@@ -64,13 +65,14 @@ for wav_i in train_wav_list+test_wav_list:
         "speaker": [speaker]*n_data,
     })
     data_list.append(data)
-    # g = (
-    #     ggplot(data, aes(x='time', y='tone'))
-    #     + facet_grid(". ~ cluster")
-    #     + geom_point()
-    #     + labs(x='time', y='tone')
-    # )
-    # print(g)
+    if check_octave_jump or check_clustering:
+        g = (
+            ggplot(data, aes(x='time', y='tone'))
+            + facet_grid(". ~ cluster")
+            + geom_point()
+            + labs(x='time', y='tone')
+        )
+        print(g)
 
 data = pd.concat(data_list)
 p = (ggplot(data, aes(x='time', y='tone', color="label", shape="factor(cluster)"))
