@@ -16,8 +16,30 @@ from sklearn.pipeline import Pipeline
 from path_manager import PathManager
 
 # %%
+from sklearn.preprocessing import LabelEncoder
+
+src = [0, 3, 1, 1, 2, 2]
+tgt = [0, 1, 2, 2, 3, 3]
+
+
+def reset_index_by_time(clusterd_idxs):
+    cluster = []
+    cluster_dict = {}
+    for c in clusterd_idxs:
+        if c not in cluster_dict:
+            cluster_dict[c] = len(cluster_dict)
+        cluster.append(cluster_dict[c])
+    return cluster
+
+assert tgt == reset_index_by_time(src)
+# %%
+
+# %%
 train_wav_list, test_wav_list = PathManager.train_test_wav()
 data_list = []
+
+check_octave_jump = False
+check_clustering = True  # 0か1かで十分分離できる
 
 for wav_i in train_wav_list+test_wav_list:
     # ファイル名から 1. 音素 2. ピッチラベル 3. 話者を取得
@@ -26,7 +48,6 @@ for wav_i in train_wav_list+test_wav_list:
     # 母音の数を取得(モーラの数ではない cf. esko)
     n_vowel = len(vowels)
     snd = parselmouth.Sound(str(PathManager.data_path("downsample", wav_i)))
-    check_octave_jump = False
     pitch = snd.to_pitch_ac(pitch_floor=60, pitch_ceiling=200)\
         .selected_array['frequency']  # pitch_floor と pitch_ceiling は可視化して調整(octave jump対策)
     n_data = len(pitch)
@@ -35,14 +56,14 @@ for wav_i in train_wav_list+test_wav_list:
     pipe = Pipeline([
         ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
         ("cluster", KMeans(n_clusters=n_vowel, random_state=0))])
-    check_clustering = False  # 0か1かで十分分離できる
     arr = np.array([pitch > 0, time]).T
-    cluster,  label, rle_label, rle_label_list = [], [], [], []
+    cluster, label, rle_label, rle_label_list = [], [], [], []
     labels, durs = rle.encode(vowels)
     for label_i, dur_i in zip(labels, durs):
         rle_label_list.extend([label_i+str(dur_i)] * dur_i)
     # clustering の結果は時系列と無関係なので順序を持たせる
     # その順序を使って LやL2といったラベルを与える
+    # reset label index by time
     cluster_dict = {}
     for c in pipe.fit_predict(arr):
         if c not in cluster_dict:
