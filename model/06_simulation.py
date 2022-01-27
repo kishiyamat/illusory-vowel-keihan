@@ -22,40 +22,38 @@ data_list = []
 check_octave_jump = False
 check_clustering = True  # 0か1かで十分分離できる
 
-for wav_i in train_wav_list+test_wav_list:
+for wav_i in train_wav_list + test_wav_list:
     # ファイル名から 1. 音素 2. ピッチラベル 3. 話者を取得
     phoneme, collapsed_pitches, speaker = wav_i.split("-")
     vowels = "".join(collapsed_pitches.split("_"))
     # 母音の数を取得(モーラの数ではない cf. esko)
     n_vowel = len(vowels)
-    snd = parselmouth.Sound(str(PathManager.data_path("downsample", wav_i)))
     # pitch_floor と pitch_ceiling は可視化して調整(octave jump対策)
-    pitch = snd.to_pitch_ac(pitch_floor=60, pitch_ceiling=200)\
+    pitch = parselmouth.Sound(str(PathManager.data_path("downsample", wav_i)))\
+        .to_pitch_ac(pitch_floor=60, pitch_ceiling=200)\
         .selected_array['frequency']
-    n_data = len(pitch)
-    pitch[pitch == 0] = np.nan  # meanの計算で無視するため0はnanにする
-    time = np.arange(n_data)  # クラスタリングや可視化で時間の軸が必要になる
+    pitch[pitch == 0] = np.nan  # meanの計算/可視化で無視するので0はnanにする
+    n_sample = len(pitch)
+    time = np.arange(n_sample)  # クラスタリング/可視化で時間の軸が必要になる
     pipe = Pipeline([
         ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
         ("cluster", KMeans(n_clusters=n_vowel, random_state=0))])
-    arr = np.array([pitch > 0, time]).T
-    rle_label_list = run_length_encode(vowels)
+    arr = np.array([pitch > 0, time]).T  # クラスタリングは0/1の方が好都合
     cluster = reset_index_by_time(pipe.fit_predict(arr))
     label = [vowels[cluster_i] for cluster_i in cluster]
-    rle_label = [rle_label_list[cluster_i] for cluster_i in cluster]
-    # クラスタリングは空間的にクラスタリングする
+    rle_label = [run_length_encode(vowels)[cluster_i] for cluster_i in cluster]
     data = pd.DataFrame({
-        "stimuli": [wav_i] * n_data,
-        "is_train": [wav_i in train_wav_list]*n_data,
+        "stimuli": [wav_i] * n_sample,
+        "is_train": [wav_i in train_wav_list]*n_sample,
         "pitch": pitch,
         "tone": 6 * np.log(pitch/np.nanmedian(pitch)) / np.log(2),
         "time": time,
         "cluster": cluster,
         "label": label,
         "rle_label": rle_label,
-        "phoneme": [phoneme]*n_data,
-        "collapsed_pitches": [collapsed_pitches]*n_data,
-        "speaker": [speaker]*n_data,
+        "phoneme": [phoneme]*n_sample,
+        "collapsed_pitches": [collapsed_pitches]*n_sample,
+        "speaker": [speaker]*n_sample,
     })
     data_list.append(data)
     if check_octave_jump or check_clustering:
