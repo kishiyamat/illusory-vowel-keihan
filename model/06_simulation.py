@@ -1,4 +1,5 @@
 # %%
+from sklearn import tree
 import itertools
 
 import numpy as np
@@ -16,11 +17,12 @@ from sklearn.pipeline import Pipeline
 from path_manager import PathManager
 from utils import reset_index_by_time, run_length_encode
 # %%
+check_octave_jump = False
+check_clustering = False  # 0か1かで十分分離できる
+
+# %%
 train_wav_list, test_wav_list = PathManager.train_test_wav()
 data_list = []
-
-check_octave_jump = False
-check_clustering = True  # 0か1かで十分分離できる
 
 for wav_i in train_wav_list + test_wav_list:
     # ファイル名から 1. 音素 2. ピッチラベル 3. 話者を取得
@@ -46,10 +48,11 @@ for wav_i in train_wav_list + test_wav_list:
         "stimuli": [wav_i] * n_sample,
         "is_train": [wav_i in train_wav_list]*n_sample,
         "pitch": pitch,
-        "tone": 6 * np.log(pitch/np.nanmedian(pitch)) / np.log(2),
+        "semitone": 12 * np.log(pitch/np.nanmedian(pitch)) / np.log(2),
         "time": time,
         "cluster": cluster,
         "label": label,
+        "rle_cluster": reset_index_by_time(rle_label),
         "rle_label": rle_label,
         "phoneme": [phoneme]*n_sample,
         "collapsed_pitches": [collapsed_pitches]*n_sample,
@@ -58,51 +61,45 @@ for wav_i in train_wav_list + test_wav_list:
     data_list.append(data)
     if check_octave_jump or check_clustering:
         g = (
-            ggplot(data, aes(x='time', y='tone'))
+            ggplot(data, aes(x='time', y='semitone'))
             + facet_grid(". ~ cluster")
             + geom_point()
-            + labs(x='time', y='tone')
+            + labs(x='time', y='semitone')
         )
         print(g)
-
+# %%
+# TODO: タイトルの編集
 data = pd.concat(data_list)
-p = (ggplot(data, aes(x='time', y='tone', color="label", shape="factor(cluster)"))
+p = (ggplot(data, aes(x='time', y='semitone', color="label", shape="factor(cluster)"))
      + facet_wrap("~ collapsed_pitches")
      + geom_point()
-     + labs(x='time', y='tone'))
+     + labs(x='time', y='semitone'))
 p.save(filename='artifacts/tone_by_cluster.png',
-       height=8, width=8, units='in', dpi=1000)
+       height=8, width=8, units='cm', dpi=1000)
 
-p = (ggplot(data, aes(x='time', y='tone', color="rle_label", shape="factor(cluster)"))
+p = (ggplot(data, aes(x='time', y='semitone', color="rle_label", shape="factor(cluster)"))
      + facet_wrap("~ collapsed_pitches")
      + geom_point()
-     + labs(x='time', y='tone'))
+     + labs(x='time', y='semitone'))
 p.save(filename='artifacts/tone_by_cluster_rle.png',
-       height=8, width=8, units='in', dpi=1000)
+       height=8, width=8, units='cm', dpi=1000)
 
 data.to_csv('artifacts/data.csv')
 # %%
-set(data.query("is_train == True").stimuli)
+# stimuli列ごとに抜き出して学習させれば良い
+data.head(20)
 # %%
-
+train_df = data.query("is_train == True")
+test_df = data.query("is_train == False")
 # %%
-# 1. HSMM
-# 2. tokyo_kinki_ratio
-# 3.
-
-
-class DataLoader:
-    def __init__(self, feature_type):
-        self.feature_type = feature_type
-        pass
 
 
 class Model:
-    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float):
+    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float, n_components: int):
         """[summary]
 
         Args:
-            use_semitone (bool): [特徴量としてsemitoneを利用するか]
+            use_semitone (bool): [特徴量としてsemitoneを利用(被験者の発話ごとに標準化)するか]
             use_duration (bool): [ラベルに持続時間を埋め込むか: HHをH2とするかHHとするか]
             use_transition (bool): [遷移確率を利用するか: P(H->L2)とP(H2->L)を一様とするか]
             tokyo_kinki_ratio (float): [行動実験の要因とされた東京に居住した割合]
@@ -111,9 +108,38 @@ class Model:
         self.use_duration = use_duration
         self.use_transition = use_transition
         self.tokyo_kinki_ratio = tokyo_kinki_ratio
+        # self.n_components = n_components
+        self.tmat = None
+        self.gm = None
 
-    def fit(self):
-        # 条件によって fit する音響モデルが異なる
+    def fit(self, df: pd.DataFrame):
+        X_list = []
+        y_list = []
+        for _, row in train_df.groupby("stimuli"):
+            X_list.extend(row.semitone if self.use_semitone else row.pitch)
+            y_i = row.rle_label if self.use_duration else row.label
+            y_list.extend(y_i)
+        # TODO: silっていう軸を与える
+        # で、音声の部分には mean を与えてあげる
+        self._X = np.array(X_list, dtype=object).reshape(-1, 1)  # 可視化とかに使える
+        self._y = np.array(y_list)
+        # self.model = GaussianMixture(n_components=self.n_components, random_state=42)
+        self.model = Pipeline([
+            ("impute", SimpleImputer(missing_values=np.nan, strategy='constant')),
+            ("cluster", KMeans(n_clusters=3, random_state=0)),  # 低い、高い、無し
+            ("model", tree.DecisionTreeClassifier())])
+        self.model.fit(self._X, self._y)
+        self.K = set(y_list)
+        # Duration
+        dur_dict = {k: [] for k in self.K}
+        cluster_key = "rle_cluster" if self.use_duration else "cluster"
+        for _, row in train_df.groupby(["stimuli", cluster_key]):
+            label, *_ = row.rle_label if self.use_duration else row.label
+            dur_dict[label] += [len(row)]
+        self.dur_dict = dur_dict
+        return self
+
+    def visualize(self):
         pass
 
     def predict(self):
@@ -123,8 +149,29 @@ class Model:
 
 
 # %%
-# test_y は axb の x に相当するかと
-train_x, train_y, test_x, test_y = DataLoader.laod()
+model = Model(use_semitone=True,
+              use_duration=False,
+              use_transition=True,
+              tokyo_kinki_ratio=1.0,
+              n_components=2
+              )
+model.fit(train_df)
+
+
+# %%
+X_list = []
+for _, row_by_cluster in train_df.groupby(["stimuli", "cluster"]):
+    print(set(row_by_cluster.label))
+    print(len(row_by_cluster))
+    # print(len(idx))
+    # print(len(row))
+X_list
+
+# %%
+# 0とはできない. semitoneの時に別の意味になる。
+# nanとはできない. 混合ガウスだから nan はない。
+train_df
+
 # %%
 use_semitones = [True, False]
 use_durations = [True, False]
@@ -156,9 +203,13 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
 
 
 def tone(pitch, base): return 6 * np.log(pitch/base) / np.log(2),
+def semitone(pitch, base): return 12 * np.log(pitch/base) / np.log(2),
 
 
 do = 130.813
 do_sharp = 138.591
 re = 146.832
-tone(re, do)
+print(tone(re, do))
+print(semitone(re, do))
+
+# %%
