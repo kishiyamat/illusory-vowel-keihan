@@ -158,13 +158,12 @@ class Model:
         # TMAT
         return self
 
-    def draw_acoustic(self):
+    def draw_features(self):
         label_name = 'semitone' if self.use_duration else "pitch"
         color_name = "rle_label" if self.use_duration else "label"
         df = pd.DataFrame({label_name: self._X_scaled[:, 0],
                            color_name: self.le.inverse_transform(self._y),
-                           'silent': self._X[:, 1],
-                           })
+                           'silent': self._X[:, 1]})
         p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
              + facet_grid(f"{color_name} ~ silent")
              + geom_histogram()
@@ -209,8 +208,8 @@ for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_tra
 accuracy_score(trues, preds)
 # %%
 
+model.pipe.predict_proba(model._X_scaled)
 # %%
-
 print(model.draw_duration())
 # %%
 duration_df = pd.DataFrame(model.dur_dict)
