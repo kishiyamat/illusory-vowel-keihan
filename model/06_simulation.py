@@ -7,11 +7,12 @@ import pandas as pd
 import parselmouth
 from hsmmlearn.emissions import AbstractEmissions
 from hsmmlearn.hsmm import HSMMModel
-from plotnine import aes, facet_wrap, geom_point, ggplot, labs, facet_grid
+from plotnine import *
 from sklearn.cluster import KMeans
 from sklearn.impute import SimpleImputer
 from sklearn.mixture import GaussianMixture
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 from path_manager import PathManager
@@ -49,6 +50,7 @@ for wav_i in train_wav_list + test_wav_list:
         "is_train": [wav_i in train_wav_list]*n_sample,
         "pitch": pitch,
         "semitone": 12 * np.log(pitch/np.nanmedian(pitch)) / np.log(2),
+        "silent": np.isnan(pitch),
         "time": time,
         "cluster": cluster,
         "label": label,
@@ -87,7 +89,7 @@ p.save(filename='artifacts/tone_by_cluster_rle.png',
 data.to_csv('artifacts/data.csv')
 # %%
 # stimuli列ごとに抜き出して学習させれば良い
-data.head(20)
+data.head(30)
 # %%
 train_df = data.query("is_train == True")
 test_df = data.query("is_train == False")
@@ -107,28 +109,40 @@ class Model:
         self.use_semitone = use_semitone
         self.use_duration = use_duration
         self.use_transition = use_transition
-        self.tokyo_kinki_ratio = tokyo_kinki_ratio
-        # self.n_components = n_components
-        self.tmat = None
-        self.gm = None
+        self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
+        self.n_components = n_components
+        self.tmat = None  # blend
+        self.pipe = Pipeline([
+            ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
+            ("scaler", StandardScaler()),  # 平均0
+            ("model", GaussianMixture(n_components=self.n_components, random_state=42)),
+        ])
+
+    @property
+    def tmat_kinki(self):
+        # TODO: 後で定義
+        # self.use_duration = use_duration に依存
+        pass
+
+    @property
+    def tmat_tokyo(self):
+        # TODO: 後で定義
+        # self.use_duration = use_duration に依存
+        pass
 
     def fit(self, df: pd.DataFrame):
         X_list = []
+        sil_list = []
         y_list = []
         for _, row in train_df.groupby("stimuli"):
             X_list.extend(row.semitone if self.use_semitone else row.pitch)
+            sil_list.extend(row.silent)
             y_i = row.rle_label if self.use_duration else row.label
             y_list.extend(y_i)
-        # TODO: silっていう軸を与える
-        # で、音声の部分には mean を与えてあげる
-        self._X = np.array(X_list, dtype=object).reshape(-1, 1)  # 可視化とかに使える
+        self._X = np.array([X_list, sil_list]).T
         self._y = np.array(y_list)
-        # self.model = GaussianMixture(n_components=self.n_components, random_state=42)
-        self.model = Pipeline([
-            ("impute", SimpleImputer(missing_values=np.nan, strategy='constant')),
-            ("cluster", KMeans(n_clusters=3, random_state=0)),  # 低い、高い、無し
-            ("model", tree.DecisionTreeClassifier())])
-        self.model.fit(self._X, self._y)
+        self.pipe.fit(self._X, self._y)
+        self._X_scaled = self.pipe[:-1].fit_transform(self._X)
         self.K = set(y_list)
         # Duration
         dur_dict = {k: [] for k in self.K}
@@ -139,38 +153,52 @@ class Model:
         self.dur_dict = dur_dict
         return self
 
-    def visualize(self):
-        pass
+    def draw_graph(self):
+        label_name = 'semitone' if self.use_duration else "pitch"
+        color_name = "rle_label" if self.use_duration else "label"
+        df = pd.DataFrame({label_name: self._X_scaled[:, 0],
+                           color_name: self._y,
+                           'silent': self._X[:, 1],
+                           })
+        p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
+             + facet_grid(f"{color_name} ~ silent")
+             + geom_histogram()
+             + labs(x=label_name, y="count")
+             + scale_y_log10()
+             )
+        return p
 
     def predict(self):
         # semitoneとかそこらへんもしっかりキャッチする
+        # silはnanで受け取る
         # 入力と出力は合わせる
         pass
 
 
 # %%
 model = Model(use_semitone=True,
-              use_duration=False,
+              use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1.0,
-              n_components=2
+              n_components=3
               )
 model.fit(train_df)
-
-
-# %%
-X_list = []
-for _, row_by_cluster in train_df.groupby(["stimuli", "cluster"]):
-    print(set(row_by_cluster.label))
-    print(len(row_by_cluster))
-    # print(len(idx))
-    # print(len(row))
-X_list
+print(model.draw_graph())
 
 # %%
 # 0とはできない. semitoneの時に別の意味になる。
 # nanとはできない. 混合ガウスだから nan はない。
 train_df
+# p = (ggplot(train_df.fillna(train_df.mean()), aes(x='pitch', color="rle_label", fill="rle_label"))
+p = (ggplot(train_df.fillna(train_df.mean()), aes(x='semitone', color="rle_label", fill="rle_label"))
+     + facet_grid("rle_label ~ silent")
+     + geom_histogram()
+     + labs(x='time', y='semitone')
+     + scale_y_log10()
+     )
+print(p)
+# p.save(filename='artifacts/tone_by_cluster_rle.png',
+#        height=8, width=8, units='cm', dpi=1000)
 
 # %%
 use_semitones = [True, False]
