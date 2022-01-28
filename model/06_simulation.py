@@ -100,7 +100,7 @@ test_df = data.query("is_train == False")
 
 
 class Model:
-    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float, n_components: int):
+    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float):
         """[summary]
 
         Args:
@@ -113,12 +113,12 @@ class Model:
         self.use_duration = use_duration
         self.use_transition = use_transition
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
-        self.n_components = n_components
         self.tmat = None  # blend
         self.le = LabelEncoder()
         self.pipe = Pipeline([
             ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
-            ("model", tree.DecisionTreeClassifier())
+            # ("model", tree.DecisionTreeClassifier(max_depth=3)),
+            ("model", GaussianNB()),
             # ("model", GaussianNB()),
         ])
 
@@ -193,11 +193,15 @@ model = Model(use_semitone=True,
               use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1.0,
-              n_components=3
               )
 model.fit(train_df)
-print(model.draw_acoustic())
+print(model.draw_features())
 # model.dur_dict
+
+# %%
+clf = model.pipe[-1]
+if type(clf)==tree.DecisionTreeClassifier:
+    tree.export_graphviz(clf, out_file="artifacts/tree.dot", class_names=model.le.classes_, feature_names=["semitone", "silent"], impurity=False, filled=True)
 # %%
 trues = []
 preds = []
@@ -205,10 +209,11 @@ for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_tra
     trues.append(true[0])
     preds.append(pred[0])
     print(true, pred)
+# dt: 0.7383720930232558
+# nb: 0.7151162790697675
 accuracy_score(trues, preds)
 # %%
-
-model.pipe.predict_proba(model._X_scaled)
+model.pipe.predict_proba(model._X_scaled[-6:])
 # %%
 print(model.draw_duration())
 # %%
