@@ -1,5 +1,6 @@
 # %%
 import itertools
+from telnetlib import GA
 
 import numpy as np
 import pandas as pd
@@ -119,7 +120,6 @@ class Model:
             ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
             # ("model", tree.DecisionTreeClassifier(max_depth=3)),
             ("model", GaussianNB()),
-            # ("model", GaussianNB()),
         ])
 
     @property
@@ -209,9 +209,12 @@ for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_tra
     trues.append(true[0])
     preds.append(pred[0])
     print(true, pred)
+# まさかのsemitone使わない方がセグメンタルには性能高そう
 # dt: 0.7383720930232558
 # nb: 0.7151162790697675
 accuracy_score(trues, preds)
+# %%
+model.le.classes_
 # %%
 model.pipe.predict_proba(model._X_scaled[-6:])
 # %%
@@ -223,16 +226,22 @@ duration_df.groupby("label").mean()
 # %%
 duration_df
 
-
 # %%
 # Gaussian KDE
 # Gaussian Mixture でいいのでは？
-X = duration_df.duration.values.reshape(-1, 1)
-y = model.le.transform(duration_df.label.values)
-print(y)
-gm = GaussianMixture(n_components=7, random_state=0)
-gm.fit(X, y)
-gm.predict_proba(X)
+# 2くらいでいい
+X = duration_df.query("label=='H1'").duration.values.reshape(-1, 1)
+# y = model.le.transform(duration_df.label.values)
+gm = GaussianMixture(n_components=2)
+gm.fit(X)
+np.exp(gm.score([[30]]))
+# %%
+np.exp(gm.score([[15]]))
+# %%
+gm.predict_proba([[10]])
+max_dur = max(X+10)
+max_dur
+p((y1, y2, y3, y4)|X)
 # %%
 # %%
 # 0とはできない. semitoneの時に別の意味になる。
