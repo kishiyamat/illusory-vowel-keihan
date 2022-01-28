@@ -1,5 +1,4 @@
 # %%
-from sklearn import tree
 import itertools
 
 import numpy as np
@@ -8,15 +7,19 @@ import parselmouth
 from hsmmlearn.emissions import AbstractEmissions
 from hsmmlearn.hsmm import HSMMModel
 from plotnine import *
+from scipy.stats import poisson
+from sklearn import tree
 from sklearn.cluster import KMeans
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
 from sklearn.mixture import GaussianMixture
+from sklearn.naive_bayes import GaussianNB
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 from path_manager import PathManager
 from utils import reset_index_by_time, run_length_encode
+
 # %%
 check_octave_jump = False
 check_clustering = False  # 0か1かで十分分離できる
@@ -112,10 +115,11 @@ class Model:
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
         self.n_components = n_components
         self.tmat = None  # blend
+        self.le = LabelEncoder()
         self.pipe = Pipeline([
             ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
-            ("scaler", StandardScaler()),  # 平均0
-            ("model", GaussianMixture(n_components=self.n_components, random_state=42)),
+            ("model", tree.DecisionTreeClassifier())
+            # ("model", GaussianNB()),
         ])
 
     @property
@@ -134,30 +138,31 @@ class Model:
         X_list = []
         sil_list = []
         y_list = []
-        for _, row in train_df.groupby("stimuli"):
+        for _, row in df.groupby("stimuli"):
             X_list.extend(row.semitone if self.use_semitone else row.pitch)
             sil_list.extend(row.silent)
             y_i = row.rle_label if self.use_duration else row.label
             y_list.extend(y_i)
         self._X = np.array([X_list, sil_list]).T
-        self._y = np.array(y_list)
+        self._y = self.le.fit_transform(np.array(y_list))
         self.pipe.fit(self._X, self._y)
         self._X_scaled = self.pipe[:-1].fit_transform(self._X)
-        self.K = set(y_list)
         # Duration
-        dur_dict = {k: [] for k in self.K}
+        dur_dict = {"label": [], "duration": []}
         cluster_key = "rle_cluster" if self.use_duration else "cluster"
-        for _, row in train_df.groupby(["stimuli", cluster_key]):
+        for _, row in df.groupby(["stimuli", cluster_key]):
             label, *_ = row.rle_label if self.use_duration else row.label
-            dur_dict[label] += [len(row)]
+            dur_dict["label"] += [label]
+            dur_dict["duration"] += [len(row)]
         self.dur_dict = dur_dict
+        # TMAT
         return self
 
-    def draw_graph(self):
+    def draw_acoustic(self):
         label_name = 'semitone' if self.use_duration else "pitch"
         color_name = "rle_label" if self.use_duration else "label"
         df = pd.DataFrame({label_name: self._X_scaled[:, 0],
-                           color_name: self._y,
+                           color_name: self.le.inverse_transform(self._y),
                            'silent': self._X[:, 1],
                            })
         p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
@@ -165,6 +170,15 @@ class Model:
              + geom_histogram()
              + labs(x=label_name, y="count")
              + scale_y_log10()
+             )
+        return p
+
+    def draw_duration(self):
+        duration_df = pd.DataFrame(self.dur_dict)
+        p = (ggplot(duration_df, aes(x='duration', color="label", fill="label"))
+             + facet_grid(". ~ label")
+             + geom_histogram(bins=20)
+             + labs(x='duration', y='count')
              )
         return p
 
@@ -183,8 +197,39 @@ model = Model(use_semitone=True,
               n_components=3
               )
 model.fit(train_df)
-print(model.draw_graph())
+print(model.draw_acoustic())
+# model.dur_dict
+# %%
+trues = []
+preds = []
+for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_transform(model.pipe.predict(model._X_scaled))):
+    trues.append(true[0])
+    preds.append(pred[0])
+    print(true, pred)
+accuracy_score(trues, preds)
+# %%
 
+# %%
+
+print(model.draw_duration())
+# %%
+duration_df = pd.DataFrame(model.dur_dict)
+duration_df.groupby("label").var()
+duration_df.groupby("label").mean()
+# %%
+duration_df
+
+
+# %%
+# Gaussian KDE
+# Gaussian Mixture でいいのでは？
+X = duration_df.duration.values.reshape(-1, 1)
+y = model.le.transform(duration_df.label.values)
+print(y)
+gm = GaussianMixture(n_components=7, random_state=0)
+gm.fit(X, y)
+gm.predict_proba(X)
+# %%
 # %%
 # 0とはできない. semitoneの時に別の意味になる。
 # nanとはできない. 混合ガウスだから nan はない。
