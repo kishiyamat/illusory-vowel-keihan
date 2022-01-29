@@ -1,12 +1,29 @@
+# %%
+import matplotlib.pyplot as plt
+import itertools
+
+import numpy as np
+import pandas as pd
+from hsmmlearn.emissions import AbstractEmissions
+from hsmmlearn.hsmm import HSMMModel
+from plotnine import *
+from sklearn import tree
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+from models import GaussianMultivariateMixtureModel
+
 
 # %%
 # stimuli列ごとに抜き出して学習させれば良い
-import pandas as pd
 data = pd.read_csv('artifacts/data.csv')
 data.head()
 # %%
 train_df = data.query("is_train == True")
 test_df = data.query("is_train == False")
+
 # %%
 
 
@@ -24,13 +41,52 @@ class Model:
         self.use_duration = use_duration
         self.use_transition = use_transition
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
-        self.tmat = None  # blend
         self.le = LabelEncoder()
-        model = GaussianNB() if acoustic == "bayes" else tree.DecisionTreeClassifier(max_depth=3)
-        self.pipe = Pipeline([
-            ("impute", SimpleImputer(missing_values=np.nan, strategy='mean')),
-            ("model", model),
-        ])
+        self.acoustic = GaussianMultivariateMixtureModel(n_components=3)
+        self.n_buffer = 10  # 分布を作成する際の拡張上限
+        self.smoothing = 1  # laplase
+
+    def fit(self, df: pd.DataFrame):
+        # X has pitch and sil indicator, y is label
+        X_list = []
+        sil_list = []
+        y_list = []
+        for _, row in df.groupby("stimuli"):
+            X_list.extend(row.semitone if self.use_semitone else row.pitch)
+            sil_list.extend(row.silent)
+            y_i = row.rle_label if self.use_duration else row.label
+            y_list.extend(y_i)
+        self._X = np.array([X_list, sil_list]).T
+        self._X_imputed = self.acoustic.imputer.fit_transform(self._X)
+        self._y = self.le.fit_transform(np.array(y_list))
+        # Acoustic Model
+        self.acoustic.fit(self._X, self._y)
+        # Duration
+        dur_dict = {"label": [], "duration": []}
+        cluster_key = "rle_cluster" if self.use_duration else "cluster"
+        for _, row in df.groupby(["stimuli", cluster_key]):
+            label, *_ = row.rle_label if self.use_duration else row.label
+            dur_dict["label"] += [label]
+            dur_dict["duration"] += [len(row)]
+        self.dur_df = pd.DataFrame(dur_dict)
+        return self
+
+    @property
+    def duration(self):
+        self.dur_arr = self.dur_df.values
+        max_len = max(self.dur_df.duration.values)
+        duration_arr = duration_df.values
+
+        duration_proba = []
+        for lab in model.le.classes_:
+            X_lab = duration_arr[duration_arr[:, 0] == lab][:, 1:]\
+                + self.smoothing
+            gm = GaussianMixture(n_components=1).fit(X_lab)
+            base = np.arange(1, max_len + self.n_buffer).reshape(-1, 1)
+            likelihoods = np.exp(gm.score_samples(base))  # log-lik->likelihood
+            duration_proba.append(likelihoods/sum(likelihoods))
+
+        return duration_proba
 
     @property
     def tmat_kinki(self):
@@ -44,36 +100,15 @@ class Model:
         # self.use_duration = use_duration に依存
         pass
 
-    def fit(self, df: pd.DataFrame):
-        # X has pitch and sil indicator, y is label
-        X_list = []
-        sil_list = []
-        y_list = []
-        for _, row in df.groupby("stimuli"):
-            X_list.extend(row.semitone if self.use_semitone else row.pitch)
-            sil_list.extend(row.silent)
-            y_i = row.rle_label if self.use_duration else row.label
-            y_list.extend(y_i)
-        self._X = np.array([X_list, sil_list]).T
-        self._X_scaled = self.pipe[:-1].fit_transform(self._X)
-        self._y = self.le.fit_transform(np.array(y_list))
-        # Acoustic Model
-        self.pipe.fit(self._X, self._y)
-        # Duration
-        dur_dict = {"label": [], "duration": []}
-        cluster_key = "rle_cluster" if self.use_duration else "cluster"
-        for _, row in df.groupby(["stimuli", cluster_key]):
-            label, *_ = row.rle_label if self.use_duration else row.label
-            dur_dict["label"] += [label]
-            dur_dict["duration"] += [len(row)]
-        self.dur_dict = dur_dict
+    @property
+    def tmat(self):
         # TMAT
-        return self
+        pass
 
     def draw_features(self):
         label_name = 'semitone' if self.use_duration else "pitch"
         color_name = "rle_label" if self.use_duration else "label"
-        df = pd.DataFrame({label_name: self._X_scaled[:, 0],
+        df = pd.DataFrame({label_name: self._X_imputed[:, 0],
                            color_name: self.le.inverse_transform(self._y),
                            'silent': self._X[:, 1]})
         p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
@@ -108,58 +143,45 @@ model = Model(use_semitone=True,
               )
 model.fit(train_df)
 print(model.draw_features())
-# model.dur_dict
-
 # %%
-clf = model.pipe[-1]
-if type(clf) == tree.DecisionTreeClassifier:
-    tree.export_graphviz(clf, out_file="artifacts/tree.dot", class_names=model.le.classes_,
-                         feature_names=["semitone", "silent"], impurity=False, filled=True)
-# %%
+# HHL か H2L1かだから、bell-curve でいいのか
 trues = []
 preds = []
-for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_transform(model.pipe.predict(model._X_scaled))):
+for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_transform(model.acoustic.predict(model._X_imputed))):
     trues.append(true[0])
     preds.append(pred[0])
-    print(true, pred)
-# まさかのsemitone使わない方がセグメンタルには性能高そう
+# semitone使わない方がセグメンタルには性能高い？
 # dt: 0.7383720930232558
 # nb: 0.7151162790697675
 accuracy_score(trues, preds)
 # %%
-model.le.classes_
-# %%
-model.pipe.predict_proba(model._X_scaled[-6:])
 # %%
 print(model.draw_duration())
 # %%
 duration_df = pd.DataFrame(model.dur_dict)
-duration_df.groupby("label").var()
-duration_df.groupby("label").mean()
+print(  # poisson には不適切
+    duration_df.groupby("label").var(),
+    duration_df.groupby("label").mean())
 # %%
-duration_df
+max_len = max(duration_df.duration.values)
+n_buffer = 10  # 分布を作成する際の拡張上限
+smoothing = 1  # laplase
+duration_arr = duration_df.values
 
-# %%
-# Gaussian KDE
-# Gaussian Mixture でいいのでは？
-# 2くらいでいい
-X = duration_df.query("label=='H1'").duration.values.reshape(-1, 1)
-# y = model.le.transform(duration_df.label.values)
-gm = GaussianMixture(n_components=2)
-gm.fit(X)
-np.exp(gm.score([[30]]))
-# %%
-np.exp(gm.score([[15]]))
-# %%
-gm.predict_proba([[10]])
-max_dur = max(X+10)
-max_dur
-p((y1, y2, y3, y4) | X)
-# %%
+duration_proba = []
+for lab in model.le.classes_:
+    X_lab = duration_arr[duration_arr[:, 0] == lab][:, 1:] + smoothing
+    gm = GaussianMixture(n_components=1).fit(X_lab)
+    base = np.arange(1, max_len+n_buffer).reshape(-1, 1)
+    likelihoods = np.exp(gm.score_samples(base))  # log-lik->likelihood
+    duration_proba.append(likelihoods/sum(likelihoods))
+
+print(model.le.classes_)
+plt.imshow(duration_proba)
+print(np.sum(duration_proba))
 # %%
 # 0とはできない. semitoneの時に別の意味になる。
 # nanとはできない. 混合ガウスだから nan はない。
-train_df
 # p = (ggplot(train_df.fillna(train_df.mean()), aes(x='pitch', color="rle_label", fill="rle_label"))
 p = (ggplot(train_df.fillna(train_df.mean()), aes(x='semitone', color="rle_label", fill="rle_label"))
      + facet_grid("rle_label ~ silent")
