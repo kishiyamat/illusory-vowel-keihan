@@ -1,5 +1,4 @@
 # %%
-from cmath import e
 import matplotlib.pyplot as plt
 import itertools
 from typing import Union, List, Set, Tuple
@@ -44,8 +43,8 @@ class Model:
         self.use_transition = use_transition
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
         self.le = LabelEncoder()
-        self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
-        self.n_buffer = 10  # 分布を作成する際の拡張上限
+        self.acoustic = GaussianMultivariateMixtureModel(n_components=3)
+        self.n_buffer = 1  # 分布を作成する際の拡張上限
         self.smoothing_dur = 0.0001  # laplase
         self.smoothing_tmat = 0.5
         self.hsmm = None
@@ -180,17 +179,18 @@ class Model:
         # 入力に sil などの nan があることを仮定する。ないことは仮定しない
         # 入力と出力は合わせる
         pass
-
-
+# %%
+# time がある
+thin = 8
 # %%
 model = Model(use_semitone=False,
               use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1,
               )
-model.fit(train_df)
+model.fit(train_df.query(f"time%{thin}==0"))
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
-test_df_3mora = test_df.query("mora==3")
+test_df_3mora = test_df.query("mora==3").query(f"time%{thin}==0")
 # %%
 X_list = []
 sil_list = []
@@ -205,7 +205,7 @@ for _, row in test_df_3mora.groupby("stimuli"):
 
 # 最後にジャンプがある？
 # 最初と最後に窓を欠けた方が良いかも
-test_id = 10
+test_id = 0
 arr = np.array([X_list[test_id], sil_list[test_id]]).T
 # arr = np.concatenate([arr[:10] , arr[14:20], arr[25:]])
 print(file_names[test_id])
@@ -217,6 +217,7 @@ print(model.le.inverse_transform(model.acoustic.predict(X_imputed)))
 
 print("model")
 print(model.le.classes_)
+print(model.acoustic.likelihood(X_imputed))
 print(plt.imshow(model.acoustic.likelihood(X_imputed))); plt.show()
 plt.imshow(model.tmat); plt.show()
 print(model.startprob)

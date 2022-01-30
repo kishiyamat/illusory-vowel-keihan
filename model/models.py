@@ -36,8 +36,12 @@ class GaussianMultivariateMixtureModel(AbstractEmissions, BaseEstimator, Transfo
         X: (n_sample, n_features)
         """
         X = self.imputer.fit_transform(X)
+        # ここがよくないのか？
         likelihood_arr = np.vstack(  # log-lik->likelihood
             [np.exp(gmm.score_samples(X)) for gmm in self.gmms])
+        likelihood_arr += 0.001 
+        # 縦にもって確率とする
+        likelihood_arr /= likelihood_arr.sum(axis=0)
         if likelihood_arr.shape != (len(self.le.classes_), X.shape[0]):
             raise ValueError
         return likelihood_arr
