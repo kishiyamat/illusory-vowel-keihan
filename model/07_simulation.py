@@ -183,7 +183,7 @@ class Model:
 # time がある
 thin = 1
 # %%
-model = Model(use_semitone=False,
+model = Model(use_semitone=True,
               use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1,
