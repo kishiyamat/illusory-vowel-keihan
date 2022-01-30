@@ -162,4 +162,8 @@ assert を上手く使って想定内の挙動であることを保証し続け�
 pip install praat-parselmouth
 ```
 
+## シミュレーション
+
+- HSMMでモデリング
+
 

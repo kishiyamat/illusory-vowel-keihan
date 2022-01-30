@@ -53,6 +53,7 @@ class Preprocessor:
 
     @classmethod
     def delta(cls, arr, width=1):
+        # Deprecated!
         # deltaの計算
         # naを事前に除去する方法も考えたが、それだと H_L のケースで詰む
         # [1,2,3] ->
