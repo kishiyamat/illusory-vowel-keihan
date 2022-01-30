@@ -181,7 +181,7 @@ class Model:
         pass
 # %%
 # time がある
-thin = 8
+thin = 1
 # %%
 model = Model(use_semitone=False,
               use_duration=True,
