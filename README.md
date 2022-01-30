@@ -166,4 +166,9 @@ pip install praat-parselmouth
 
 - HSMMでモデリング
 
+おそらく事前にdeltaを作ったり
+遷移部分で特別な処理をしたりしていたのが
+問題の原因だったのかもしれない。
+あと likelihood の縦が 1 になってなかったり。
+
 
