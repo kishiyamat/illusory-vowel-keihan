@@ -44,9 +44,9 @@ class Model:
         self.use_transition = use_transition
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
         self.le = LabelEncoder()
-        self.acoustic = GaussianMultivariateMixtureModel(n_components=3)
+        self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
         self.n_buffer = 10  # 分布を作成する際の拡張上限
-        self.smoothing = 1  # laplase
+        self.smoothing = 0.0001  # laplase
         self.hsmm = None
 
     def fit(self, df: pd.DataFrame):
@@ -183,14 +183,13 @@ class Model:
 
 # %%
 model = Model(use_semitone=False,
-              use_duration=True,
+              use_duration=False,
               use_transition=True,
               tokyo_kinki_ratio=1,
               )
 model.fit(train_df)
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
-test_df_3mora
 # %%
 X_list = []
 sil_list = []
@@ -204,19 +203,22 @@ for _, row in test_df_3mora.groupby("stimuli"):
     file_names.append(row.stimuli[0])
 
 # 最後にジャンプがある？
-test_id = 1
+# 最初と最後に窓を欠けた方が良いかも
+test_id = 10
 arr = np.array([X_list[test_id], sil_list[test_id]]).T
+# arr = np.concatenate([arr[:10] , arr[14:20], arr[25:]])
 print(file_names[test_id])
-X_imputed = model.acoustic.imputer.fit_transform(arr)
-plt.show()
 print(col_pitches[test_id])
-print(plt.imshow(model.acoustic.likelihood(X_imputed)))
-plt.show()
+
+X_imputed = model.acoustic.imputer.fit_transform(arr); plt.show()
 print(model.le.inverse_transform(model.hsmm.decode(X_imputed)))
-print(model.tmat,
-      model.le.classes_,
-      model.startprob,
-      )
+
+print("model")
+print(model.le.classes_)
+print(plt.imshow(model.acoustic.likelihood(X_imputed))); plt.show()
+plt.imshow(model.tmat); plt.show()
+print(model.startprob)
+print(plt.imshow(model.duration)); plt.show()
 # %%
 # 音響モデル
 # HHL か H2L1かだから、bell-curve でいいのか
@@ -228,7 +230,7 @@ for true, pred in zip(model.le.inverse_transform(model._y), model.le.inverse_tra
 # semitone使わない方がセグメンタルには性能高い？
 # dt: 0.7383720930232558
 # nb: 0.7151162790697675
-accuracy_score(trues, preds)
+
 # %%
 use_semitones = [True, False]
 use_durations = [True, False]
