@@ -27,6 +27,7 @@ class GaussianMultivariateMixtureModel(AbstractEmissions, BaseEstimator, Transfo
         return self
 
     def predict(self, X):
+        # こちらはうまく動いている
         X = self.imputer.fit_transform(X)
         return self.le.inverse_transform(self.likelihood(X).argmax(axis=0))
 

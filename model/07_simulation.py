@@ -46,7 +46,8 @@ class Model:
         self.le = LabelEncoder()
         self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
         self.n_buffer = 10  # 分布を作成する際の拡張上限
-        self.smoothing = 0.0001  # laplase
+        self.smoothing_dur = 0.0001  # laplase
+        self.smoothing_tmat = 0.5
         self.hsmm = None
 
     def fit(self, df: pd.DataFrame):
@@ -87,7 +88,7 @@ class Model:
         duration_proba = []
         for lab in model.le.classes_:
             X_lab = duration_arr[duration_arr[:, 0] == lab][:, 1:]\
-                + self.smoothing
+                + self.smoothing_dur
             gm = GaussianMixture(n_components=1).fit(X_lab)
             base = np.arange(1, max_len + self.n_buffer).reshape(-1, 1)
             likelihoods = np.exp(gm.score_samples(base))  # log-lik->likelihood
@@ -137,7 +138,7 @@ class Model:
         K = self.le.classes_
         startprob = np.zeros(len(K))
         for exp in self.pitch_pattern:
-            startprob[self.le.transform([exp[0]])] += 1
+            startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
         startprob /= startprob.sum()
         return startprob
 
@@ -183,7 +184,7 @@ class Model:
 
 # %%
 model = Model(use_semitone=False,
-              use_duration=False,
+              use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1,
               )
@@ -212,6 +213,7 @@ print(col_pitches[test_id])
 
 X_imputed = model.acoustic.imputer.fit_transform(arr); plt.show()
 print(model.le.inverse_transform(model.hsmm.decode(X_imputed)))
+print(model.le.inverse_transform(model.acoustic.predict(X_imputed)))
 
 print("model")
 print(model.le.classes_)
