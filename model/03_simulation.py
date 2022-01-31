@@ -1,220 +1,88 @@
 # %%
 import itertools
-from typing import Set, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from hsmmlearn.hsmm import HSMMModel
-from plotnine import *
-from sklearn.mixture import GaussianMixture
-from sklearn.preprocessing import LabelEncoder
 import rle
+from plotnine import *
 
-from models import GaussianMultivariateMixtureModel
+from models import Model
 
 # %%
-# stimuli列ごとに抜き出して学習させれば良い
 data = pd.read_csv('artifacts/data.csv')
 train_df = data.query("is_train == True")
 test_df = data.query("is_train == False")
 
-# %%
-
-
-class Model:
-    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float, acoustic="bayes"):
-        """[summary]
-
-        Args:
-            use_semitone (bool): [特徴量としてsemitoneを利用(被験者の発話ごとに標準化)するか]
-            use_duration (bool): [ラベルに持続時間を埋め込むか: HHをH2とするかHHとするか]
-            use_transition (bool): [遷移確率を利用するか: P(H->L2)とP(H2->L)を一様とするか]
-            tokyo_kinki_ratio (float): [行動実験の要因とされた東京に居住した割合]
-        """
-        self.use_semitone = use_semitone
-        self.use_duration = use_duration
-        self.use_transition = use_transition
-        self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
-        self.le = LabelEncoder()
-        self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
-        self.n_buffer = 1  # 分布を作成する際の拡張上限
-        self.smoothing_dur = 0.0001  # laplase
-        self.smoothing_tmat = 0.5
-        self.hsmm = None
-
-    def fit(self, df: pd.DataFrame):
-        # X has pitch and sil indicator, y is label
-        X_list = []
-        sil_list = []
-        y_list = []
-        for _, row in df.groupby("stimuli"):
-            X_list.extend(row.semitone if self.use_semitone else row.pitch)
-            sil_list.extend(row.silent)
-            y_i = row.rle_label if self.use_duration else row.label
-            y_list.extend(y_i)
-        self._X = np.array([X_list, sil_list]).T
-        self._X_imputed = self.acoustic.imputer.fit_transform(self._X)
-        self._y = self.le.fit_transform(np.array(y_list))
-        # Acoustic Model
-        self.acoustic.fit(self._X_imputed, self._y)
-        # Duration
-        dur_dict = {"label": [], "duration": []}
-        cluster_key = "rle_cluster" if self.use_duration else "cluster"
-        for _, row in df.groupby(["stimuli", cluster_key]):
-            label, *_ = row.rle_label if self.use_duration else row.label
-            dur_dict["label"] += [label]
-            dur_dict["duration"] += [len(row)]
-        self.dur_df = pd.DataFrame(dur_dict)
-        self.hsmm = HSMMModel(emissions=self.acoustic,
-                              durations=self.duration,
-                              tmat=self.tmat,
-                              startprob=self.startprob)
-        return self
-
-    @property
-    def duration(self):
-        self.dur_arr = self.dur_df.values
-        max_len = max(self.dur_df.duration.values)
-        duration_arr = self.dur_df.values
-
-        duration_proba = []
-        for lab in model.le.classes_:
-            X_lab = duration_arr[duration_arr[:, 0] == lab][:, 1:]\
-                + self.smoothing_dur
-            gm = GaussianMixture(n_components=1).fit(X_lab)
-            base = np.arange(1, max_len + self.n_buffer).reshape(-1, 1)
-            likelihoods = np.exp(gm.score_samples(base))  # log-lik->likelihood
-            duration_proba.append(likelihoods/sum(likelihoods))
-
-        duration_proba = np.vstack(duration_proba)
-        return duration_proba
-
-    @property
-    def pitch_pattern(self):
-        if self.use_duration:
-            tokyo_pattern = {
-                ("H1", "L2"),
-                ("L1", "H2"), }
-            kinki_pattern = {
-                ("H1", "L2"),
-                ("H2", "L1"),
-                ("L2", "H1"), }
-        else:
-            tokyo_pattern = {
-                "HLL",
-                "LHH", }
-            kinki_pattern = {
-                "HLL",
-                "HHL",
-                "LLH", }
-        if self.tokyo_kinki_ratio == 1:
-            # tokyo の場合は 他を許さない
-            return tokyo_pattern
-        else:
-            # tokyo==1以外ならkinkiも許す
-            # return kinki_pattern
-            return tokyo_pattern | kinki_pattern
-
-    @property
-    def tmat(self):
-        # tmat は self.tokyo_kinki_ratio に基づいて決定される
-        K = self.le.classes_
-        tmat = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
-        for exp in self.pattern2bigram(self.pitch_pattern):
-            src_idx, tgt_idx = self.le.transform(list(exp))
-            tmat[src_idx, tgt_idx] += 1
-        tmat /= tmat.sum(axis=1).reshape(-1, 1)
-        return tmat
-
-    @property
-    def startprob(self):
-        K = self.le.classes_
-        startprob = np.zeros(len(K))
-        for exp in self.pitch_pattern:
-            startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
-        startprob /= startprob.sum()
-        return startprob
-
-    def pattern2bigram(self, patterns: Set[Union[str, Tuple[str]]]) -> Set[tuple]:
-        """[観測されるセットを取得して認可と非認可を生成]
-        Args:
-            patterns (Union[str, List[str]]): [description]
-        """
-        bipitch = []
-        for pattern in patterns:
-            for idx, symbol in enumerate(pattern[:-1]):
-                bipitch.append((symbol, pattern[idx + 1]))
-        return set(bipitch)
-
-    def draw_features(self):
-        label_name = 'semitone' if self.use_duration else "pitch"
-        color_name = "rle_label" if self.use_duration else "label"
-        df = pd.DataFrame({label_name: self._X_imputed[:, 0],
-                           color_name: self.le.inverse_transform(self._y),
-                           'silent': self._X[:, 1]})
-        p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
-             + facet_grid(f"{color_name} ~ silent")
-             + geom_histogram()
-             + labs(x=label_name, y="count")
-             + scale_y_log10()
-             )
-        return p
-
-    def draw_duration(self):
-        p = (ggplot(self.dur_df, aes(x='duration', color="label", fill="label"))
-             + facet_grid(". ~ label")
-             + geom_histogram(bins=20)
-             + labs(x='duration', y='count')
-             )
-        return p
-
-    def predict(self):
-        # semitoneとかそこらへんもしっかりキャッチする
-        # 入力に sil などの nan があることを仮定する。ないことは仮定しない
-        # 入力と出力は合わせる
-        pass
-
-
-# %%
-# time がある
+# model make
+# TODO
+# 1. duration False の時の tmat がおかしい
+# 1. df から特徴量を生成する過程がややこしい
 model = Model(use_semitone=True,
-              use_duration=False,
+              use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1,
               )
-model.fit(train_df)
+X, y = model.df2arrlist(train_df)
+model.fit(X, y)
+# %%
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
 
-X_list = []
-sil_list = []
 col_pitches = []
 file_names = []
 
 for _, row in test_df_3mora.groupby("stimuli"):
-    X_list.append(row.semitone if model.use_semitone else row.pitch)
-    sil_list.append(row.silent)
     col_pitches.append(row.collapsed_pitches[0])
     file_names.append(row.stimuli[0])
-
-# ちゃんと HHLと HLLの両方が現れる
-test_id = 1 # 11が最大idx
-arr = np.array([X_list[test_id], sil_list[test_id]]).T
+test_df_3mora
+# %%
+test_id = 1  # 11が最大idx
 print(file_names[test_id])
 print(col_pitches[test_id])
+test_df_i = test_df_3mora.query(f'stimuli=="{file_names[test_id]}"')
 
-X_imputed = model.acoustic.imputer.fit_transform(arr)
-print("model")
+X, _ = model.df2arrlist(test_df_i)
+X_imputed = model.acoustic.imputer.transform(X)
 print(rle.encode(model.le.inverse_transform(model.hsmm.decode(X_imputed))))
 print(model.le.classes_)
 print(plt.imshow(model.acoustic.likelihood(X_imputed)))
 plt.show()
-plt.imshow(model.tmat)
-plt.show()
+print(model.tmat)
 print(model.startprob)
 print(plt.imshow(model.duration))
 plt.show()
+
+# %%
+model.pattern2bigram(model.pitch_pattern)
+model.tmat
+# %%
+
+
+def draw_features(self):
+    label_name = 'semitone' if self.use_duration else "pitch"
+    color_name = "rle_label" if self.use_duration else "label"
+    df = pd.DataFrame({label_name: self._X_imputed[:, 0],
+                       color_name: self.le.inverse_transform(self._y),
+                       'silent': self._X[:, 1]})
+    p = (ggplot(df, aes(x=label_name, color=color_name, fill=color_name))
+         + facet_grid(f"{color_name} ~ silent")
+         + geom_histogram()
+         + labs(x=label_name, y="count")
+         + scale_y_log10()
+         )
+    return p
+
+
+def draw_duration(self):
+    p = (ggplot(self.dur_df, aes(x='duration', color="label", fill="label"))
+         + facet_grid(". ~ label")
+         + geom_histogram(bins=20)
+         + labs(x='duration', y='count')
+         )
+    return p
+
+
 # %%
 # 音響モデル
 # HHL か H2L1かだから、bell-curve でいいのか
