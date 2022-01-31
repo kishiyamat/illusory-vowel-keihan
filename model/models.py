@@ -76,6 +76,8 @@ class Model:
 
         Returns:
             List[np.ndarray]: [description]
+            X は (n_sample, n_dim)
+            y は nested list: list[[cluster_0], [cluster_1], ...]
         """
         X_list = []
         sil_list = []
@@ -111,7 +113,12 @@ class Model:
         return self
 
     @property
+    def new_duration(self):
+        pass
+
+    @property
     def duration(self):
+        # これyでは？
         dur_dict = {"label": [], "duration": []}
         cluster_key = "rle_cluster" if self.use_duration else "cluster"
         for _, row in self.df.groupby(["stimuli", cluster_key]):

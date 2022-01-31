@@ -1,4 +1,7 @@
 # %%
+%load_ext autoreload
+%autoreload 2
+
 import itertools
 
 import matplotlib.pyplot as plt
@@ -16,13 +19,24 @@ test_df = data.query("is_train == False")
 
 # model make
 # TODO
-# 1. duration False の時の tmat がおかしい
+# 1. duration False の時の tmat がおかしい->表示すると変に見えるだけだった
 # 1. df から特徴量を生成する過程がややこしい
 model = Model(use_semitone=True,
               use_duration=True,
               use_transition=True,
               tokyo_kinki_ratio=1,
               )
+# 直感に反するが、
+# [
+#  [[1, 0],
+#   [1, 0],
+#   [1, 0],],
+#  [[1, 0],
+#   [1, 0],],
+#  :
+# ]
+# と
+# [[y, y, y], [y, y],...] のようになっていれば良いのでは？
 X, y = model.df2arrlist(train_df)
 model.fit(X, y)
 # %%
