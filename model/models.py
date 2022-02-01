@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from hsmmlearn.emissions import AbstractEmissions
 from hsmmlearn.hsmm import HSMMModel
-from plotnine import *
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.mixture import GaussianMixture
@@ -65,47 +64,57 @@ class Model:
         self.n_buffer = 1  # 分布を作成する際の拡張上限
         self.smoothing_dur = 0.0001  # laplase
         self.smoothing_tmat = 0.5
-        self.df = None
 
-    def df2arrlist(self, df: pd.DataFrame, group_key: str = "stimuli") -> List[np.ndarray]:
-        """[summary]
+    def df2xy(self, df: pd.DataFrame):
+        """[Modelのパラメータに基づいてdfを整形]
 
         Args:
             df (pd.DataFrame): col でグループされたデータフレーム
+                - stimuli と cluster_key(rle_cluster |cluster) をカラムに持つ
             col (str): df を区切る単位を示した列
 
         Returns:
             List[np.ndarray]: [description]
-            X は (n_sample, n_dim)
-            y は nested list: list[[cluster_0], [cluster_1], ...]
+            X: (n_cluster, n_sample, n_dim)  # 一番外はList
+                [
+                    [
+                        [1, 0],
+                        [1, 0],
+                        [1, 0],],
+                    [
+                        [1, 0],
+                        [1, 0],],
+                    :
+                ]
+            y: (n_cluster, n_sample)
+                [[y, y, y], [y, y],...]
         """
-        X_list = []
-        sil_list = []
-        y_list = []
-        if not isinstance(self.df, pd.DataFrame):
-            self.df = df  # 再代入を禁じる
-        for _, row in df.groupby(group_key):
-            X_list.extend(row.semitone if self.use_semitone else row.pitch)
-            sil_list.extend(row.silent)
-            y_i = row.rle_label if self.use_duration else row.label
-            y_list.extend(y_i)
-        X = np.array([X_list, sil_list]).T
-        y = np.array(y_list)
-        return X, y
+        cluster_key = "rle_cluster" if self.use_duration else "cluster"
+        nested_X = []
+        nested_y = []
+        for _, row in df.groupby(["stimuli", cluster_key]):
+            tone = row.semitone if self.use_semitone else row.pitch
+            sil = row.silent
+            nested_X.append(np.array([tone, sil]).T)
+            y = row.rle_label if self.use_duration else row.label
+            nested_y.append(y.values)
+        return nested_X, nested_y
 
-    def fit(self, X, y):
-        """[hsmmを作成する]
+    def fit(self, nested_X: List[np.ndarray], nested_y: List[np.array]):
+        """[summary]
 
         Args:
-            df (pd.DataFrame): [stimuliでネストされてデータフレーム]
+            nested_X ([type]): [description]
+            nested_y ([type]): [description]
 
         Returns:
             [type]: [description]
         """
         # X has pitch and sil indicator, y is label
-        self._X = X
+        self._X = np.concatenate(nested_X)
         self._X_imputed = self.acoustic.imputer.fit_transform(self._X)
-        self._y = self.le.fit_transform(y)
+        self.nested_y = nested_y  # for duration
+        self._y = self.le.fit_transform(np.concatenate(nested_y))
         self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X_imputed, self._y),
                               durations=self.duration,
                               tmat=self.tmat,
@@ -113,23 +122,21 @@ class Model:
         return self
 
     @property
-    def new_duration(self):
-        pass
-
-    @property
     def duration(self):
-        # これyでは？
-        dur_dict = {"label": [], "duration": []}
-        cluster_key = "rle_cluster" if self.use_duration else "cluster"
-        for _, row in self.df.groupby(["stimuli", cluster_key]):
-            label, *_ = row.rle_label if self.use_duration else row.label
-            dur_dict["label"] += [label]
-            dur_dict["duration"] += [len(row)]
-        self.dur_df = pd.DataFrame(dur_dict)
-        self.dur_arr = self.dur_df.values
-        max_len = max(self.dur_df.duration.values)
-        duration_arr = self.dur_df.values
-
+        """[summary]
+        [
+            [H, 2]
+            [L, 3],
+            :
+        ]
+        のような duration arr を作成し、
+        そこから duration の確率を ガウス分布で作成、ビニング
+        Returns:
+            [type]: [description]
+        """
+        duration_arr = np.array([[y[0], len(y)]
+                                for y in self.nested_y], dtype=object)
+        max_len = max(duration_arr[:, 1])
         duration_proba = []
         for lab in self.le.classes_:
             X_lab = duration_arr[duration_arr[:, 0] == lab][:, 1:]\
@@ -143,30 +150,35 @@ class Model:
         return duration_proba
 
     @property
-    def pitch_pattern(self):
+    def tokyo_pattern(self):
         if self.use_duration:
-            tokyo_pattern = {
-                ("H1", "L2"),
-                ("L1", "H2"), }
-            kinki_pattern = {
-                ("H1", "L2"),
-                ("H2", "L1"),
-                ("L2", "H1"), }
+            return {("H1", "L2"),
+                    ("L1", "H2"), }
         else:
-            tokyo_pattern = {
-                "HLL",
-                "LHH", }
-            kinki_pattern = {
-                "HLL",
-                "HHL",
-                "LLH", }
+            return {"HLL",
+                    "LHH", }
+
+    @property
+    def kinki_pattern(self):
+        if self.use_duration:
+            return {("H1", "L2"),
+                    ("H2", "L1"),
+                    ("L2", "H1"), }
+        else:
+            return {"HLL",
+                    "HHL",
+                    "LLH", }
+
+    @property
+    def pitch_pattern(self):
+        """[summary]
+            tokyo の場合は 他を許さない
+            tokyo==1以外ならkinkiも許す
+        """
         if self.tokyo_kinki_ratio == 1:
-            # tokyo の場合は 他を許さない
-            return tokyo_pattern
+            return self.tokyo_pattern
         else:
-            # tokyo==1以外ならkinkiも許す
-            # return kinki_pattern
-            return tokyo_pattern | kinki_pattern
+            return self.tokyo_pattern | self.kinki_pattern
 
     @property
     def tmat(self):
@@ -199,3 +211,6 @@ class Model:
             for idx, symbol in enumerate(pattern[:-1]):
                 bipitch.append((symbol, pattern[idx + 1]))
         return set(bipitch)
+
+    def percept(self, X_flatten: np.array):
+        return self.le.inverse_transform(self.hsmm.decode(self.acoustic.imputer.transform(X_flatten)))
