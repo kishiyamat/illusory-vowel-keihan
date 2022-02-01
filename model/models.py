@@ -177,8 +177,12 @@ class Model:
         """
         if self.tokyo_kinki_ratio == 1:
             return self.tokyo_pattern
-        else:
+        elif self.tokyo_kinki_ratio == 0:
             return self.tokyo_pattern | self.kinki_pattern
+        elif self.tokyo_kinki_ratio == -1:
+            return self.kinki_pattern
+        else:
+            raise NotImplementedError
 
     @property
     def tmat(self):

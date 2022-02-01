@@ -25,7 +25,7 @@ test_df_3mora = test_df.query("mora==3")
 # 3. 推論結果がtokyo_patternかkinki_patternか
 
 use_semitones = [True]
-use_durations = [True, False]
+use_durations = [True]  # Falseは話にならない
 use_transitions = [True]  # topdown の検証用パラメータ
 tokyo_kinki_ratios = [-1, 0, 1]
 
