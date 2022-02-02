@@ -1,76 +1,55 @@
 # %%
+# %load_ext autoreload
+# %autoreload 2
+
+import itertools
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from plotnine import (aes, element_text, facet_grid, geom_histogram, ggplot,
-                      theme)
+import rle
+from plotnine import *
 
-from modeler import Modeler
-from path_manager import PathManager
-
-# %%
-# Setting for experiment
-# TODO: duration の設定などの追加
-if __name__ == "__main__":
-    print("03_simulation.py")
-    # %%
-    results_list = []
-    setting = PathManager.setting_df()
-    setting_dicts = [d.to_dict() for _, d in setting.iterrows()]
-    for condition_i, setting_i in enumerate(setting_dicts):
-        # LLHやLHHの数、HLLやHLLの数で最適化しよう(trainデータで)
-        setting_i["n_components"] = 2  # if >2, then multivariate
-        setting_i["delta_dist"] = 9  # 9個前を見る
-        setting_i["delta_range"] = 3  # 平均を取る幅の半分(1なら前後1を見る)
-        # DataLoad
-        train_x, train_y, test_x, test_token = \
-            PathManager.load_data(**setting_i)
-        # Modeling
-        model = Modeler(**setting_i)
-        # TODO: Model のパラメータチェック(bell curve, tmat, duration)
-        # TODO: Data Augmentation(train, test)は受け入れられなさそう
-        model.fit(train_x, train_y)
-        # Experiment
-        for sample_idx, test_token_i in enumerate(test_token):
-            test_token_i = test_token_i.split(".")[0]  # npyを除外
-            phoneme, pitch, speaker = test_token_i.split("-")
-            test_y = model.predict(test_x[sample_idx], visual=False)
-            res = model.to_pattern(test_y)
-            results = {
-                "sample_idx": [sample_idx],
-                "area": [setting_i["area"]],
-                "encoding": [setting_i["encoding"]],
-                "feature": [setting_i["feature"]],
-                "phoneme": [phoneme],
-                "pitch": [pitch],
-                "speaker": [speaker],
-                "res": [res],
-            }
-            results_list.append(pd.DataFrame(results))
-
-    results_df = pd.concat(results_list)
-    results_df.to_csv("artifacts/results.csv")
+from models import Model
 
 # %%
-def combine_lambda(x): return '{}&{}'.format(x.encoding, x.feature)
-
-
-results_df["conditions"] = results_df.apply(combine_lambda, axis=1)
-exp_cond = list(set(results_df.conditions))
-exp_cond.sort()
-
-
-for exp_cond_i in exp_cond:
-    results_df_i = results_df.query(f"conditions == '{exp_cond_i}'")
-    print(exp_cond_i)
-    gg = (
-        ggplot(results_df_i, aes(x='res'))
-        + facet_grid("area~pitch")
-        + geom_histogram(binwidth=0.5)  # specify the binwidth
-        + theme(axis_text_x=element_text(rotation=90, hjust=1))
-    )
-    print(gg)
+data = pd.read_csv('artifacts/data.csv')
+train_df = data.query("is_train == True")
+test_df = data.query("is_train == False")
+test_df["mora"] = test_df.collapsed_pitches.apply(len)
+test_df_3mora = test_df.query("mora==3")
 
 # %%
+# 1. 条件でモデルを init -> fit
+# 2. 各刺激をmodelに与えて推論
+# 3. 推論結果がtokyo_patternかkinki_patternか
 
-# %%
+use_semitones = [True]
+use_durations = [True]  # Falseは話にならない
+use_transitions = [True]  # topdown の検証用パラメータ
+tokyo_kinki_ratios = [-1, 0, 1]
+
+conditions = itertools.product(
+    use_semitones,
+    use_durations,
+    use_transitions,
+    tokyo_kinki_ratios,
+)
+
+for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(conditions):
+    model = Model(use_semitone,
+                  use_duration,
+                  use_transition,
+                  tokyo_kinki_ratio)
+    print(use_semitone, use_duration, use_transition, tokyo_kinki_ratio)
+    X, y = model.df2xy(train_df)
+    model.fit(X, y)
+    for _, df_by_stimuli in test_df_3mora.groupby("stimuli"):
+        X, _ = model.df2xy(df_by_stimuli)
+        X_flatten = np.concatenate(X)  # 実際の入力は区切られていない
+        y = model.percept(X_flatten)
+        print("fname:\t", df_by_stimuli.stimuli[0])
+        print("pitch:\t", df_by_stimuli.collapsed_pitches[0])
+        print("decode:\t", rle.encode(y))
 
 # %%

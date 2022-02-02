@@ -63,7 +63,6 @@ for wav_i in train_wav_list + test_wav_list:
         )
         print(g)
 # %%
-# TODO: タイトルの編集
 data = pd.concat(data_list)
 p = (ggplot(data, aes(x='time', y='semitone', color="label", shape="factor(cluster)"))
      + facet_wrap("~ collapsed_pitches")
