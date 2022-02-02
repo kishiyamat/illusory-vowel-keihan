@@ -5,8 +5,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from preprocessor import Preprocessor
-
 
 class PathManager:
     project_dir = Path("../")
