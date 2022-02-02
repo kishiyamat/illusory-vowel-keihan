@@ -28,20 +28,3 @@ def test_data_path():
     src_1, src_2 = "label_rle", 'esuko-LHH-1.wav'
     tgt = Path("../model/label_rle/esuko-LHH-1.npy")
     assert PathManager.data_path(src_1, src_2) == tgt
-    src_1, src_2 = "label_rle_delta", 'esuko-LHH-1.wav'
-    tgt = Path("../model/label_rle_delta/esuko-LHH-1.npy")
-    assert PathManager.data_path(src_1, src_2) == tgt
-
-
-def test_is_illusory():
-    train_wav = 'esuko-LHH-1.wav'
-    test_wav = 'esko-L_H-2.wav'
-    assert not PathManager.is_illusory(train_wav)
-    assert PathManager.is_illusory(test_wav)
-
-
-def test_is_not_illusory():
-    train_wav = 'esuko-LHH-1.wav'
-    test_wav = 'esko-L_H-2.wav'
-    assert PathManager.is_not_illusory(train_wav)
-    assert not PathManager.is_not_illusory(test_wav)
