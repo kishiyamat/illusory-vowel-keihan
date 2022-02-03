@@ -26,7 +26,7 @@ test_df_3mora = test_df.query("mora==3")
 
 use_semitones = [True]
 use_durations = [True]  # Falseは話にならない
-use_transitions = [True]  # topdown の検証用パラメータ
+use_transitions = [True, False]  # topdown の検証用パラメータ
 tokyo_kinki_ratios = [-1, 0, 1]
 
 conditions = itertools.product(
@@ -44,6 +44,7 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
     print(use_semitone, use_duration, use_transition, tokyo_kinki_ratio)
     X, y = model.df2xy(train_df)
     model.fit(X, y)
+    print(model.tmat)
     y_collapsed_list = []
     for _, df_by_stimuli in test_df_3mora.groupby("stimuli"):
         X, _ = model.df2xy(df_by_stimuli)
@@ -59,3 +60,5 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
     n_kinki = sum([y in model.kinki_pattern for y in y_collapsed_list ])
     print(n_tokyo)
     print(n_kinki)
+
+# %%
