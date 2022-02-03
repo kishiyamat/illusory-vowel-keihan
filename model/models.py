@@ -152,22 +152,42 @@ class Model:
     @property
     def tokyo_pattern(self):
         if self.use_duration:
-            return {("H1", "L2"),
-                    ("L1", "H2"), }
+            return {
+                ("H1", "L2"),
+                ("L1", "H2"),
+                ("L1", "H1"),
+                ("H1", "L1"),
+            }
         else:
-            return {"HLL",
-                    "LHH", }
+            return {
+                "HLL",
+                "LHH",
+                "LH",
+                "HL",
+            }
 
     @property
     def kinki_pattern(self):
         if self.use_duration:
-            return {("H1", "L2"),
-                    ("H2", "L1"),
-                    ("L2", "H1"), }
+            return {
+                ("H1", "L2"),
+                ("H2", "L1"),
+                ("L2", "H1"),
+                ("H1", "L1"),
+                ("H1", "H1"),
+                ("L1", "H1"),
+                ("L1", "L1"),
+            }
         else:
-            return {"HLL",
-                    "HHL",
-                    "LLH", }
+            return {
+                "HLL",
+                "HHL",
+                "LLH",
+                "HL",
+                "HH",
+                "LH",
+                "LL",
+            }
 
     @property
     def pitch_pattern(self):
