@@ -206,12 +206,16 @@ class Model:
 
     @property
     def tmat(self):
-        # tmat は self.tokyo_kinki_ratio に基づいて決定される
         K = self.le.classes_
         tmat = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
-        for exp in self.pattern2bigram(self.pitch_pattern):
-            src_idx, tgt_idx = self.le.transform(list(exp))
-            tmat[src_idx, tgt_idx] += 1
+        if self.use_transition:
+            # tmat は self.tokyo_kinki_ratio に基づいて決定される
+            for exp in self.pattern2bigram(self.pitch_pattern):
+                src_idx, tgt_idx = self.le.transform(list(exp))
+                tmat[src_idx, tgt_idx] += 1
+        else:
+            # use_transition = False な場合は遷移を仮定しない
+            tmat = np.ones_like(tmat)
         tmat /= tmat.sum(axis=1).reshape(-1, 1)
         return tmat
 
