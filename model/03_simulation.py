@@ -85,7 +85,7 @@ for _, df_g in plot_df.groupby(["use_transition"]):
     print(df_g.head())
     print(len(df_g))
     print(_)
-    g = (ggplot(df_g, aes('factor(tokyo_kinki_ratio)', 'tokyo_pref'))
+    g = (ggplot(df_g, aes(x='factor(tokyo_kinki_ratio)', y='tokyo_pref', color="pitch", fill="pitch"))
          + facet_grid("pitch~phoneme")
          + geom_violin()
          + ylim(-1, 1)
