@@ -7,6 +7,7 @@ from hsmmlearn.hsmm import HSMMModel
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.mixture import GaussianMixture
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -46,7 +47,13 @@ class GaussianMultivariateMixtureModel(AbstractEmissions, BaseEstimator, Transfo
 
 
 class Model:
-    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float, acoustic="bayes"):
+    def __init__(self,
+                 use_semitone: bool,
+                 use_duration: bool,
+                 use_transition: bool,
+                 tokyo_kinki_ratio: float,
+                 subj_idx=int,
+                 ):
         """[summary]
 
         Args:
@@ -64,6 +71,7 @@ class Model:
         self.n_buffer = 1  # 分布を作成する際の拡張上限
         self.smoothing_dur = 0.0001  # laplase
         self.smoothing_tmat = 0.5
+        self.subject_id = subj_idx
 
     def df2xy(self, df: pd.DataFrame):
         """[Modelのパラメータに基づいてdfを整形]
@@ -111,11 +119,18 @@ class Model:
             [type]: [description]
         """
         # X has pitch and sil indicator, y is label
+        # 音響モデルの訓練時にresampling
         self._X = np.concatenate(nested_X)
-        self._X_imputed = self.acoustic.imputer.fit_transform(self._X)
+        # resample: 人によって触れてきた音響情報は違う
+        self._X = self.acoustic.imputer.fit_transform(self._X)
         self.nested_y = nested_y  # for duration
         self._y = self.le.fit_transform(np.concatenate(nested_y))
-        self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X_imputed, self._y),
+        self._X,  _, self._y, _ = train_test_split(
+            self._X, self._y, test_size=0.5, random_state=self.subject_id)
+        n_sample = 200
+        # https://stackoverflow.com/questions/14262654/numpy-get-random-set-of-rows-from-2d-array
+        ridx = np.random.choice(len(self._y), n_sample, replace=False)
+        self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X, self._y),
                               durations=self.duration,
                               tmat=self.tmat,
                               startprob=self.startprob)

@@ -22,7 +22,7 @@ test_df_3mora = test_df.query("mora==3")
 # 3. 推論結果がtokyo_patternかkinki_patternか
 
 use_semitones = [True]
-use_durations = [True, False]  # Falseは話にならない
+use_durations = [True]  # Falseは話にならない
 use_transitions = [True, False]  # topdown の検証用パラメータ
 tokyo_kinki_ratios = [-1, 0, 1]
 
@@ -34,7 +34,7 @@ conditions = itertools.product(
 )
 
 # n_participants * n_conditions の実験
-n_subjects = 24  # 24ずつ
+n_subjects = 20  # 24ずつ
 # n_subjects = 5  # 24ずつ
 
 res = []
@@ -45,7 +45,8 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
         model = Model(use_semitone,
                       use_duration,
                       use_transition,
-                      tokyo_kinki_ratio)
+                      tokyo_kinki_ratio,
+                      subj_idx=subj_idx)
         X, y = model.df2xy(train_df)
         model.fit(X, y)
         # Stimuli
@@ -58,14 +59,15 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
             y_collapsed = tuple(rle.encode(y)[0])
             is_tokyo = y_collapsed in model.tokyo_pattern
             # AXB で提示したのは東京にとって排他的な HHL など
+            # is_kinki = y_collapsed in model.kinki_pattern
             is_kinki = y_collapsed in model.ex_kinki_pattern
             res.append(pd.DataFrame(dict(
                 tokyo_pref=[is_tokyo - is_kinki],
                 subj_id=[subj_idx],
-                stimulus=stimulus,
-                phoneme=phoneme,
-                pitch=pitch,
-                speaker=speaker,
+                stimulus=[stimulus],
+                phoneme=[phoneme],
+                pitch=[pitch],
+                speaker=[speaker],
                 use_semitone=[use_semitone],
                 use_duration=[use_duration],
                 use_transition=[use_transition],
@@ -79,14 +81,16 @@ plot_df = res_df.groupby(["use_semitone", "use_duration", "use_transition",
 # %%
 plot_df
 # %%
-for _, df_g in plot_df.groupby(["use_duration", "use_transition"]):
+for _, df_g in plot_df.groupby(["use_transition"]):
     print(df_g.head())
     print(len(df_g))
     print(_)
     g = (ggplot(df_g, aes('factor(tokyo_kinki_ratio)', 'tokyo_pref'))
          + facet_grid("pitch~phoneme")
-         # + geom_boxplot()
          + geom_violin()
+         + ylim(-1, 1)
          )
     print(g)
+# %%
+model.tmat
 # %%
