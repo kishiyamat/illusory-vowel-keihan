@@ -36,6 +36,9 @@ conditions = itertools.product(
     tokyo_kinki_ratios,
 )
 
+# n_participants * n_conditions の実験
+n_participants = 24 # 24ずつ
+
 for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(conditions):
     model = Model(use_semitone,
                   use_duration,
