@@ -190,6 +190,28 @@ class Model:
             }
 
     @property
+    def ex_kinki_pattern(self):
+        if self.use_duration:
+            return {
+                ("H2", "L1"),
+                ("L2", "H1"),
+                ("H1", "L1"),
+                ("H1", "H1"),
+                ("L1", "H1"),
+                ("L1", "L1"),
+            }
+        else:
+            return {
+                "HLL",
+                "HHL",
+                "LLH",
+                "HL",
+                "HH",
+                "LH",
+                "LL",
+            }
+
+    @property
     def pitch_pattern(self):
         """[summary]
             tokyo の場合は 他を許さない
