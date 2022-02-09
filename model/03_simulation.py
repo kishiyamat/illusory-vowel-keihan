@@ -26,7 +26,7 @@ test_df_3mora = test_df.query("mora==3")
 use_semitones = [True, False]
 use_durations = [True, False]  # Falseは話にならない
 use_transitions = [True, False]  # topdown の検証用パラメータ
-tokyo_kinki_ratios = [-1, 0, 1]
+tokyo_kinki_ratios = [-1,-0.5, 0,0.5, 1]
 
 conditions = itertools.product(
     use_semitones,
@@ -34,10 +34,9 @@ conditions = itertools.product(
     use_transitions,
     tokyo_kinki_ratios,
 )
-
+# %%
 # n_participants * n_conditions の実験
-n_subjects = 20  # 24ずつ
-# n_subjects = 5  # 24ずつ
+n_subjects = 10  # 20ずつ
 
 res = []
 for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(conditions):
@@ -48,7 +47,9 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
                       use_duration,
                       use_transition,
                       tokyo_kinki_ratio,
-                      subj_idx=subj_idx)
+                      subj_idx=subj_idx,
+                      train_ratio = 0.98,
+                      tmat_noise_ratio=0.4)
         X, y = model.df2xy(train_df)
         model.fit(X, y)
         # Stimuli
@@ -60,9 +61,10 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
             y = model.percept(X_flatten)
             y_collapsed = tuple(rle.encode(y)[0])
             is_tokyo = y_collapsed in model.tokyo_pattern
+            # そもそも推論に失敗したパターン
+            n_fail = model.mora(y_collapsed) != 3
             # AXB で提示したのは東京にとって排他的な HHL など
             # is_kinki = y_collapsed in model.kinki_pattern
-            # TODO: 正答率というか、ミスった率も記録
             is_kinki = y_collapsed in model.ex_kinki_pattern
             res.append(pd.DataFrame(dict(
                 tokyo_pref=[is_tokyo - is_kinki],
@@ -75,23 +77,32 @@ for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(condit
                 use_duration=[use_duration],
                 use_transition=[use_transition],
                 tokyo_kinki_ratio=[tokyo_kinki_ratio],
+                n_fail=[n_fail],
+                pred=["".join(y_collapsed)],
             )))
 
 # %%
 res_df = pd.concat(res)
-plot_df = res_df.groupby(["use_semitone", "use_duration", "use_transition",
-                         "tokyo_kinki_ratio", "pitch", "phoneme", "subj_id"]).mean().reset_index()
+# %%
+conditions = ["use_semitone", "use_duration", "use_transition"]
+plot_df = res_df.groupby(
+    conditions+["tokyo_kinki_ratio", "pitch", "phoneme", "subj_id"]).mean().reset_index()
 # %%
 plot_df
 # %%
-for _, df_g in plot_df.groupby(["use_semitone","use_duration", "use_transition"]):
+# transition がなくても右肩上がりの図は再現される...？
+# 音響モデルとdurationで、ということになる。
+for cond, df_g in plot_df.groupby(["use_semitone", "use_duration", "use_transition"]):
     print(df_g.head())
+    n_fail = np.mean(df_g.n_fail)
     print(len(df_g))
-    print(_)
+    "use_semitone", "use_duration", "use_transition"
+    print(cond)
     g = (ggplot(df_g, aes(x='factor(tokyo_kinki_ratio)', y='tokyo_pref', color="pitch", fill="pitch"))
          + facet_grid("pitch~phoneme")
          + geom_violin()
          + ylim(-1, 1)
+         + ggtitle(f"n_fail: {n_fail}")
          )
     print(g)
 
