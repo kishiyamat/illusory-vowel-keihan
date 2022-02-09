@@ -133,7 +133,6 @@ class Model:
             self._X, self._y, test_size=self.test_ratio, random_state=self.subject_id)
         n_sample = 200
         # https://stackoverflow.com/questions/14262654/numpy-get-random-set-of-rows-from-2d-array
-        ridx = np.random.choice(len(self._y), n_sample, replace=False)
         self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X, self._y),
                               durations=self.duration,
                               tmat=self.tmat,
