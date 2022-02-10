@@ -7,6 +7,7 @@ from hsmmlearn.hsmm import HSMMModel
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.impute import SimpleImputer
 from sklearn.mixture import GaussianMixture
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -46,7 +47,16 @@ class GaussianMultivariateMixtureModel(AbstractEmissions, BaseEstimator, Transfo
 
 
 class Model:
-    def __init__(self, use_semitone: bool, use_duration: bool, use_transition: bool, tokyo_kinki_ratio: float, acoustic="bayes"):
+    def __init__(self,
+                 subj_idx: int,
+                 tokyo_kinki_ratio: float,
+                 use_semitone: bool,
+                 use_duration: bool,
+                 use_transition: bool,
+                 use_pi: bool,
+                 train_ratio: float,
+                 tmat_noise_ratio: float,
+                 ):
         """[summary]
 
         Args:
@@ -58,12 +68,16 @@ class Model:
         self.use_semitone = use_semitone
         self.use_duration = use_duration
         self.use_transition = use_transition
+        self.use_pi = use_pi
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
         self.le = LabelEncoder()
         self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
         self.n_buffer = 1  # 分布を作成する際の拡張上限
         self.smoothing_dur = 0.0001  # laplase
         self.smoothing_tmat = 0.5
+        self.subject_id = subj_idx
+        self.test_ratio = 1 - train_ratio
+        self.tmat_noise_ratio = tmat_noise_ratio
 
     def df2xy(self, df: pd.DataFrame):
         """[Modelのパラメータに基づいてdfを整形]
@@ -111,11 +125,17 @@ class Model:
             [type]: [description]
         """
         # X has pitch and sil indicator, y is label
+        # 音響モデルの訓練時にresampling
         self._X = np.concatenate(nested_X)
-        self._X_imputed = self.acoustic.imputer.fit_transform(self._X)
+        # resample: 人によって触れてきた音響情報は違う
+        self._X = self.acoustic.imputer.fit_transform(self._X)
         self.nested_y = nested_y  # for duration
         self._y = self.le.fit_transform(np.concatenate(nested_y))
-        self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X_imputed, self._y),
+        self._X,  _, self._y, _ = train_test_split(
+            self._X, self._y, test_size=self.test_ratio, random_state=self.subject_id)
+        n_sample = 200
+        # https://stackoverflow.com/questions/14262654/numpy-get-random-set-of-rows-from-2d-array
+        self.hsmm = HSMMModel(emissions=self.acoustic.fit(self._X, self._y),
                               durations=self.duration,
                               tmat=self.tmat,
                               startprob=self.startprob)
@@ -190,41 +210,88 @@ class Model:
             }
 
     @property
+    def ex_kinki_pattern(self):
+        if self.use_duration:
+            return {
+                ("H2", "L1"),
+                ("L2", "H1"),
+                ("H1", "L1"),
+                ("H1", "H1"),
+                ("L1", "H1"),
+                ("L1", "L1"),
+            }
+        else:
+            return {
+                "HLL",
+                "HHL",
+                "LLH",
+                "HL",
+                "HH",
+                "LH",
+                "LL",
+            }
+
+    @property
+    def _tmat(self):
+        K = self.le.classes_
+        tmat_tokyo = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
+        for exp in self.pattern2bigram(self.tokyo_pattern):
+            src_idx, tgt_idx = self.le.transform(list(exp))
+            tmat_tokyo[src_idx, tgt_idx] += 1
+        tmat_kinki = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
+        for exp in self.pattern2bigram(self.kinki_pattern):
+            src_idx, tgt_idx = self.le.transform(list(exp))
+            tmat_kinki[src_idx, tgt_idx] += 1
+        tokyo_weight = (self.tokyo_kinki_ratio+1)/2  # 1なら1, 0なら0
+        kinki_weight = 1 - tokyo_weight
+        tmat = tmat_tokyo*tokyo_weight + tmat_kinki*kinki_weight
+
+        tmat /= tmat.sum(axis=1).reshape(-1, 1)
+        return tmat
+
+    @property
+    def tmat(self):
+        K = self.le.classes_
+        if self.use_transition:
+            tmat = self._tmat
+        else:
+            # use_transition = False な場合は遷移を仮定しない
+            tmat = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
+            tmat = np.ones_like(tmat)
+            tmat /= tmat.sum(axis=1).reshape(-1, 1)
+
+        # 1 + (0.0 -- 1.0)*ratio
+        np.random.seed(seed=self.subject_id)
+        noise = np.ones_like(tmat)\
+            + np.random.rand(len(K), len(K))*self.tmat_noise_ratio
+        tmat *= noise
+        tmat /= tmat.sum(axis=1).reshape(-1, 1)
+        return tmat
+
+    @property
     def pitch_pattern(self):
         """[summary]
             tokyo の場合は 他を許さない
             tokyo==1以外ならkinkiも許す
         """
-        if self.tokyo_kinki_ratio == 1:
+        if 0 < self.tokyo_kinki_ratio <= 1:
             return self.tokyo_pattern
         elif self.tokyo_kinki_ratio == 0:
             return self.tokyo_pattern | self.kinki_pattern
-        elif self.tokyo_kinki_ratio == -1:
+        elif -1 <= self.tokyo_kinki_ratio < 0:
             return self.kinki_pattern
         else:
             raise NotImplementedError
 
     @property
-    def tmat(self):
-        K = self.le.classes_
-        tmat = np.eye(len(K))*0.00001  # 他に遷移しない場合、自身に遷移させる
-        if self.use_transition:
-            # tmat は self.tokyo_kinki_ratio に基づいて決定される
-            for exp in self.pattern2bigram(self.pitch_pattern):
-                src_idx, tgt_idx = self.le.transform(list(exp))
-                tmat[src_idx, tgt_idx] += 1
-        else:
-            # use_transition = False な場合は遷移を仮定しない
-            tmat = np.ones_like(tmat)
-        tmat /= tmat.sum(axis=1).reshape(-1, 1)
-        return tmat
-
-    @property
     def startprob(self):
         K = self.le.classes_
-        startprob = np.zeros(len(K))
-        for exp in self.pitch_pattern:
-            startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
+        if self.use_pi:
+            startprob = np.zeros(len(K))
+            for exp in self.pitch_pattern:
+                startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
+        else:
+            startprob = np.ones(len(K))
         startprob /= startprob.sum()
         return startprob
 
@@ -239,6 +306,12 @@ class Model:
             for idx, symbol in enumerate(pattern[:-1]):
                 bipitch.append((symbol, pattern[idx + 1]))
         return set(bipitch)
+
+    def mora(self, pred) -> int:
+        if self.use_duration:
+            return sum([int(p[-1]) for p in pred])
+        else:
+            return len(pred)
 
     def percept(self, X_flatten: np.array):
         return self.le.inverse_transform(self.hsmm.decode(self.acoustic.imputer.transform(X_flatten)))

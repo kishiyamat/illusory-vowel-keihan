@@ -1,7 +1,4 @@
 # %%
-# %load_ext autoreload
-# %autoreload 2
-
 import itertools
 
 import matplotlib.pyplot as plt
@@ -18,47 +15,103 @@ train_df = data.query("is_train == True")
 test_df = data.query("is_train == False")
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
+# 少なくとも3モーラの錯覚には
+# どちらかが必要
 
 # %%
-# 1. 条件でモデルを init -> fit
-# 2. 各刺激をmodelに与えて推論
+# 1. fit model by condition
+# 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
-
-use_semitones = [True]
+n_subjects = 10  # 20ずつ
+use_semitones = [True, False]  # 使わなくて良さそう
 use_durations = [True]  # Falseは話にならない
 use_transitions = [True, False]  # topdown の検証用パラメータ
-tokyo_kinki_ratios = [-1, 0, 1]
-
+use_pi_conds = [True, False]  # topdown の検証用パラメータ
+tokyo_kinki_ratios = [-1, -0.5, 0, 0.5, 1]
 conditions = itertools.product(
     use_semitones,
     use_durations,
     use_transitions,
+    use_pi_conds,
     tokyo_kinki_ratios,
 )
 
-for use_semitone, use_duration, use_transition, tokyo_kinki_ratio in list(conditions):
-    model = Model(use_semitone,
-                  use_duration,
-                  use_transition,
-                  tokyo_kinki_ratio)
-    print(use_semitone, use_duration, use_transition, tokyo_kinki_ratio)
-    X, y = model.df2xy(train_df)
-    model.fit(X, y)
-    print(model.tmat)
-    y_collapsed_list = []
-    for _, df_by_stimuli in test_df_3mora.groupby("stimuli"):
-        X, _ = model.df2xy(df_by_stimuli)
-        X_flatten = np.concatenate(X)  # 実際の入力は区切られていない
-        y = model.percept(X_flatten)
-        y_collapsed = tuple(rle.encode(y)[0])
-        print("fname:\t", df_by_stimuli.stimuli[0])
-        print("pitch:\t", df_by_stimuli.collapsed_pitches[0])
-        print("decode:\t", y_collapsed)
-        y_collapsed_list.append(y_collapsed)
-    n_exp = len(y_collapsed_list)
-    n_tokyo = sum([y in model.tokyo_pattern for y in y_collapsed_list ])
-    n_kinki = sum([y in model.kinki_pattern for y in y_collapsed_list ])
-    print(n_tokyo)
-    print(n_kinki)
+res = []
+for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in list(conditions):
+    if not use_pi and use_transition:
+        # pi tmat exec
+        # x  x    o
+        # o  x    o
+        # o  o    o
+        # x  o    x
+        continue
 
+    for subj_idx in range(n_subjects):
+        model_params = {
+            "use_semitone": use_semitone,  # 音の扱いが不明
+            "use_duration": use_duration,
+            "use_transition": use_transition,
+            "use_pi": use_pi,
+            "tokyo_kinki_ratio": tokyo_kinki_ratio,
+            "subj_idx": subj_idx,
+            "train_ratio": 0.5,
+            "tmat_noise_ratio": 0.1,
+        }
+        model = Model(**model_params)
+        X, y = model.df2xy(train_df)
+        model.fit(X, y)
+        # make model inference on the stimuli
+        for _, df_by_stimuli in test_df_3mora.groupby("stimuli"):
+            stimulus = df_by_stimuli.stimuli[0].split('.')[0]
+            phoneme, pitch, speaker = stimulus.split("-")
+            X, _ = model.df2xy(df_by_stimuli)
+            X_flatten = np.concatenate(X)  # 実際の入力は区切られていないのでflatten
+            y = model.percept(X_flatten)
+            y_collapsed = tuple(rle.encode(y)[0])
+            is_tokyo = y_collapsed in model.tokyo_pattern
+            is_kinki = y_collapsed in model.ex_kinki_pattern
+            n_success = is_tokyo or is_kinki
+            res.append(pd.DataFrame(dict(
+                tokyo_pref=[is_tokyo - is_kinki],
+                subj_id=[subj_idx],
+                stimulus=[stimulus],
+                phoneme=[phoneme],
+                pitch=[pitch],
+                speaker=[speaker],
+                use_semitone=[use_semitone],
+                use_duration=[use_duration],
+                use_transition=[use_transition],
+                use_pi=[use_pi],
+                tokyo_kinki_ratio=[tokyo_kinki_ratio],
+                n_success=[n_success],
+                pred=["".join(y_collapsed)],
+            )))
+
+res_df = pd.concat(res)
+conditions = ["use_duration", "use_transition", "use_pi"]
+# conditions = ["use_semitone", "use_duration", "use_transition", "use_pi"]
+plot_df = res_df.groupby(
+    conditions+["tokyo_kinki_ratio", "pitch", "phoneme", "subj_id"]).mean().reset_index()
+
+# transition がなくても右肩上がりの図は再現される...？
+# 音響モデルとdurationで、ということになる。
+for cond, df_g in plot_df.groupby(conditions):
+    print(df_g.head())
+    n_success = np.mean(df_g.n_success)
+    print(len(df_g))
+    print("\n".join(
+        [f"c_str: {c_str}, c_bool: {c_bool}" for c_str, c_bool in zip(conditions, cond)]))
+    g = (ggplot(df_g, aes(x='factor(tokyo_kinki_ratio)', y='tokyo_pref', color="pitch", fill="pitch"))
+         + facet_grid("pitch~phoneme")
+         + geom_violin()
+         + ylim(-1, 1)
+         + ggtitle(f"Properly inferenced: {n_success}")
+         )
+    print(g)
+
+# TODO
+# - 統計用のdfを出力
+# - 統計で再現
+# %%
+res_df
 # %%

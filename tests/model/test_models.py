@@ -28,10 +28,16 @@ def test_df2xy():
                             silent=[0, 0, 0, 0, 0],
                             rle_label=[0, 0, 0, 0, 0],))
 
-    model = Model(use_semitone=True,
-                  use_duration=True,
-                  use_transition=True,
-                  tokyo_kinki_ratio=1)
+    model = Model(
+        subj_idx=0,
+        tokyo_kinki_ratio=1,
+        use_semitone=True,
+        use_duration=True,
+        use_transition=True,
+        use_pi=True,
+        train_ratio=0.5,
+        tmat_noise_ratio=0.5,
+    )
 
     res_x, res_y = model.df2xy(src)
     tgt_x = [np.array([[1, 0],
