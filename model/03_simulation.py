@@ -15,10 +15,12 @@ train_df = data.query("is_train == True")
 test_df = data.query("is_train == False")
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
+# 少なくとも3モーラの錯覚には
+# どちらかが必要
 
 # %%
-# 1. 条件でモデルを init -> fit
-# 2. 各刺激をmodelに与えて推論
+# 1. fit model by condition 
+# 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
 n_subjects = 10  # 20ずつ
 use_semitones = [True, False]  # 使わなくて良さそう
@@ -36,6 +38,14 @@ conditions = itertools.product(
 
 res = []
 for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in list(conditions):
+    if not use_pi and use_transition:
+        # pi tmat
+        # x  x
+        # o  x
+        # o  o
+        # pi tmat
+        # x  o はパス
+        continue
     # Participants
     # 実質、被験者は一人なのでもう少しバラす
     for subj_idx in range(n_subjects):
@@ -74,6 +84,7 @@ for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in lis
                 use_semitone=[use_semitone],
                 use_duration=[use_duration],
                 use_transition=[use_transition],
+                use_pi=[use_pi],
                 tokyo_kinki_ratio=[tokyo_kinki_ratio],
                 n_fail=[n_fail],
                 n_success=[n_success],
@@ -81,7 +92,8 @@ for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in lis
             )))
 
 res_df = pd.concat(res)
-conditions = ["use_semitone", "use_duration", "use_transition", "use_pi"]
+conditions = ["use_duration", "use_transition", "use_pi"]
+# conditions = ["use_semitone", "use_duration", "use_transition", "use_pi"]
 plot_df = res_df.groupby(
     conditions+["tokyo_kinki_ratio", "pitch", "phoneme", "subj_id"]).mean().reset_index()
 
