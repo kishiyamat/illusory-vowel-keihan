@@ -51,6 +51,7 @@ class Model:
                  use_semitone: bool,
                  use_duration: bool,
                  use_transition: bool,
+                 use_pi: bool,
                  tokyo_kinki_ratio: float,
                  subj_idx: int,
                  train_ratio: float,
@@ -67,6 +68,7 @@ class Model:
         self.use_semitone = use_semitone
         self.use_duration = use_duration
         self.use_transition = use_transition
+        self.use_pi = use_pi
         self.tokyo_kinki_ratio = tokyo_kinki_ratio  # tokyoの影響は必ず入る
         self.le = LabelEncoder()
         self.acoustic = GaussianMultivariateMixtureModel(n_components=2)
@@ -284,9 +286,12 @@ class Model:
     @property
     def startprob(self):
         K = self.le.classes_
-        startprob = np.zeros(len(K))
-        for exp in self.pitch_pattern:
-            startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
+        if self.use_pi:
+            startprob = np.zeros(len(K))
+            for exp in self.pitch_pattern:
+                startprob[self.le.transform([exp[0]])] += self.smoothing_tmat
+        else:
+            startprob = np.ones(len(K))
         startprob /= startprob.sum()
         return startprob
 
