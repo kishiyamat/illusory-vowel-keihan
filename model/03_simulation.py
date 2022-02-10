@@ -19,7 +19,7 @@ test_df_3mora = test_df.query("mora==3")
 # どちらかが必要
 
 # %%
-# 1. fit model by condition 
+# 1. fit model by condition
 # 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
 n_subjects = 10  # 20ずつ
@@ -39,29 +39,28 @@ conditions = itertools.product(
 res = []
 for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in list(conditions):
     if not use_pi and use_transition:
-        # pi tmat
-        # x  x
-        # o  x
-        # o  o
-        # pi tmat
-        # x  o はパス
+        # pi tmat exec
+        # x  x    o
+        # o  x    o
+        # o  o    o
+        # x  o    x
         continue
-    # Participants
-    # 実質、被験者は一人なのでもう少しバラす
+
     for subj_idx in range(n_subjects):
-        model = Model(use_semitone,
-                      use_duration,
-                      use_transition,
-                      use_pi,
-                      tokyo_kinki_ratio,
-                      subj_idx=subj_idx,
-                      train_ratio=0.5,
-                      tmat_noise_ratio=0.1,
-                      # tmat_noise_ratio=0.9,
-                      )
+        model_params = {
+            "use_semitone": use_semitone,  # 音の扱いが不明
+            "use_duration": use_duration,
+            "use_transition": use_transition,
+            "use_pi": use_pi,
+            "tokyo_kinki_ratio": tokyo_kinki_ratio,
+            "subj_idx": subj_idx,
+            "train_ratio": 0.5,
+            "tmat_noise_ratio": 0.1,
+        }
+        model = Model(**model_params)
         X, y = model.df2xy(train_df)
         model.fit(X, y)
-        # Stimuli
+        # make model inference on the stimuli
         for _, df_by_stimuli in test_df_3mora.groupby("stimuli"):
             stimulus = df_by_stimuli.stimuli[0].split('.')[0]
             phoneme, pitch, speaker = stimulus.split("-")
@@ -71,9 +70,7 @@ for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in lis
             y_collapsed = tuple(rle.encode(y)[0])
             is_tokyo = y_collapsed in model.tokyo_pattern
             is_kinki = y_collapsed in model.ex_kinki_pattern
-            # そもそも推論に失敗したパターン
             n_success = is_tokyo or is_kinki
-            n_fail = model.mora(y_collapsed) != 3
             res.append(pd.DataFrame(dict(
                 tokyo_pref=[is_tokyo - is_kinki],
                 subj_id=[subj_idx],
@@ -86,7 +83,6 @@ for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in lis
                 use_transition=[use_transition],
                 use_pi=[use_pi],
                 tokyo_kinki_ratio=[tokyo_kinki_ratio],
-                n_fail=[n_fail],
                 n_success=[n_success],
                 pred=["".join(y_collapsed)],
             )))
@@ -101,15 +97,15 @@ plot_df = res_df.groupby(
 # 音響モデルとdurationで、ということになる。
 for cond, df_g in plot_df.groupby(conditions):
     print(df_g.head())
-    n_fail = np.mean(df_g.n_fail)
     n_success = np.mean(df_g.n_success)
     print(len(df_g))
-    print("\n".join([f"c_str: {c_str}, c_bool: {c_bool}" for c_str, c_bool in zip(conditions, cond)]))
+    print("\n".join(
+        [f"c_str: {c_str}, c_bool: {c_bool}" for c_str, c_bool in zip(conditions, cond)]))
     g = (ggplot(df_g, aes(x='factor(tokyo_kinki_ratio)', y='tokyo_pref', color="pitch", fill="pitch"))
          + facet_grid("pitch~phoneme")
          + geom_violin()
          + ylim(-1, 1)
-         + ggtitle(f"n_fail: {n_fail}/ n_success: {n_success}")
+         + ggtitle(f"Properly inferenced: {n_success}")
          )
     print(g)
 

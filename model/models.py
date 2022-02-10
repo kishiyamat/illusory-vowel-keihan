@@ -48,12 +48,12 @@ class GaussianMultivariateMixtureModel(AbstractEmissions, BaseEstimator, Transfo
 
 class Model:
     def __init__(self,
+                 subj_idx: int,
+                 tokyo_kinki_ratio: float,
                  use_semitone: bool,
                  use_duration: bool,
                  use_transition: bool,
                  use_pi: bool,
-                 tokyo_kinki_ratio: float,
-                 subj_idx: int,
                  train_ratio: float,
                  tmat_noise_ratio: float,
                  ):
