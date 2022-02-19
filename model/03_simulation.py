@@ -12,9 +12,12 @@ from models import Model
 # %%
 data = pd.read_csv('artifacts/data.csv')
 train_df = data.query("is_train == True")
+train_df.head()
+# %%
 test_df = data.query("is_train == False")
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
+test_df_3mora.head()
 # 少なくとも3モーラの錯覚には
 # どちらかが必要
 
@@ -23,10 +26,10 @@ test_df_3mora = test_df.query("mora==3")
 # 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
 n_subjects = 10  # 20ずつ
-use_semitones = [True, False]  # 使わなくて良さそう
-use_durations = [True]  # Falseは話にならない
-use_transitions = [True, False]  # topdown の検証用パラメータ
+use_semitones = [True, False]  # 音の知覚の戦略. Falseは相対音感
+use_durations = [True]  # Falseは話にならないのでTrueに限定
 use_pi_conds = [True, False]  # topdown の検証用パラメータ
+use_transitions = [True, False]  # topdown の検証用パラメータ
 tokyo_kinki_ratios = [-1, -0.5, 0, 0.5, 1]
 conditions = itertools.product(
     use_semitones,
@@ -89,7 +92,6 @@ for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in lis
 
 res_df = pd.concat(res)
 conditions = ["use_duration", "use_transition", "use_pi"]
-# conditions = ["use_semitone", "use_duration", "use_transition", "use_pi"]
 plot_df = res_df.groupby(
     conditions+["tokyo_kinki_ratio", "pitch", "phoneme", "subj_id"]).mean().reset_index()
 
