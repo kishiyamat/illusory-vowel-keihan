@@ -1,7 +1,6 @@
 # %%
 import itertools
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import rle
@@ -25,11 +24,11 @@ test_df_3mora.head()
 # 1. fit model by condition
 # 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
-n_subjects = 10  # 20ずつ
-use_semitones = [True, False]  # 音の知覚の戦略. Falseは相対音感
+n_subjects = 20  # 20ずつ
 use_durations = [True]  # Falseは話にならないのでTrueに限定
 use_pi_conds = [True, False]  # topdown の検証用パラメータ
 use_transitions = [True, False]  # topdown の検証用パラメータ
+use_semitones = [True, False]  # 音の知覚の戦略. Falseは相対音感
 tokyo_kinki_ratios = [-1, -0.5, 0, 0.5, 1]
 conditions = itertools.product(
     use_semitones,
