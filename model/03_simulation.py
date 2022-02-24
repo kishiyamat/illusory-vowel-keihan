@@ -24,7 +24,7 @@ test_df_3mora.head()
 # 1. fit model by condition
 # 2. make model inference on each stimuli
 # 3. 推論結果がtokyo_patternかkinki_patternか
-n_subjects = 20  # 20ずつ
+n_subjects = 10  # 20ずつ
 use_durations = [True]  # Falseは話にならないのでTrueに限定
 use_pi_conds = [True, False]  # topdown の検証用パラメータ
 use_transitions = [True, False]  # topdown の検証用パラメータ
@@ -114,5 +114,5 @@ for cond, df_g in plot_df.groupby(conditions):
 # - 統計用のdfを出力
 # - 統計で再現
 # %%
-res_df
+res_df.to_csv("./results.csv")
 # %%

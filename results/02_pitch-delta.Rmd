@@ -43,6 +43,7 @@ TODO
   - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
 ### データ整形
+
 ```{r}
 # 上手く行かない場合はconsoleでDLする
 # remove.packages(c("StanHeaders", "rstan"))
@@ -157,7 +158,7 @@ results_by_subject %>%
   # geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 5),
   #                 y=to_tokyo_pattern, color=pitch_from))+
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 5),
+    x = factor(range01(tokyo_kinki_ratio), 4),
     y = to_tokyo_pattern, color = pitch_from, fill = pitch_from
   )) +
   theme(legend.position = "none") +
@@ -192,12 +193,6 @@ model <- lmer(
   tokyo_kinki_ratio + (1 | item_id),
   data = results_by_subject
 )
-# model <- lmer(
-#   to_tokyo_pattern ~
-#   tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
-#   data = results_by_subject
-# )
-# ?isSingular
 summary(model)
 ```
 
