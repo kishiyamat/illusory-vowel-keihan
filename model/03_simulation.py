@@ -40,13 +40,13 @@ conditions = itertools.product(
 
 res = []
 for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in list(conditions):
-    if not use_pi and use_transition:
-        # pi tmat exec
-        # x  x    o
-        # o  x    o
-        # o  o    o
-        # x  o    x
-        continue
+    # if not use_pi and use_transition:
+    #     # pi tmat exec
+    #     # x  x    o
+    #     # o  x    o
+    #     # x  o    x
+    #     # o  o    o
+    #     continue
 
     for subj_idx in range(n_subjects):
         model_params = {
@@ -115,4 +115,6 @@ for cond, df_g in plot_df.groupby(conditions):
 # - 統計で再現
 # %%
 res_df.to_csv("./results.csv")
+# %%
+res_df.head()
 # %%
