@@ -170,10 +170,9 @@ g = results_by_subject %>%
   theme_bw() +
   theme(legend.position = "none",
         text = element_text(family = "Times")
-        # text = element_text(family = "Times New Roman")
         ) +
   labs(
-    title = "Preference to Tokyo Pattern",
+    title = "Preference to Tokyo-Pattern",
     x = "Tokyo-residence ratio",
     y = "Tokyo-pattern preference"
   )

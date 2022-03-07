@@ -87,6 +87,7 @@ results <- rbind(results_sone, results_cw) %>%
 
 ```{r}
 # 可視化のため平均を取る
+# facet wrap したほうが説明がらく(モーラの位置は分析対象外)
 x_var <- "tokyo_kinki_ratio"
 result_x_var <- results %>%
   pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
@@ -124,6 +125,7 @@ g <- result_x_var %>%
   ) +
   theme(legend.position = "none")
 ggsave(paste0("artifact/devoicing_by_item.png"), g, unit = "cm", width = 8, height = 8)
+g
 ```
 
 ## Stats
