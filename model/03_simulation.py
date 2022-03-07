@@ -11,15 +11,12 @@ from models import Model
 # %%
 data = pd.read_csv('artifacts/data.csv')
 train_df = data.query("is_train == True")
-train_df.head()
-# %%
 test_df = data.query("is_train == False")
 test_df["mora"] = test_df.collapsed_pitches.apply(len)
 test_df_3mora = test_df.query("mora==3")
-test_df_3mora.head()
-# 少なくとも3モーラの錯覚には
-# どちらかが必要
-
+print(len(set(train_df.stimuli.values)))
+print(len(set(test_df_3mora.stimuli.values)))
+print(set(test_df_3mora.stimuli.values))
 # %%
 # 1. fit model by condition
 # 2. make model inference on each stimuli
@@ -40,17 +37,9 @@ conditions = itertools.product(
 
 res = []
 for use_semitone, use_duration, use_transition, use_pi, tokyo_kinki_ratio in list(conditions):
-    # if not use_pi and use_transition:
-    #     # pi tmat exec
-    #     # x  x    o
-    #     # o  x    o
-    #     # x  o    x
-    #     # o  o    o
-    #     continue
-
     for subj_idx in range(n_subjects):
         model_params = {
-            "use_semitone": use_semitone,  # 音の扱いが不明
+            "use_semitone": use_semitone,  # 相対/絶対が不明なので加える
             "use_duration": use_duration,
             "use_transition": use_transition,
             "use_pi": use_pi,
