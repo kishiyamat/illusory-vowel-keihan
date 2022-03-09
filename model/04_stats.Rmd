@@ -49,21 +49,24 @@ results_mean
 
 ```{r}
 g <- results_mean %>%
-  ggplot(aes(x = as.factor(tokyo_kinki_ratio), y = tokyo_pref, color = as.factor(success_rate), fill = as.factor(success_rate))) +
+  ggplot(aes(x = as.factor(tokyo_kinki_ratio),
+             y = tokyo_pref,
+             color = as.ordered(success_rate),
+             fill = as.ordered(success_rate))) +
   facet_grid(use_pi ~ use_transition) +
   geom_violin() +
-  theme(legend.position = "top") +
   ylim(-1, 1) +
+  theme_bw() +
+  theme(legend.position = "top") +
   labs(
     title = "Preference to Tokyo Pattern",
-    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
-    y = "Tokyo Preference",
+    x = "Tokyo-residence ratio",
+    y = "Tokyo-pattern preference",
     color = "Success rate",
     fill = "Success rate"
   ) +
+  theme( text = element_text(family = "Times") ) +
   theme(text = element_text(size = 8))
 g
-ggsave(paste0("simulation_results.png"),
-  unit = "cm", width = 8, height = 8
-)
+ggsave(paste0("results_simulation.pdf"), unit = "cm", width = 7, height = 7)
 ```
