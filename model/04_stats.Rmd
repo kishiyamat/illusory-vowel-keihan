@@ -59,7 +59,6 @@ g <- results_mean %>%
   theme_bw() +
   theme(legend.position = "top") +
   labs(
-    title = "Preference to Tokyo Pattern",
     x = "Tokyo-residence ratio",
     y = "Tokyo-pattern preference",
     color = "Success rate",
