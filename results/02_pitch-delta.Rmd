@@ -190,6 +190,21 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.pdf"),
 )
 ```
 
+```{r}
+results_by_subject %>%
+  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
+  select(subj_id, age, is_tokyo) %>% distinct() %>% 
+  group_by(is_tokyo) %>% 
+  mutate(age_mean=mean(age),
+         age_sd=sd(age))
+
+results_by_subject %>%
+  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
+  select(subj_id, age, is_tokyo) %>% distinct() %>% 
+  filter(!is_tokyo) %>% nrow
+```
+
+
 ## 分析
 
 ```{r}
