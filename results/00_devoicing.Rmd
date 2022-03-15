@@ -90,7 +90,7 @@ results <- rbind(results_sone, results_cw) %>%
 # facet wrap したほうが説明がらく(モーラの位置は分析対象外)
 x_var <- "tokyo_kinki_ratio"
 result_x_var <- results %>%
-  pivot_longer(x_var_list, names_to = "span", values_to = "year") %>%
+  pivot_longer(x_var_list, names_to = "span", values_to = "tokyo_kinki_ratio") %>%
   filter(span == x_var) %>%
   group_by(subj_id, item_id) %>%
   mutate(devoiced_mean = mean(devoiced)) %>%
@@ -113,15 +113,21 @@ result_x_var <- results %>%
   ))
 
 g <- result_x_var %>%
+  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
+  mutate(tokyo_kinki_ratio_bin=case_when(
+    tokyo_kinki_ratio_bin==0~-1,
+    tokyo_kinki_ratio_bin==1~-0.5,
+    tokyo_kinki_ratio_bin==2~0,
+    tokyo_kinki_ratio_bin==3~0.5,
+    tokyo_kinki_ratio_bin==4~1)) %>% 
+  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin)) %>% 
   ggplot() +
-  facet_grid(item_type ~ check_first) +
-  geom_violin(aes(x = factor(range01(year), 5), y = devoiced_mean, color = item_id, fill = item_id)) +
+  facet_wrap(. ~ item_type) +
+  geom_violin(aes(x = tokyo_kinki_ratio_bin, y = devoiced_mean)) +
   labs(
     title = "Devoicing by Item",
-    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
-    y = "Devoicing Ratio",
-    color = "Text",
-    fill = "Text"
+    x = "Tokyo-residence ratio",
+    y = "Devoicing Ratio"
   ) +
   theme(legend.position = "none")
 ggsave(paste0("artifact/devoicing_by_item.png"), g, unit = "cm", width = 8, height = 8)
@@ -137,7 +143,7 @@ head(result_x_var)
 ```{r}
 library(lme4)
 library(lmerTest)
-model <- lmer(devoiced_mean ~ year + item_type + check_first + (1 | subj_id), data = result_x_var)
+model <- lmer(devoiced_mean ~ tokyo_kinki_ratio + item_type + check_first + (1 | subj_id), data = result_x_var)
 summary(model)
 ```
 

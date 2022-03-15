@@ -146,7 +146,6 @@ results_by_subject %>%
   # geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5), y=to_tokyo_pattern))+
   theme(legend.position = "none") +
   labs(
-    title = "Preference to Tokyo Pattern",
     x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
     y = "Tokyo Preference"
   )
@@ -179,15 +178,13 @@ g = results_by_subject %>%
         text = element_text(family = "Times")
         ) +
   labs(
-    title = "Preference to Tokyo-Pattern",
     x = "Tokyo-residence ratio",
     y = "Tokyo-pattern preference"
   )
 
 g
-ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.pdf"),
-  unit = "cm", width = 7, height = 7
-)
+# ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.pdf"), unit = "cm", width = 7, height = 7)
+ggsave(paste0("artifact/results_perception.pdf"), unit = "cm", width = 7, height = 7)
 ```
 
 ```{r}
