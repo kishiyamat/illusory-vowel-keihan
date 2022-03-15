@@ -8,3 +8,4 @@ python-rle
 more-itertools
 pytest
 flake8
+tgt==1.4.4
