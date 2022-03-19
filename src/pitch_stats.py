@@ -19,31 +19,15 @@ results = []
 for k, v in mora_dict.items():
     wavs = glob.glob(f"audio/output/{k}*.wav")
     for wav in wavs:
-        results.append(
-            pd.DataFrame(
-                dict(
-                    phoneme=[k],
-                    s_type=[v],
-                    fname=[Path(wav).name],
-                    duration=[max(parselmouth.Sound(wav).xs())],
-                )))
+        res_i = dict(
+            phoneme=[k],
+            s_type=[v],
+            fname=[Path(wav).name],
+            duration=[max(parselmouth.Sound(wav).xs())],
+        )
+        results.append(pd.DataFrame(res_i))
 results = pd.concat(results, ignore_index=True)
 # %%
-results
+results.groupby(["s_type"]).mean()*1000
 # %%
-# %%
-
-
-print(wavs[0])
-snd = parselmouth.Sound(wavs[0])
-# xのmaxがsになっているので、これの平均と分散を
-# referenceなどごとに見る
-max(snd.xs())
-
-# lines.sort()
-# lines
-# %%
-# with open("_devoicing_annotation.csv", 'w') as file:  # -> wav
-#     lines.insert(0, ",".join(["filename", "item_id", "order", "voiced"]))
-#     file.write("\n".join(lines))
-# %%
+results.groupby(["s_type"]).std()*1000
