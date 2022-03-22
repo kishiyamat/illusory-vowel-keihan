@@ -51,7 +51,6 @@ results_mean
 g <- results_mean %>%
   ggplot(aes(x = as.factor(tokyo_kinki_ratio),
              y = tokyo_pref,
-             color = as.ordered(success_rate),
              fill = as.ordered(success_rate))) +
   facet_grid(use_pi ~ use_transition) +
   geom_violin() +
@@ -61,11 +60,11 @@ g <- results_mean %>%
   labs(
     x = "Tokyo-residence ratio",
     y = "Tokyo-pattern preference",
-    color = "Success rate",
     fill = "Success rate"
   ) +
   theme( text = element_text(family = "Times") ) +
   theme(text = element_text(size = 8))
+
 g
-ggsave(paste0("results_simulation.pdf"), unit = "cm", width = 7, height = 7)
+ggsave(paste0("results_simulation.pdf"), unit = "cm", width = 7, height = 5)
 ```

@@ -184,7 +184,7 @@ g = results_by_subject %>%
 
 g
 # ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.pdf"), unit = "cm", width = 7, height = 7)
-ggsave(paste0("artifact/results_perception.pdf"), unit = "cm", width = 7, height = 7)
+ggsave(paste0("artifact/results_perception.pdf"), unit = "cm", width = 7, height = 5)
 ```
 
 ```{r}
