@@ -49,7 +49,12 @@ for csv_path in csv_paths:
         file_base = "_".join(list(map(str, [run_id, subj_id, item_id])))
         webm_file, wav_file = "webm/"+file_base+".webm", "wav/"+file_base+".wav"
         # decode
-        decodedData = base64.b64decode(row["audio_data"])  # -> webm
+        # https://www.lisz-works.com/entry/python-base64-incorrect-padding
+        # 場合によってはpaddingで落ちる
+        s = row["audio_data"]
+        s += '=' * (-len(s) % 4)
+        decodedData = base64.b64decode(s)
+        # decodedData = base64.b64decode(row["audio_data"])  # -> webm
         with open(webm_file, 'wb') as file:  # -> wav
             file.write(decodedData)
         ff = FFmpeg(

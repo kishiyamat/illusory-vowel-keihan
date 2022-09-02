@@ -15,6 +15,13 @@
     1. informed.html > Stimuli
 1. URLを発行
 
+#### 知覚実験
+
+```
+$ cd src
+$ make all # 色々してくれる
+```
+
 ### 追跡調査
 
 1. Google Form に作成 

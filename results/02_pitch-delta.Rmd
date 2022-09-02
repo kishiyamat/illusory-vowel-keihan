@@ -43,6 +43,7 @@ TODO
   - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
 ### データ整形
+
 ```{r}
 # 上手く行かない場合はconsoleでDLする
 # remove.packages(c("StanHeaders", "rstan"))
@@ -129,6 +130,13 @@ head(results_by_subject)
 ### 可視化
 
 #### シンプル
+```{r}
+# range 0 to 1
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+# factor が わかりづらくしてる
+factor_str = function(x, res) {as.character(as.integer(floor(x*res)))}
+factor_str(range01(c(1,2,3,4)), 2)
+```
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
@@ -138,7 +146,6 @@ results_by_subject %>%
   # geom_violin(aes(x=factor(range01(tokyo_kinki_ratio), 5), y=to_tokyo_pattern))+
   theme(legend.position = "none") +
   labs(
-    title = "Preference to Tokyo Pattern",
     x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
     y = "Tokyo Preference"
   )
@@ -151,26 +158,49 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"),
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
-results_by_subject %>%
+g = results_by_subject %>%
+  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
+  mutate(tokyo_kinki_ratio_bin=case_when(
+    tokyo_kinki_ratio_bin==0~-1,
+    tokyo_kinki_ratio_bin==1~-0.5,
+    tokyo_kinki_ratio_bin==2~0,
+    tokyo_kinki_ratio_bin==3~0.5,
+    tokyo_kinki_ratio_bin==4~1)) %>% 
+  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin)) %>% 
   ggplot() +
   facet_grid(pitch_from ~ phoneme) +
-  # geom_boxplot(aes(x=factor(range01(tokyo_kinki_ratio), 5),
-  #                 y=to_tokyo_pattern, color=pitch_from))+
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 5),
+    x = tokyo_kinki_ratio_bin,
     y = to_tokyo_pattern, color = pitch_from, fill = pitch_from
   )) +
-  theme(legend.position = "none") +
+  theme_bw() +
+  theme(legend.position = "none",
+        text = element_text(family = "Times")
+        ) +
   labs(
-    title = "Preference to Tokyo Pattern",
-    x = "Tokyo--Kinki Ratio (Min/Max Scaled)",
-    y = "Tokyo Preference"
+    x = "Tokyo-residence ratio",
+    y = "Tokyo-pattern preference"
   )
 
-ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.png"),
-  unit = "cm", width = 8, height = 8
-)
+g
+# ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio.pdf"), unit = "cm", width = 7, height = 7)
+ggsave(paste0("artifact/results_perception.pdf"), unit = "cm", width = 7, height = 5)
 ```
+
+```{r}
+results_by_subject %>%
+  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
+  select(subj_id, age, is_tokyo) %>% distinct() %>% 
+  group_by(is_tokyo) %>% 
+  mutate(age_mean=mean(age),
+         age_sd=sd(age))
+
+results_by_subject %>%
+  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
+  select(subj_id, age, is_tokyo) %>% distinct() %>% 
+  filter(!is_tokyo) %>% nrow
+```
+
 
 ## 分析
 
@@ -192,12 +222,6 @@ model <- lmer(
   tokyo_kinki_ratio + (1 | item_id),
   data = results_by_subject
 )
-# model <- lmer(
-#   to_tokyo_pattern ~
-#   tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
-#   data = results_by_subject
-# )
-# ?isSingular
 summary(model)
 ```
 

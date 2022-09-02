@@ -222,7 +222,6 @@ class Model:
             }
         else:
             return {
-                "HLL",
                 "HHL",
                 "LLH",
                 "HL",

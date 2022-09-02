@@ -109,17 +109,27 @@ head(merged_results)
 ```{r}
 # -1から1の値を取る(まぁ0--4に分割、とかでいいか。)
 g <- merged_results %>%
+  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
+  mutate(tokyo_kinki_ratio_bin=case_when(
+    tokyo_kinki_ratio_bin==0~-1,
+    tokyo_kinki_ratio_bin==1~-0.5,
+    tokyo_kinki_ratio_bin==2~0,
+    tokyo_kinki_ratio_bin==3~0.5,
+    tokyo_kinki_ratio_bin==4~1)) %>% 
+  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin)) %>% 
   ggplot() +
   facet_grid(pattern ~ word) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 4),
+    x = tokyo_kinki_ratio_bin,
     y = eval_by_pattern,
     color = pattern,
     fill = pattern
   )) +
   theme_bw() +
   scale_shape_manual(values = c(16, 21)) +
-  # scale_fill_manual(values = c("black", "white")) +
+  theme(legend.position = "none",
+        text = element_text(family = "Times")
+        ) +
   theme(
     legend.position = "none",
     axis.title.y = element_blank()
@@ -131,9 +141,9 @@ g <- merged_results %>%
     axis.title.x = element_blank()
   )
 
-ggsave(file = "artifact/follow_up.pdf", g, width = 8, height = 8, units = "cm")
-ggsave(file = "artifact/follow_up.png", g, width = 8, height = 8, units = "cm")
 g
+ggsave(file = "artifact/follow_up.pdf", g, width = 7, height = 7, units = "cm")
+# ggsave(file = "artifact/follow_up.png", g, width = 8, height = 8, units = "cm")
 ```
 
 東京居住歴が長くて東京以外のパターンを聞いたことがある人はいないが、
