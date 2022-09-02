@@ -62,8 +62,9 @@ g <- results_mean %>%
     y = "Tokyo-pattern preference",
     fill = "Success rate"
   ) +
+  theme(legend.key.size = unit(0.3, "cm")) + 
   theme( text = element_text(family = "Times") ) +
-  theme(text = element_text(size = 8))
+  theme(text = element_text(size = 10))
 
 g
 ggsave(paste0("results_simulation.pdf"), unit = "cm", width = 7, height = 5)
