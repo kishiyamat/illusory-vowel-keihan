@@ -3,11 +3,20 @@ title: "Allophone"
 output: github_document
 ---
 
-todo
+01でallophoneの効果を見るが、そもそも受け入れられるかを
+03のcatで見ている。音声としての自然さを見れる。
+論文としてのまとめ方はkilpatrickを参考に進める。
+https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
 
+被験者ごとに voiced-voiceless を求めるか。
+
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+- 従属変数
 1. 被験者ごとのデータをまとめる
   * 産出課題: 無声化率(環境毎)
-  * 近畿の居住年数
+  * *居住歴* (*tokyo_kinki_ratio*, span_kinki, span_kinki_span_other, span_kinki_span_tokyo (閾値が面倒))
+  - ランダム効果  
 1. 被験者ごとのデータをまとめる
   * 無声化
     * AXB
@@ -55,14 +64,14 @@ results <- rbind(
   filter(task == "axb") %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo, span_unknown, age, data_src, correct)) %>%
-  mutate(item_id = as.numeric(item_id)) %>%
-  mutate(rt = as.numeric(rt)) %>%
-  mutate(item_id = as.numeric(item_id)) %>%
-  mutate(is_correct = is_correct == "true") %>%
-  # boolにしている
+  mutate(
+    item_id = as.numeric(item_id),
+    rt = as.numeric(rt),
+    item_id = as.numeric(item_id),
+    is_correct = is_correct == "true"
+  ) %>%
   drop_na() %>%
   mutate(
-    span_tokyo_span_kinki = span_tokyo - span_kinki,
     tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
   ) %>%
   filter(age > 18) %>%
@@ -91,12 +100,15 @@ head(results, 100)
 results$phoneme_envs %>% unique()
 ```
 
+概ね右肩さがり（東京のほうが錯覚率低い？）？
+いや、子音のタイプで傾向が似ているのは面白い。
+
 ```{r}
 results %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 5),
+    x = factor(range01(tokyo_kinki_ratio), 1),
     y = is_correct_mean,
     color = phoneme_envs,
     fill = phoneme_envs,
@@ -112,7 +124,7 @@ results %>%
 library(lmerTest)
 model <- lmer(
   is_correct_mean ~
-  condition * pair + tokyo_kinki_ratio + (1 | subject_id),
+    condition * pair + tokyo_kinki_ratio + (1 | subject_id),
   data = results
 )
 
