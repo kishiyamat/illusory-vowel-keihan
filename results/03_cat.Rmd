@@ -29,8 +29,12 @@ source("script/results_pitch.R") # load mutated data
 read_csv("csv/illusory-vowel-keihan-cw.csv")
 ```
 
+1. catのタスクを見る
+  1. 想定されたものを選んでもらえたか
+  1. 想定されたものとしての評価は低すぎないか
+
 ```{r}
-# epuso-1.wavなどのaudio列を.で分割し、最初の要素をphoneme, speakerとする
+# epuso-1.wavなどのaudio列を.で分割し、最初の要素を phoneme, speaker とする
 item_list <- read_csv("../src/list/cat_list.csv") %>%
   rowwise() %>%
   mutate(
@@ -39,26 +43,36 @@ item_list <- read_csv("../src/list/cat_list.csv") %>%
     speaker = str_split(wav_base, "-")[[1]][2]
   )
 
+# 被験者情報
 subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   extract_columns(data_src = "sone")
 subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   extract_columns(data_src = "cw")
 subject_info <- rbind(subject_info_sone, subject_info_cw)
 
-results <- rbind(
+# データのマージ
+results_cat <- rbind(
   read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
   read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
 ) %>%
-  filter(task == "cat") %>%
-  left_join(subject_info, by = c("run_id", "data_src")) %>%
-  select(c(run_id, item_id, response, rt, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
-  drop_na() %>%
-  mutate(
-    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
-  ) %>%
-  filter(age > 18) %>%
-  merge(item_list, on = "item_id") %>%
-  filter(type == "target") #  %>%
+  filter(task == "cat") # %>%
+
+# まず同数行を抜き出して横につける。
+results_rate <- rbind(
+  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
+  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
+) %>%
+  filter(task == "rate") # %>%
+results_rate
+  # left_join(subject_info, by = c("run_id", "data_src")) %>%
+  # select(c(run_id, item_id, response, rt, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
+  # drop_na() %>%
+  # mutate(
+  #   tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
+  # ) %>%
+  # filter(age > 18) %>%
+  # merge(item_list, on = "item_id") %>%
+  # filter(type == "target") #  %>%
 
 results
 ```
