@@ -27,6 +27,8 @@ https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
 
 item_id がないのは練習問題
 
+変なものと評価されているデータは除外する。
+
 * production
 * axb
   * item_id でタスクが分かれる
@@ -102,6 +104,9 @@ results$phoneme_envs %>% unique()
 
 概ね右肩さがり（東京のほうが錯覚率低い？）？
 いや、子音のタイプで傾向が似ているのは面白い。
+それもまた、一つの分析になる。
+
+あと、東京保のほうが全体的に弁別精度が低い。
 
 ```{r}
 results %>%

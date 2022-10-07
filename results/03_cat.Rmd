@@ -17,6 +17,51 @@ library(readr)
 library(stringr)
 library(tidyr)
 source("script/subject_info.R")
+source("script/results_pitch.R") # load mutated data
+```
+
+```{r}
+# item_list <- 
+item_list = read_csv("../src/list/cat_list.csv") %>%
+  rowwise() %>% 
+  mutate(wav_base = str_split(audio, "\\.")[[1]][1],
+          phonene = str_split(wav_base, "-")[[1]][1],
+          speaker = str_split(wav_base, "-")[[1]][2])
+item_list
+
+# item_list <- c("soundA_1.wav", "soundA_2.wav")
+test <- data.frame(sound=sound)
+test
+
+subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
+  extract_columns(data_src = "sone")
+subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
+  extract_columns(data_src = "cw")
+subject_info <- rbind(subject_info_sone, subject_info_cw)
+
+results <- rbind(
+  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
+  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
+) %>%
+  filter(task == "cat") %>%
+  left_join(subject_info, by = c("run_id", "data_src")) %>%
+  select(c(run_id, item_id, response, rt, span_kinki, span_tokyo, span_unknown, age, data_src)) %>% 
+  drop_na() %>%
+  mutate(
+    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
+  ) %>%
+  filter(age > 18) %>%
+  merge(item_list, on = "item_id") %>%
+  filter(type == "target")#  %>%
+
+results
+```
+
+
+
+```{r}
+results
+item_list
 ```
 
 ```{r}
