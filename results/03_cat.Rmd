@@ -62,19 +62,30 @@ library(purrr)
 results_rate <- results_bound %>% 
   filter(task == "rate") %>% mutate(rate = extract_numeric(response)) %>% 
   select(c(rate))
+```
 
-# 
-choices = c('えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご')
+
+```{r}
 choices[1]
+results_bound
+# results_bound %>% 
+#   filter(task == "cat") %>%
+#   mutate(selected_choice = choices[as.integer(response)])
 
-results_cat <-results_bound %>% 
-  filter(task == "cat") %>%
-  mutate(rate=results_rate$rate,
-         categorize = reseponse,
-         select = choices[reseponse])
+selected_idx = results_bound %>%  filter(task == "cat") %>% select(response) %>% unlist %>% as.integer()
+print(selected_idx)
+# choices = c('えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご')
+choices = c('esupo', 'ezubo', 'ekuto', 'egudo', 'epuso', 'epuzo', 'etsuko', 'edzugo')
+print(choices)
+print(choices[selected_idx])
+choices[0]
+choices
+choices
+selected_idx
+```
 
-results_cat
 
+```{r}
 # %>% 
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   select(c(run_id, item_id, response, rate, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
