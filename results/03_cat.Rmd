@@ -32,6 +32,7 @@ read_csv("csv/illusory-vowel-keihan-cw.csv")
 1. catのタスクを見る
   1. 想定されたものを選んでもらえたか
   1. 想定されたものとしての評価は低すぎないか
+  1. sp とかがナチュラルかも気になる（近畿ではないので）
 
 ```{r}
 # epuso-1.wavなどのaudio列を.で分割し、最初の要素を phoneme, speaker とする
@@ -50,31 +51,44 @@ subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   extract_columns(data_src = "cw")
 subject_info <- rbind(subject_info_sone, subject_info_cw)
 
-# データのマージ
-results_cat <- rbind(
-  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
-  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
-) %>%
-  filter(task == "cat") # %>%
+# cwデータと曽根さんデータのマージ
+results_bound =  rbind(
+read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
+read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
+)
 
-# まず同数行を抜き出して横につける。
-results_rate <- rbind(
-  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
-  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
-) %>%
-  filter(task == "rate") # %>%
-results_rate
-  # left_join(subject_info, by = c("run_id", "data_src")) %>%
-  # select(c(run_id, item_id, response, rt, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
-  # drop_na() %>%
-  # mutate(
-  #   tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
-  # ) %>%
-  # filter(age > 18) %>%
-  # merge(item_list, on = "item_id") %>%
-  # filter(type == "target") #  %>%
+# まずrate同数行を抜き出して横につける。
+library(purrr)
+results_rate <- results_bound %>% 
+  filter(task == "rate") %>% mutate(rate = extract_numeric(response)) %>% 
+  select(c(rate))
 
-results
+# 
+choices = c('えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご')
+choices[1]
+
+results_cat <-results_bound %>% 
+  filter(task == "cat") %>%
+  mutate(rate=results_rate$rate,
+         categorize = reseponse,
+         select = choices[reseponse])
+
+results_cat
+
+# %>% 
+  left_join(subject_info, by = c("run_id", "data_src")) %>%
+  select(c(run_id, item_id, response, rate, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
+  drop_na() %>%
+  mutate(
+    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
+  ) %>%
+  filter(age > 18) %>%
+  merge(item_list, on = "item_id") %>%
+  filter(type == "target") #  %>%
+
+nrow(results_cat)
+
+results_cat
 ```
 
 

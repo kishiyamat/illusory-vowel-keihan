@@ -93,6 +93,8 @@ results <- rbind(
       phoneme_envs %in% c("ts-k", "dz-g") ~ "ts-k"
     ),
   )
+
+nrow(results)
 ```
 
 アイテムリストのマージ
@@ -106,30 +108,75 @@ results$phoneme_envs %>% unique()
 いや、子音のタイプで傾向が似ているのは面白い。
 それもまた、一つの分析になる。
 
-あと、東京保のほうが全体的に弁別精度が低い。
+あと、東京保のほうが全体的に弁別精度が低い？
+
+spで東京は低く、psでは若干たかい。
+環境の効果がある？ ps では識別できて sp では識別できない。
+音響情報の効果なら、方言差はでないはず。
+
+パターンがktとかgtで似ているのは、共通した音響情報の効果か。
+いや、なんにせよ居住歴の効果がでているのは興味深い。
+
+そもそもktをベースとしたとき、全部が低い。とくにspの正答率が低い。
+これは先行研究通り。
+
+> pairp-s                                    -3.559e-02  1.497e-02  2.187e+03  -2.378  0.01749 *  
+> pairs-p                                    -4.223e-02  1.497e-02  2.187e+03  -2.822  0.00482 ** 
+> pairts-k                                   -2.876e-02  1.497e-02  2.187e+03  -1.922  0.05474 .  
+
+統計上は、s-pのvoiced で正答率が上がる
+（逆に言うと、spで下がる）のも先行研究通り。
+
+> conditionvoiced                            -3.200e-02  1.497e-02  2.187e+03  -2.138  0.03261 *  
+> conditionvoiced:pairp-s                     4.954e-02  2.117e-02  2.187e+03   2.341  0.01934 *  
+> conditionvoiced:pairs-p                     6.345e-02  2.117e-02  2.187e+03   2.998  0.00275 ** 
+> conditionvoiced:pairts-k                   -2.448e-03  2.117e-02  2.187e+03  -0.116  0.90793   
+
+音素ごとに傾向が分かれるのが意味不明すぎる。
+ただ、spにフォーカスする。そうすると、そこでは効果はない。
+
+> pairp-s:tokyo_kinki_ratio                   4.874e-02  1.902e-02  2.187e+03   2.563  0.01043 *  
+> pairs-p:tokyo_kinki_ratio                  -2.621e-03  1.902e-02  2.187e+03  -0.138  0.89040    
+> pairts-k:tokyo_kinki_ratio                  7.642e-02  1.902e-02  2.187e+03   4.019 6.05e-05 ***
+
+つまり、音響情報の効果ではないだろうか、という筋になる。
+すごくクリーンな結果。ただ、これはspに限定した話で、
+p-sやts-kでは統一ではない。
+
+データが不当に多くなっていないか確認（理屈では、倍になったところで有意にはならないが）
 
 ```{r}
 results %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 1),
+    x = factor(range01(tokyo_kinki_ratio), 4),
     y = is_correct_mean,
     color = phoneme_envs,
     fill = phoneme_envs,
   ))
+
+results %>%
+  ggplot() +
+  geom_histogram(aes(x = factor(range01(tokyo_kinki_ratio), 4)), stat = "count")
+```
+```{r}
+head(results)
 ```
 
 全体的に有声音の環境ではアイテムの作成の難しさから弁別が用意になっているかもしれない。
 
 - まぁ普通に近畿で錯覚が増えていることにはならない
 - bzの方がps より錯覚が起きやすい
+- sp とかがナチュラルかも気になる。多分、気づかないはずだが。
+  - →
 
 ```{r}
 library(lmerTest)
 model <- lmer(
   is_correct_mean ~
-    condition * pair + tokyo_kinki_ratio + (1 | subject_id),
+    condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
   data = results
 )
 
@@ -142,3 +189,5 @@ summary(model)
   - ts-k は下がる, k-t も下がる（おそらくベースライン）
 - p-s や p-s、ts-k は下がる
   - 摩擦や破裂、といった要素でモデリングしたほうが良さそう
+
+効果はなかった。個別の差を分析する感じがよいか。
