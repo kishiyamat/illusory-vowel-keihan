@@ -114,7 +114,45 @@ results %>% ggplot() +
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate))
 ```
+```{r}
+# rateを可視化
+results %>% group_by(phoneme) %>% 
+  summarise(rate=mean(rate)) %>% print
 
+# speaker によってひどい差はない
+results %>% ggplot() +
+  facet_grid(phoneme ~ speaker ) +
+  geom_histogram(aes(x = rate), stat = "count")
+```
+
+非無声化環境で無声化、あるいは無声化環境で無声化していなければスコアは
+低くなっていてほしい。
+
+```{r}
+results %>% 
+  rowwise() %>% 
+  mutate(
+    voiced = str_detect(phoneme, "u"),
+    no_dev_env = str_detect(phoneme, "[dzbg]"),
+    pair = case_when(
+      phoneme %in%  c("espo", "esupo","ezbo", "ezubo") ~ "s-p",
+      phoneme %in%  c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
+      phoneme %in%  c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
+      phoneme %in%  c("ekto", "ekuto","egdo", "egudo") ~ "k-t",
+    )
+  ) %>% ggplot() +
+    facet_grid(pair ~ voiced ) +
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 4),
+    y = rate,
+   color=no_dev_env )
+    )
+```
+
+no_dev_envがTなのは非無声化（赤）で、Fは無声化（青; ekto）。
+青で母音がある（右列）はおかしい。
+
+いや、しかし質が悪かったとして、問題になるのは有声性の効果のみ。
 
 ```{r}
 print("EOF")
