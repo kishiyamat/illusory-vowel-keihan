@@ -11,6 +11,7 @@ output: github_document
 > 音がどの表記（ひらがな）に当てはまり(8候補)、
 > choices: ['えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご'],
 > どの程度一致しているかを1--7段階で評価
+> questions: [{ prompt: "聞いた音声は選んだ表記として適切ですか？<br>1: 全く適切でない<br>7: 極めて適切", labels: scale }],
 
 - [ ] カテゴライズとしての良し悪し
 
@@ -52,36 +53,38 @@ subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
 subject_info <- rbind(subject_info_sone, subject_info_cw)
 
 # cwデータと曽根さんデータのマージ
-results_bound =  rbind(
-read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
-read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
+results_bound <- rbind(
+  read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
+  read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
 )
 ```
 
 
 ```{r}
 # catでの選択を特定する(indexは1始まりなので+1する)
-results_cat = results_bound %>% 
-  filter(task == "cat") %>%
-selected_idx = results_bound %>%  filter(task == "cat") %>% select(response) %>% unlist %>% as.integer()
+results_cat <- results_bound %>% filter(task == "cat")
+selected_idx <- results_cat %>%
+  select(response) %>%
+  unlist() %>%
+  as.integer()
 # choices = c('えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご')
-choices = c('esupo', 'ezubo', 'ekuto', 'egudo', 'epuso', 'epuzo', 'etsuko', 'edzugo')
-results_cat$selected_choice =  choices[selected_idx+1]
-print(nrow(results_cat))
+choices <- c("esupo", "ezubo", "ekuto", "egudo", "epuso", "ebuzo", "etsuko", "edzugo")
+results_cat$choice <- choices[selected_idx + 1]
 
 # rate同数行を抜き出して横につける。
-results_rate <- results_bound %>% 
-  filter(task == "rate") %>% mutate(rate = extract_numeric(response)) %>% 
-  select(c(rate))
-
-print(nrow(results_rate))
+results_rate <- results_bound %>%
+  filter(task == "rate") %>%
+  mutate(rate = extract_numeric(response)) %>%
+  select(c(rate)) %>%
+  unlist()
+results_cat$rate <- results_rate
 ```
 
 
 ```{r}
-results = 
+results <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
-  select(c(run_id, item_id, response, rate, span_kinki, span_tokyo, span_unknown, age, data_src, type)) %>%
+  select(c(run_id, item_id, response, rate, span_kinki, span_tokyo, span_unknown, age, data_src, type, choice, rate)) %>%
   drop_na() %>%
   mutate(
     tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
@@ -90,18 +93,28 @@ results =
   merge(item_list, on = "item_id") %>%
   filter(type == "target") #  %>%
 
-nrow(results_cat)
-
-results_cat
+results
 ```
 
 
 
 ```{r}
 results %>% ggplot() +
-  facet_grid(speaker ~ phoneme) +
-  geom_histogram(aes(x = response), stat = "count")
+  facet_grid(choice ~ phoneme) +
+  geom_histogram(aes(x = rate), stat = "count")
 ```
+etsko はかなり適切。egudoもよい。egdoは低い。
+とくにcat課題で許容度に関しての差はなさそう。
+
+```{r}
+results %>% ggplot() +
+  facet_grid(choice ~ phoneme) +
+  # geom_boxplot(aes(
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 4),
+    y = rate))
+```
+
 
 ```{r}
 print("EOF")
