@@ -25,6 +25,8 @@ https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
   
 タスクの確認
 
+deltaを分析したほうが良いかも
+
 item_id がないのは練習問題
 
 変なものと評価されているデータは除外する。
@@ -78,31 +80,56 @@ results <- rbind(
   ) %>%
   filter(age > 18) %>%
   merge(item_list, on = "item_id") %>%
-  filter(type == "target") %>%
-  group_by(c1, c2, run_id, data_src) %>%
+  filter(type == "target") %>% 
   mutate(
-    is_correct_mean = mean(is_correct),
     phoneme_envs = paste0(c1, "-", c2),
-    subject_id = paste0(data_src, "-", run_id)
-  ) %>%
-  mutate(
+    subject_id = paste0(data_src, "-", run_id),
     pair = case_when(
       phoneme_envs %in% c("s-p", "z-b") ~ "s-p",
       phoneme_envs %in% c("p-s", "b-z") ~ "p-s",
       phoneme_envs %in% c("k-t", "g-d") ~ "k-t",
       phoneme_envs %in% c("ts-k", "dz-g") ~ "ts-k"
-    ),
+    )
   )
-
 nrow(results)
 ```
 
-アイテムリストのマージ
+```{r}
+# 右裾の確認, 10s 以上は外れ値とする
+results %>% select(rt) %>% unlist %>% hist(breaks = 100)
+# 左裾はそこまで以上な値はなさそう.
+results %>% filter(rt<400) %>% select(rt) %>% unlist %>% hist(breaks = 100)
+# 対数を取って反応の正規分布を確認, 2sd以上の反応は除外
+results_filtered = results # %>% filter(between(rt,0,5000))
+hist(log(results_filtered$rt))
+# sd_log_rt = 2*sd(log(results_filtered$rt))
+# mean_log_rt = mean(log(results_filtered$rt))
+# floor_log_rt = mean_log_rt-sd_log_rt
+# ceil_log_rt = mean_log_rt+sd_log_rt
+# print(floor_log_rt)
+# print(ceil_log_rt)
+# results_filtered = results_filtered %>% mutate(log_rt = log(rt)) %>% filter(between(log_rt,floor_log_rt,ceil_log_rt))
+results_filtered$rt %>% summary() %>% print
+print(nrow(results_filtered))
+```
+
 
 ```{r}
-head(results, 100)
-results$phoneme_envs %>% unique()
+results_mean = results_filtered %>%
+  group_by(subject_id, tokyo_kinki_ratio, pair, condition, phoneme_envs) %>%
+  # item_id があると ebzo ebuzo ebuzo と ebuzo ebuzo ebzo が別になり
+  # 平均ができない
+  # group_by(item_id, subject_id, tokyo_kinki_ratio, pair, condition, phoneme_envs) %>%
+  mutate(
+    is_correct_mean = mean(is_correct),
+    rt_mean = mean(rt),
+  ) %>%
+  select(c(subject_id, tokyo_kinki_ratio, pair, condition, phoneme_envs, is_correct_mean, rt_mean)) %>% droplevels()%>% distinct()
+
+results_mean
 ```
+
+アイテムリストのマージ
 
 概ね右肩さがり（東京のほうが錯覚率低い？）？
 いや、子音のタイプで傾向が似ているのは面白い。
@@ -145,18 +172,21 @@ p-sやts-kでは統一ではない。
 
 データが不当に多くなっていないか確認（理屈では、倍になったところで有意にはならないが）
 
+いや、もとの話は spなどのような、後ろが停止だったもののはず。
+
 ```{r}
-results %>%
+results_mean %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
+    # y = rt_mean,
     y = is_correct_mean,
     color = phoneme_envs,
     fill = phoneme_envs,
   ))
 
-results %>%
+results_mean %>%
   ggplot() +
   geom_histogram(aes(x = factor(range01(tokyo_kinki_ratio), 4)), stat = "count")
 ```
@@ -169,17 +199,51 @@ head(results)
 - まぁ普通に近畿で錯覚が増えていることにはならない
 - bzの方がps より錯覚が起きやすい
 - sp とかがナチュラルかも気になる。多分、気づかないはずだが。
-  - →
+
+平均を取るのはそこまで問題ではない（正答率がaにあるかbにあるかで変わる）
 
 ```{r}
 library(lmerTest)
 model <- lmer(
-  is_correct_mean ~
-    condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+  rt_mean ~
+  # is_correct_mean ~
+    # condition * tokyo_kinki_ratio + (1 | subject_id),
+    # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
     # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
-  data = results
+#   data = (results_mean)
+  data = (results_mean %>% filter(pair!="p-s"))
 )
 
+# 居住歴の効果はない(トーンの錯覚とは対照的)
+summary(model)
+```
+
+## バイナリーなのでモデル変更
+```{r}
+model <- lmer(
+  rt ~
+    # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+  # data = results_filtered
+  data = (results_filtered %>% filter(pair!="p-s")),
+)
+summary(model)
+```
+
+```{r}
+results_filtered
+model <- glmer(
+  is_correct ~
+    # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+  # data = results_filtered,
+  data = (results_filtered %>% filter(pair!="p-s")),
+  family = binomial
+)
+print(nrow(results_filtered))
 # 居住歴の効果はない(トーンの錯覚とは対照的)
 summary(model)
 ```
@@ -191,3 +255,36 @@ summary(model)
   - 摩擦や破裂、といった要素でモデリングしたほうが良さそう
 
 効果はなかった。個別の差を分析する感じがよいか。
+
+## デルタ(対応付け)
+
+```{r}
+results_mean_delta = results_mean %>% pivot_wider(
+  id_cols=c(subject_id, tokyo_kinki_ratio, pair),
+  names_from="condition", values_from =is_correct_mean) %>% 
+  mutate(delta=voiced-devoiced)
+results_mean_delta %>% 
+  ggplot() +
+  facet_grid(pair ~ .) +
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 4),
+    y = delta,
+    # y = is_correct_mean,
+    color = pair,
+    fill = pair,
+  ))
+```
+```{r}
+
+model <- lmer(
+  delta ~
+    tokyo_kinki_ratio + (1 | subject_id),
+  data = results_mean_delta
+  # data = (results_filtered %>% filter(pair!="p-s")),
+)
+summary(model)
+```
+
+```{r}
+print("EOF")
+```

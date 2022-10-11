@@ -217,6 +217,10 @@ head(results_by_subject)
 
 ```{r}
 library(lmerTest)
+# 行数が異常でないことを確認
+results_by_subject %>% distinct()
+# 248行
+print(nrow(results_by_subject))
 model <- lmer(
   to_tokyo_pattern ~
   tokyo_kinki_ratio + (1 | item_id),
