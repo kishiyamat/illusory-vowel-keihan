@@ -1,19 +1,24 @@
 ---
-title: "Categorize"
+title: "Categorize and Rate"
 output: github_document
 ---
 
 - 概要: https://docs.google.com/document/d/1rk5MHMvD5-6SWT7H2nkc-r7v3KvH-dzt_OdftNrDe-I/edit?usp=sharing
 - 作業説明: https://docs.google.com/document/d/1U3FCDh8NETS-9mWDLfTU_0mZx9jJpFgkisukI58nV64/edit?usp=sharing
 
-行う分析チェックリスト
+行う分析
+
+- 東京方言話者と近畿方言話者で無声化した音声に対する許容度は異なるのか
+  - 音声の尤度自体は低いはず。P(音声|音素)
+    - P(音素|音声) も低くなってほしい。
+  - なにかおもしろいことが言えないか
 
 > 音がどの表記（ひらがな）に当てはまり(8候補)、
 > choices: ['えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご'],
 > どの程度一致しているかを1--7段階で評価
 > questions: [{ prompt: "聞いた音声は選んだ表記として適切ですか？<br>1: 全く適切でない<br>7: 極めて適切", labels: scale }],
 
-- [ ] カテゴライズとしての良し悪し
+- カテゴライズとしての良し悪し
 
 ```{r}
 library(dplyr)
@@ -23,11 +28,6 @@ library(stringr)
 library(tidyr)
 source("script/subject_info.R")
 source("script/results_pitch.R") # load mutated data
-```
-```{r}
-# 前の
-# cat と rate がある。
-read_csv("csv/illusory-vowel-keihan-cw.csv")
 ```
 
 1. catのタスクを見る
@@ -50,7 +50,8 @@ subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
   extract_columns(data_src = "sone")
 subject_info_cw <- read_csv("csv/illusory-vowel-keihan-cw.csv") %>%
   extract_columns(data_src = "cw")
-subject_info <- rbind(subject_info_sone, subject_info_cw)
+subject_info <- rbind(subject_info_sone, subject_info_cw) %>%
+  mutate(tokyo_kinki_ratio = (span_tokyo - span_kinki) / age)
 
 # cwデータと曽根さんデータのマージ
 results_bound <- rbind(
@@ -59,6 +60,10 @@ results_bound <- rbind(
 )
 ```
 
+1. catでの選択を特定
+1. rateの抜き出し
+1. catのDFの横につける
+1. 
 
 ```{r}
 # catでの選択を特定する(indexは1始まりなので+1する)
@@ -78,20 +83,15 @@ results_rate <- results_bound %>%
   select(c(rate)) %>%
   unlist()
 results_cat$rate <- results_rate
-```
 
-
-```{r}
+# 被験者情報とアイテム情報のマージ
 results <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
-  select(c(run_id, item_id, response, rate, span_kinki, span_tokyo, span_unknown, age, data_src, type, choice, rate)) %>%
+  filter(type == "target") %>% 
+  select(c(subj_id, item_id, tokyo_kinki_ratio, age, choice, rate)) %>%
   drop_na() %>%
-  mutate(
-    tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
-  ) %>%
   filter(age > 18) %>%
-  merge(item_list, on = "item_id") %>%
-  filter(type == "target") #  %>%
+  merge(item_list, on = "item_id")
 
 results
 ```
@@ -112,16 +112,19 @@ results %>% ggplot() +
   # geom_boxplot(aes(
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
-    y = rate))
+    y = rate
+  ))
 ```
 ```{r}
 # rateを可視化
-results %>% group_by(phoneme) %>% 
-  summarise(rate=mean(rate)) %>% print
+results %>%
+  group_by(phoneme) %>%
+  summarise(rate = mean(rate)) %>%
+  print()
 
 # speaker によってひどい差はない
 results %>% ggplot() +
-  facet_grid(phoneme ~ speaker ) +
+  facet_grid(phoneme ~ speaker) +
   geom_histogram(aes(x = rate), stat = "count")
 ```
 
@@ -129,24 +132,25 @@ results %>% ggplot() +
 低くなっていてほしい。
 
 ```{r}
-results %>% 
-  rowwise() %>% 
+results %>%
+  rowwise() %>%
   mutate(
     voiced = str_detect(phoneme, "u"),
     no_dev_env = str_detect(phoneme, "[dzbg]"),
     pair = case_when(
-      phoneme %in%  c("espo", "esupo","ezbo", "ezubo") ~ "s-p",
-      phoneme %in%  c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
-      phoneme %in%  c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
-      phoneme %in%  c("ekto", "ekuto","egdo", "egudo") ~ "k-t",
+      phoneme %in% c("espo", "esupo", "ezbo", "ezubo") ~ "s-p",
+      phoneme %in% c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
+      phoneme %in% c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
+      phoneme %in% c("ekto", "ekuto", "egdo", "egudo") ~ "k-t",
     )
-  ) %>% ggplot() +
-    facet_grid(pair ~ voiced ) +
+  ) %>%
+  ggplot() +
+  facet_grid(pair ~ voiced) +
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate,
-   color=no_dev_env )
-    )
+    color = no_dev_env
+  ))
 ```
 
 no_dev_envがTなのは非無声化（赤）で、Fは無声化（青; ekto）。
