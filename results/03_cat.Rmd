@@ -36,14 +36,15 @@ source("script/results_pitch.R") # load mutated data
   1. sp とかがナチュラルかも気になる（近畿ではないので）
 
 ```{r}
-# epuso-1.wavなどのaudio列を.で分割し、最初の要素を phoneme, speaker とする
+# epuso-1.wavなどのaudio列を.で分割し、最初の要素を stim, spkr とする
 item_list <- read_csv("../src/list/cat_list.csv") %>%
   rowwise() %>%
   mutate(
     wav_base = str_split(audio, "\\.")[[1]][1],
-    phoneme = str_split(wav_base, "-")[[1]][1],
-    speaker = str_split(wav_base, "-")[[1]][2]
-  )
+    stim = str_split(wav_base, "-")[[1]][1],
+    spkr = str_split(wav_base, "-")[[1]][2]
+  ) %>%
+  select(-c(task, audio, wav_base))
 
 # 被験者情報
 subject_info_sone <- read_csv("csv/illusory-vowel-keihan.csv") %>%
@@ -79,6 +80,7 @@ results_cat$choice <- choices[selected_idx + 1]
 # rate同数行を抜き出して横につける。
 results_rate <- results_bound %>%
   filter(task == "rate") %>%
+  # FIXME: extract_numeric() is deprecated: please use readr::parse_number() instead
   mutate(rate = extract_numeric(response)) %>%
   select(c(rate)) %>%
   unlist()
@@ -87,44 +89,97 @@ results_cat$rate <- results_rate
 # 被験者情報とアイテム情報のマージ
 results <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
-  filter(type == "target") %>% 
-  select(c(subj_id, item_id, tokyo_kinki_ratio, age, choice, rate)) %>%
-  drop_na() %>%
+  filter(type == "target") %>%
   filter(age > 18) %>%
-  merge(item_list, on = "item_id")
+  select(c(subj_id, tokyo_kinki_ratio, choice, rate, item_id)) %>%
+  drop_na() %>%
+  merge(item_list, on = "item_id") %>%
+  mutate(
+    stim_has_u = str_detect(stim, "u"),
+    dev_env = !str_detect(stim, "[dzbg]"),
+    pair = case_when(
+      stim %in% c("espo", "esupo", "ezbo", "ezubo") ~ "s-p",
+      stim %in% c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
+      stim %in% c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
+      stim %in% c("ekto", "ekuto", "egdo", "egudo") ~ "k-t"),
+    supposed_answer = case_when(  # 回答が想定通りかを確認
+      ("s-p"  == pair) & (dev_env) ~ "esupo",
+      ("s-p"  == pair) & (!dev_env) ~ "ezubo",
+      ("ts-k" == pair) & (dev_env) ~ "etsuko",
+      ("ts-k" == pair) & (!dev_env ) ~ "edzugo",
+      ("p-s"  == pair) & (dev_env) ~ "epuso",
+      ("p-s"  == pair) & (!dev_env ) ~ "ebuzo",
+      ("k-t"  == pair) & (dev_env) ~ "ekuto",
+      ("k-t"  == pair) & (!dev_env ) ~ "egudo"
+    )
+  ) %>%
+  distinct()
 
 results
 ```
 
-
+選択を縦、音声を横に置いてみる。過度に低いものがないか確認。
 
 ```{r}
 results %>% ggplot() +
-  facet_grid(choice ~ phoneme) +
+  facet_grid(choice ~ stim) +
   geom_histogram(aes(x = rate), stat = "count")
 ```
+
 etsko はかなり適切。egudoもよい。egdoは低い。
 とくにcat課題で許容度に関しての差はなさそう。
 
+見たいのは環境がdevoicedなのに刺激がvoicedなとき、またその逆の場合に、
+東京方言話者が気づくか。
+
 ```{r}
-results %>% ggplot() +
-  facet_grid(choice ~ phoneme) +
-  # geom_boxplot(aes(
-  geom_violin(aes(
+results
+  results %>% filter(choice==supposed_answer) %>% ggplot() +
+  facet_grid(pair ~ dev_env) +
+  geom_boxplot(aes(
+  # geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
-    y = rate
+    y = rate,
+    color=stim_has_u,
+    fill=stim_has_u
   ))
 ```
 ```{r}
+library(lmerTest)
+model <- lmer(
+  rate ~ stim_has_u * dev_env * tokyo_kinki_ratio + (1 | subj_id),
+  data = results
+)
+summary(model)
+```
+
+> Fixed effects:
+                                                Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)                                      4.00708    0.10329   88.89845  38.793   <2e-16 ***
+stim_voicedTRUE                                  0.70559    0.05823 3331.00000  12.118   <2e-16 ***
+dev_envTRUE                                      0.76758    0.05823 3331.00000  13.182   <2e-16 ***
+tokyo_kinki_ratio                               -0.00431    0.13124   88.89845  -0.033    0.974    
+stim_voicedTRUE:dev_envTRUE                     -1.11200    0.08235 3331.00000 -13.504   <2e-16 ***
+stim_voicedTRUE:tokyo_kinki_ratio               -0.02436    0.07398 3331.00000  -0.329    0.742    
+dev_envTRUE:tokyo_kinki_ratio                    0.00383    0.07398 3331.00000   0.052    0.959    
+stim_voicedTRUE:dev_envTRUE:tokyo_kinki_ratio   -0.08631    0.10463 3331.00000  -0.825    0.409    
+
+1. 音声が有声だと許容度が上がる
+1. 無声化の環境だと(zbでなくspだと)、これもまた許容度が上がる
+1. stim_voicedTRUE:dev_envTRUE、つまり無声化の環境(sp)で有声だと下がる
+  - これに影響はない。
+  - グラフ上はあるんだが...
+
+```{r}
 # rateを可視化
 results %>%
-  group_by(phoneme) %>%
+  group_by(stim) %>%
   summarise(rate = mean(rate)) %>%
   print()
 
-# speaker によってひどい差はない
+# spkr によってひどい差はない
 results %>% ggplot() +
-  facet_grid(phoneme ~ speaker) +
+  facet_grid(stim ~ spkr) +
   geom_histogram(aes(x = rate), stat = "count")
 ```
 
@@ -134,26 +189,16 @@ results %>% ggplot() +
 ```{r}
 results %>%
   rowwise() %>%
-  mutate(
-    voiced = str_detect(phoneme, "u"),
-    no_dev_env = str_detect(phoneme, "[dzbg]"),
-    pair = case_when(
-      phoneme %in% c("espo", "esupo", "ezbo", "ezubo") ~ "s-p",
-      phoneme %in% c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
-      phoneme %in% c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
-      phoneme %in% c("ekto", "ekuto", "egdo", "egudo") ~ "k-t",
-    )
-  ) %>%
   ggplot() +
-  facet_grid(pair ~ voiced) +
+  facet_grid(pair ~ stim_has_u) +
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate,
-    color = no_dev_env
+    color = dev_env
   ))
 ```
 
-no_dev_envがTなのは非無声化（赤）で、Fは無声化（青; ekto）。
+dev_env がTなのは無声化で、Fは非無声化
 青で母音がある（右列）はおかしい。
 
 いや、しかし質が悪かったとして、問題になるのは有声性の効果のみ。
