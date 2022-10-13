@@ -64,7 +64,11 @@ results_bound <- rbind(
 1. catでの選択を特定
 1. rateの抜き出し
 1. catのDFの横につける
-1. 
+1. 必要な列を作成
+  1. `stim_devoiced`: 刺激はdevoicedされたか
+  1. `dev_env`: 無声化環境か
+  1. `pair`: どのペアなのか（調音点）
+  1. `supposed_answer`: espoもesupoも'えすぽ(esupo)'と回答(choice)してほしい
 
 ```{r}
 # catでの選択を特定する(indexは1始まりなので+1する)
@@ -77,40 +81,48 @@ selected_idx <- results_cat %>%
 choices <- c("esupo", "ezubo", "ekuto", "egudo", "epuso", "ebuzo", "etsuko", "edzugo")
 results_cat$choice <- choices[selected_idx + 1]
 
+
 # rate同数行を抜き出して横につける。
 results_rate <- results_bound %>%
-  filter(task == "rate") %>%
+  filter(task == "rate")
+rt_rate = results_rate %>% select(rt) %>% unlist %>% as.numeric()
+results_rate = results_rate %>% 
   # FIXME: extract_numeric() is deprecated: please use readr::parse_number() instead
   mutate(rate = extract_numeric(response)) %>%
   select(c(rate)) %>%
   unlist()
+
 results_cat$rate <- results_rate
+results_cat$rt_rate = rt_rate
+results_cat
 
 # 被験者情報とアイテム情報のマージ
 results <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   filter(type == "target") %>%
   filter(age > 18) %>%
-  select(c(subj_id, tokyo_kinki_ratio, choice, rate, item_id)) %>%
+  select(c(subj_id, tokyo_kinki_ratio, choice, rate, item_id, rt, rt_rate)) %>%
   drop_na() %>%
   merge(item_list, on = "item_id") %>%
   mutate(
-    stim_has_u = str_detect(stim, "u"),
+    rt = as.numeric(rt),
+    stim_devoiced = !str_detect(stim, "u"),
     dev_env = !str_detect(stim, "[dzbg]"),
     pair = case_when(
       stim %in% c("espo", "esupo", "ezbo", "ezubo") ~ "s-p",
       stim %in% c("etsko", "etsuko", "edzgo", "edzugo") ~ "ts-k",
       stim %in% c("epso", "epuso", "ebzo", "ebuzo") ~ "p-s",
-      stim %in% c("ekto", "ekuto", "egdo", "egudo") ~ "k-t"),
-    supposed_answer = case_when(  # 回答が想定通りかを確認
-      ("s-p"  == pair) & (dev_env) ~ "esupo",
-      ("s-p"  == pair) & (!dev_env) ~ "ezubo",
+      stim %in% c("ekto", "ekuto", "egdo", "egudo") ~ "k-t"
+    ),
+    supposed_answer = case_when( # 回答が想定通りかを確認
+      ("s-p" == pair) & (dev_env) ~ "esupo",
+      ("s-p" == pair) & (!dev_env) ~ "ezubo",
       ("ts-k" == pair) & (dev_env) ~ "etsuko",
-      ("ts-k" == pair) & (!dev_env ) ~ "edzugo",
-      ("p-s"  == pair) & (dev_env) ~ "epuso",
-      ("p-s"  == pair) & (!dev_env ) ~ "ebuzo",
-      ("k-t"  == pair) & (dev_env) ~ "ekuto",
-      ("k-t"  == pair) & (!dev_env ) ~ "egudo"
+      ("ts-k" == pair) & (!dev_env) ~ "edzugo",
+      ("p-s" == pair) & (dev_env) ~ "epuso",
+      ("p-s" == pair) & (!dev_env) ~ "ebuzo",
+      ("k-t" == pair) & (dev_env) ~ "ekuto",
+      ("k-t" == pair) & (!dev_env) ~ "egudo"
     )
   ) %>%
   distinct()
@@ -133,21 +145,25 @@ etsko はかなり適切。egudoもよい。egdoは低い。
 東京方言話者が気づくか。
 
 ```{r}
-results
-  results %>% filter(choice==supposed_answer) %>% ggplot() +
+results %>%
+  filter(choice == supposed_answer) %>%
+  ggplot() +
   facet_grid(pair ~ dev_env) +
   geom_boxplot(aes(
-  # geom_violin(aes(
+    # geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate,
-    color=stim_has_u,
-    fill=stim_has_u
+    color = stim_devoiced,
+    fill = stim_devoiced
   ))
 ```
+
+統計分析
+
 ```{r}
 library(lmerTest)
 model <- lmer(
-  rate ~ stim_has_u * dev_env * tokyo_kinki_ratio + (1 | subj_id),
+  rate ~ stim_devoiced * dev_env * tokyo_kinki_ratio + (1 | subj_id),
   data = results
 )
 summary(model)
@@ -169,6 +185,64 @@ stim_voicedTRUE:dev_envTRUE:tokyo_kinki_ratio   -0.08631    0.10463 3331.00000  
 1. stim_voicedTRUE:dev_envTRUE、つまり無声化の環境(sp)で有声だと下がる
   - これに影響はない。
   - グラフ上はあるんだが...
+  - -> 対応付けがあるデータなので、引き算をする
+
+devoiced環境のときに dev-non_dev の値は高くなってほしい。
+non-dev 環境のときは 低くなってほしい(non_devのほうが高いので)。
+
+```{r}
+# 400件が落ちる
+results_match = results %>%
+  filter(choice == supposed_answer) %>%
+  pivot_wider(id_cols = c(subj_id, tokyo_kinki_ratio, pair, spkr, dev_env),
+              names_from = stim_devoiced,
+              values_from = rate,
+              names_prefix="stim_devoiced_") %>%
+  # mutate_all(~replace(., is.na(.), 1)) %>% 
+  drop_na() %>% 
+  mutate(rate_stim_dev_match = stim_devoiced_TRUE-stim_devoiced_FALSE)
+
+results_match
+```
+
+```{r}
+results_match %>%
+  ggplot() +
+  facet_grid(spkr ~ dev_env) +
+  # facet_grid(pair ~ dev_env) +
+  geom_boxplot(aes(
+    # geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 4),
+    y = rate_stim_dev_match
+  ))
+```
+
+```{r}
+results_match
+library(lmerTest)
+model <- lmer(
+  rate_stim_dev_match ~ tokyo_kinki_ratio + (1| subj_id)+(1|pair)+(1|spkr),
+  # rate_stim_dev_match ~ tokyo_kinki_ratio*pair + (1 | subj_id),
+  data = results_match %>% filter(dev_env)
+)
+summary(model)
+```
+  
+true のときに高くなる。傾向に差はなさそう。
+無声化環境で有声はおかしいし、有声化環境で無声化はおかしい。
+単に非無声化環境での音声がおかしかった、というものでも解釈できる。
+
+東京方言話者の方は気づいているといって問題なさそう。
+
+```{r}
+model <- lmer(
+  rate ~ dev_env*stim_devoiced * tokyo_kinki_ratio + (1 | subj_id) ,
+  data = results#   %>% filter(dev_env)
+)
+summary(model)
+```
+
+## Appendix
 
 ```{r}
 # rateを可視化
@@ -190,7 +264,7 @@ results %>% ggplot() +
 results %>%
   rowwise() %>%
   ggplot() +
-  facet_grid(pair ~ stim_has_u) +
+  facet_grid(pair ~ stim_devoiced) +
   geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate,
