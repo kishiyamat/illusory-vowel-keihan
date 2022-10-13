@@ -19,6 +19,14 @@ output: github_document
 > questions: [{ prompt: "聞いた音声は選んだ表記として適切ですか？<br>1: 全く適切でない<br>7: 極めて適切", labels: scale }],
 
 - カテゴライズとしての良し悪し
+- 3way interaction
+- 交互作用がでたので分析、両方で main effect
+  - 有声の方はともかく、無声でも環境と音声のマッチの効果があった
+  - -> しかし、区別はできない...
+  - 音声としての尤度は判定できるが、どちらも同じラベルを行うので区別はできない。
+  
+ベイズファクターで分析するか。
+
 
 ```{r}
 library(dplyr)
@@ -85,19 +93,22 @@ results_cat$choice <- choices[selected_idx + 1]
 # rate同数行を抜き出して横につける。
 results_rate <- results_bound %>%
   filter(task == "rate")
-rt_rate = results_rate %>% select(rt) %>% unlist %>% as.numeric()
-results_rate = results_rate %>% 
+rt_rate <- results_rate %>%
+  select(rt) %>%
+  unlist() %>%
+  as.numeric()
+results_rate <- results_rate %>%
   # FIXME: extract_numeric() is deprecated: please use readr::parse_number() instead
   mutate(rate = extract_numeric(response)) %>%
   select(c(rate)) %>%
   unlist()
 
 results_cat$rate <- results_rate
-results_cat$rt_rate = rt_rate
+results_cat$rt_rate <- rt_rate
 results_cat
 
 # 被験者情報とアイテム情報のマージ
-results <- results_cat %>%
+results_with_outlier <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   filter(type == "target") %>%
   filter(age > 18) %>%
@@ -127,7 +138,13 @@ results <- results_cat %>%
   ) %>%
   distinct()
 
-results
+# 外れ値の対処
+hist(results_with_outlier$rt_rate, breaks = 1000)
+hist(results_with_outlier$rt, breaks = 1000)
+results <- results_with_outlier %>% filter(rt_rate < 10000, rt < 10000)
+hist(results$rt_rate, breaks = 1000)
+hist(results$rt, breaks = 1000)
+# results_with_outlier
 ```
 
 選択を縦、音声を横に置いてみる。過度に低いものがないか確認。
@@ -144,21 +161,58 @@ etsko はかなり適切。egudoもよい。egdoは低い。
 見たいのは環境がdevoicedなのに刺激がvoicedなとき、またその逆の場合に、
 東京方言話者が気づくか。
 
+3wayはなさそう。
+
+phonotactics には適しているのに悪くなるのは面白い。
+単に devoicedなのに刺激がvoiced の調音、
+voicedなのに刺激がdevoicedの調音が悪かっただけ、という線もある。
+
+
 ```{r}
 results %>%
   filter(choice == supposed_answer) %>%
   ggplot() +
-  facet_grid(pair ~ dev_env) +
+  # facet_grid(pair ~ dev_env) +
+  facet_grid(. ~ dev_env) +
   geom_boxplot(aes(
     # geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 4),
+    x = factor(range01(tokyo_kinki_ratio), 7),
     y = rate,
     color = stim_devoiced,
     fill = stim_devoiced
   ))
 ```
 
-統計分析
+```{r}
+results %>% filter(choice!=supposed_answer)
+library(lmerTest)
+model <- lmer(
+  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subj_id),
+  data = results %>% filter(choice==supposed_answer)
+)
+summary(model)
+```
+
+統計分析. 特にレーティングでの差はない。
+
+```{r}
+library(lmerTest)
+model <- lmer(
+  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subj_id),
+  data = results
+)
+summary(model)
+```
+
+```{r}
+library(lmerTest)
+model <- glmer(
+  rate / 6 ~ stim_devoiced * dev_env * tokyo_kinki_ratio + (1 | subj_id),
+  data = results,
+  family = binomial
+)
+summary(model)
+```
 
 ```{r}
 library(lmerTest)
@@ -192,15 +246,18 @@ non-dev 環境のときは 低くなってほしい(non_devのほうが高いの
 
 ```{r}
 # 400件が落ちる
-results_match = results %>%
+results_match <- results %>%
   filter(choice == supposed_answer) %>%
-  pivot_wider(id_cols = c(subj_id, tokyo_kinki_ratio, pair, spkr, dev_env),
-              names_from = stim_devoiced,
-              values_from = rate,
-              names_prefix="stim_devoiced_") %>%
-  # mutate_all(~replace(., is.na(.), 1)) %>% 
-  drop_na() %>% 
-  mutate(rate_stim_dev_match = stim_devoiced_TRUE-stim_devoiced_FALSE)
+  pivot_wider(
+    id_cols = c(subj_id, tokyo_kinki_ratio, pair, spkr, dev_env),
+    names_from = stim_devoiced,
+    values_from = rate,
+    names_prefix = "stim_devoiced_"
+  ) %>%
+  mutate_all(~replace(., is.na(.), 0)) %>%
+  # drop_na() %>%
+  mutate(rate_stim_dev_match = stim_devoiced_TRUE - stim_devoiced_FALSE,
+         rate_stim_dev_match_odds = log((stim_devoiced_TRUE+1)/(stim_devoiced_FALSE+1)))
 
 results_match
 ```
@@ -208,10 +265,10 @@ results_match
 ```{r}
 results_match %>%
   ggplot() +
-  facet_grid(spkr ~ dev_env) +
-  # facet_grid(pair ~ dev_env) +
-  geom_boxplot(aes(
-    # geom_violin(aes(
+  # facet_grid(spkr ~ dev_env) +
+  facet_grid(pair ~ dev_env) +
+  # geom_boxplot(aes(
+  geom_violin(aes(
     x = factor(range01(tokyo_kinki_ratio), 4),
     y = rate_stim_dev_match
   ))
@@ -221,7 +278,8 @@ results_match %>%
 results_match
 library(lmerTest)
 model <- lmer(
-  rate_stim_dev_match ~ tokyo_kinki_ratio + (1| subj_id)+(1|pair)+(1|spkr),
+  rate_stim_dev_match_odds  ~ tokyo_kinki_ratio + (1 | subj_id),
+  # rate_stim_dev_match ~ tokyo_kinki_ratio + (1 | subj_id),
   # rate_stim_dev_match ~ tokyo_kinki_ratio*pair + (1 | subj_id),
   data = results_match %>% filter(dev_env)
 )
@@ -236,8 +294,8 @@ true のときに高くなる。傾向に差はなさそう。
 
 ```{r}
 model <- lmer(
-  rate ~ dev_env*stim_devoiced * tokyo_kinki_ratio + (1 | subj_id) ,
-  data = results#   %>% filter(dev_env)
+  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subj_id),
+  data = results #   %>% filter(dev_env)
 )
 summary(model)
 ```
