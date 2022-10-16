@@ -124,7 +124,7 @@ results_mean = results_filtered %>%
     is_correct_mean = mean(is_correct),
     rt_mean = mean(rt),
   ) %>%
-  select(c(subject_id, tokyo_kinki_ratio, pair, condition, phoneme_envs, is_correct_mean, rt_mean)) %>% droplevels()%>% distinct()
+  select(c(subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki, pair, condition, phoneme_envs, is_correct_mean, rt_mean)) %>% droplevels()%>% distinct()
 
 results_mean
 ```
@@ -179,7 +179,9 @@ results_mean %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 4),
+    # x = factor(range01(tokyo_kinki_ratio), 3),
+    # x = factor(range01(span_tokyo), 3),
+    x = factor(range01(span_kinki), 3),
     # y = rt_mean,
     y = is_correct_mean,
     color = phoneme_envs,
@@ -203,16 +205,25 @@ head(results)
 平均を取るのはそこまで問題ではない（正答率がaにあるかbにあるかで変わる）
 
 ```{r}
+results_mean
+```
+
+
+```{r}
 library(lmerTest)
 model <- lmer(
-  rt_mean ~
-  # is_correct_mean ~
+  # rt_mean ~
+  is_correct_mean ~
+    # condition * span_kinki + (1 | subject_id),
     # condition * tokyo_kinki_ratio + (1 | subject_id),
     # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * span_tokyo + (1 | subject_id),
+    # condition * pair * span_kinki + (1 | subject_id),
     condition * pair * tokyo_kinki_ratio + (1 | subject_id),
-    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
-#   data = (results_mean)
-  data = (results_mean %>% filter(pair!="p-s"))
+  data = results_mean
+  # data = (results_mean %>% filter(pair!="p-s"))
+  # data = (results_mean %>% filter(pair %in% c("p-s", "s-p")))
+  #data = (results_mean %>% filter(pair %in% c("p-s", "s-p")))
 )
 
 # 居住歴の効果はない(トーンの錯覚とは対照的)
@@ -233,14 +244,14 @@ summary(model)
 ```
 
 ```{r}
-results_filtered
+results_filtered %>% filter(pair %in% c("p-s", "s-p"))
 model <- glmer(
   is_correct ~
     # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
     # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
     condition * pair * tokyo_kinki_ratio + (1 | subject_id),
   # data = results_filtered,
-  data = (results_filtered %>% filter(pair!="p-s")),
+  data = (results_filtered %>% filter(pair %in% c("p-s", "s-p"))),
   family = binomial
 )
 print(nrow(results_filtered))
