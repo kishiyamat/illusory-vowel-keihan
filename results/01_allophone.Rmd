@@ -3,12 +3,17 @@ title: "Allophone"
 output: github_document
 ---
 
-01でallophoneの効果を見るが、そもそも受け入れられるかは
-03のcatで見ており、これは「音声としての自然さ」として解釈できる。
 <!--
+最新のドキュメント
+https://docs.google.com/document/d/1VywiSaEORlVrRDb7nxGQx2D0pu6huftZrEiVQKmCGWY/edit
 論文としてのまとめ方はkilpatrickを参考に進める。
 https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
+昔のもの
+https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
 -->
+
+01でallophoneの効果を見るが、そもそも受け入れられるかは
+03のcatで見ており、これは「音声としての自然さ」として解釈できる。
 
 被験者ごとに voiced-voiceless を求めるか。
 
@@ -25,8 +30,6 @@ https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
     * 判定課題
   * トーンの復元
   
-https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
-
 ```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
