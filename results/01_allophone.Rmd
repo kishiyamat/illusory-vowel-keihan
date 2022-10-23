@@ -15,6 +15,8 @@ https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/
 01でallophoneの効果を見るが、そもそも受け入れられるかは
 03のcatで見ており、これは「音声としての自然さ」として解釈できる。
 
+03の結果に基づき、分析から外す被験者やアイテムを先に指定しておく。
+
 被験者ごとに voiced-voiceless を求めるか。
 
 - 独立変数
@@ -46,6 +48,18 @@ set.seed(123)
 # remotes::install_github("easystats/easystats")
 library(rstanarm)
 library("bayestestR")
+
+# 03_cat.Rmd の結果より
+# `summarise()` has grouped output by 'subject_id'. You can override using the `.groups` argument.
+# [1] "less accurate subj_id:"
+# subject_id1 subject_id2 subject_id3 subject_id4 
+#     "cw-12"    "cw-243"    "cw-249"     "cw-67" 
+less_accurate_subj_id = c("cw-12"   ,"cw-243",   "cw-249"    ,"cw-67" )
+```
+
+```{r}
+devoicing_preference = read_csv("devoicing_preference_by_subj.csv")
+head(devoicing_preference)
 ```
 
 ```{r}
@@ -86,11 +100,14 @@ results <- rbind(
       phoneme_envs %in% c("k-t", "g-d") ~ "k-t",
       phoneme_envs %in% c("ts-k", "dz-g") ~ "ts-k"
     )
-  )
+  ) %>%
+  left_join(devoicing_preference, by = c("subject_id")) %>% 
+  filter(!subject_id %in% less_accurate_subj_id)
 nrow(results)
 ```
 
 ```{r}
+results
 # 右裾の確認, 10s 以上は外れ値とする
 results %>%
   select(rt) %>%
@@ -123,7 +140,7 @@ print(nrow(results_filtered))
 
 ```{r}
 results_mean <- results_filtered %>%
-  group_by(subject_id, tokyo_kinki_ratio, pair, condition, phoneme_envs) %>%
+  group_by(subject_id, tokyo_kinki_ratio, devoicing_preference, pair, condition, phoneme_envs) %>%
   # item_idがあるとebzo ebuzo ebuzoとebuzo ebuzo ebzoで分かれて平均できない
   mutate(
     # ここ、NAがあるならどうなる？
@@ -131,7 +148,7 @@ results_mean <- results_filtered %>%
     rt_mean = mean(rt, na.rm = T),
   ) %>%
   select(c(
-    subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki,
+    subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki, devoicing_preference,
     pair, condition, phoneme_envs,
     is_correct_mean, rt_mean
   )) %>%
@@ -163,6 +180,28 @@ results_mean %>%
     fill = phoneme_envs,
   ))
 ```
+```{r}
+# rt
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
+    y = log(rt_mean),
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))
+
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
+    y = is_correct_mean,
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))
+```
 
 ## 分析
 
@@ -176,10 +215,18 @@ LME
 # ペアなし交互作用
 model <- lmer(
   is_correct_mean ~
+    condition * devoicing_preference + (1 | subject_id),
+  data = results_mean
+)
+print(summary(model))
+
+# ペアなし交互作用
+model <- lmer(
+  is_correct_mean ~
     condition * tokyo_kinki_ratio + (1 | subject_id),
   data = results_mean
 )
-summary(model)
+print(summary(model))
 ```
 
 ベイズファクター

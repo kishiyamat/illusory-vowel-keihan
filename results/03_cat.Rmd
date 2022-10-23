@@ -12,11 +12,28 @@ https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
 https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
 -->
 
-- 東京方言話者と近畿方言話者で無声化した音声に対する許容度は異なるのか
-  - 近畿方言話者にとって無声化の尤度自体は低いはず
-    - 無声化しないので P(音声|音素) は低い
-    - 聞くことがあるかも知れないので P(音素|音声) も低いとは限らない。
-    
+分類課題の目的は、オフライン処理における方言差と無声化に関する判断の調査である。
+東京方言話者と近畿方言話者の間で無声化の傾向は異なり、
+産出において東京方言話者の方がより母音を無声化しやすい。
+しかしながら、知覚においては両言語で子音の連結がないため、
+母音を挿入して知覚するはずである。
+対して、異なる処理を行うならば言語の経験によって差が得られるはずである。
+そこで、本来なら無声化すべき環境で無声化していないケースで容認度が下がるか、
+またその変化に言語差が影響するかの2点を検証する。
+
+<!--
+オンライン処理の検証に対する影響を避けるため、
+分類課題は実際にはオンライン処理のあとに行った。
+しかしオフライン分類課題の結果を用いて
+オンライン課題の分析を行うため、
+-->
+
+## Method
+
+### 刺激　
+
+### 手順
+
 > 音がどの表記（ひらがな）に当てはまり(8候補)、
 > choices: ['えすぽ', 'えずぼ', 'えくと', 'えぐど', 'えぷそ', 'えぶぞ', 'えつこ', 'えづご'],
 > どの程度一致しているかを1--7段階で評価
@@ -29,12 +46,18 @@ https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/
   - -> しかし、区別はできない...
   - 音声としての尤度は判定できるが、どちらも同じラベルを行うので区別はできない。
 
+
+### 被験者
+
+## 結果
+
 ```{r}
 library(dplyr)
 library(ggplot2)
 library(readr)
 library(stringr)
 library(tidyr)
+library(lmerTest)
 source("script/subject_info.R")
 source("script/results_pitch.R") # load mutated data
 ```
@@ -67,7 +90,7 @@ subject_info <- rbind(subject_info_sone, subject_info_cw) %>%
 results_bound <- rbind(
   read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
   read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
-)
+) %>%  mutate(subject_id = paste0(data_src, "-", run_id))
 ```
 
 1. catでの選択を特定
@@ -113,7 +136,7 @@ results_with_outlier <- results_cat %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   filter(type == "target") %>%
   filter(age > 18) %>%
-  select(c(subj_id, tokyo_kinki_ratio, span_tokyo, span_kinki, choice, rate, item_id, rt, rt_rate)) %>%
+  select(c(subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki, choice, rate, item_id, rt, rt_rate)) %>%
   drop_na() %>%
   merge(item_list, on = "item_id") %>%
   mutate(
@@ -143,35 +166,75 @@ results_with_outlier <- results_cat %>%
 # 外れ値の対処
 hist(results_with_outlier$rt_rate, breaks = 1000)
 hist(results_with_outlier$rt, breaks = 1000)
-results <- results_with_outlier %>% filter(rt_rate < 10000, rt < 10000)
-hist(results$rt_rate, breaks = 1000)
-hist(results$rt, breaks = 1000)
+results_raw <- results_with_outlier %>% filter(rt_rate < 10000, rt < 10000)
+hist(results_raw$rt_rate, breaks = 1000)
+hist(results_raw$rt, breaks = 1000)
 # results_with_outlier
 ```
 
-選択を縦、音声を横に置いてみる。過度に低いものがないか確認。
+## 正答率の概要
+
+### 刺激と分類の傾向
+
+過度に低いものがないか確認するため、選択(ひらがな)を縦、音声を横に配置した。
+目的としては、別の音素に聞こえてしまいやすい音声やは分析から除外したほうが良い。
+例えば、etsukoはedzugoと反応されてしまったケースや
+esupoがezubo と認識されてしまったケースがある。
 
 ```{r}
-results %>% ggplot() +
+results_raw %>% ggplot() +
   facet_grid(choice ~ stim) +
   geom_histogram(aes(x = rate), stat = "count")
 ```
 
-<!--
-想定どおりの知覚がされた対象のみ行う。
--->
-etsko はかなり適切。egudoもよい。egdoは低い。
-とくにcat課題で許容度に関しての差はなさそう。
+```{r}
+# アイテム間の正答率
+acc_by_stimulus = results_raw %>%
+  group_by(stim) %>% 
+  summarise(score_by_stim = mean(supposed_answer==choice)) %>% ungroup()
+
+acc_by_stimulus %>% 
+  ggplot(aes(x=stim, y=score_by_stim)) +
+  geom_boxplot() +
+  coord_flip()
+
+less_accurate_stimulus = acc_by_stimulus %>% filter(score_by_stim< 0.75) %>%  select(stim) %>% unlist
+print(less_accurate_stimulus)
+```
+
+```{r}
+# 被験者間の正答率
+acc_by_subj = results_raw %>% group_by(subject_id, tokyo_kinki_ratio) %>% 
+  summarise(score_by_suj = mean(supposed_answer==choice)) %>% ungroup()
+
+acc_by_subj %>% 
+  ggplot(aes(x=subject_id, y=score_by_suj)) +
+  geom_boxplot() +
+  coord_flip()
+
+# 0.75以下は具合が悪そう
+acc_by_subj %>% ggplot(aes(x=tokyo_kinki_ratio, y=score_by_suj)) +
+  geom_point()
+
+print("less accurate subj_id:")
+less_accurate_subj_id = acc_by_subj %>% filter(score_by_suj< 0.75) %>%  select(subject_id) %>% unlist
+print(less_accurate_subj_id)
+```
+
+```{r}
+results = results_raw %>% 
+  filter(choice==supposed_answer) %>% 
+  filter(!subject_id %in% less_accurate_subj_id)
+```
+
+### 3-way interaction
 
 見たいのは環境がdevoicedなのに刺激がvoicedなとき、またその逆の場合に、
 東京方言話者が気づくか。
 
-3wayはなさそう。
-
 phonotactics には適しているのに悪くなるのは面白い。
 単に devoicedなのに刺激がvoiced の調音、
 voicedなのに刺激がdevoicedの調音が悪かっただけ、という線もある。
-
 
 ```{r}
 results %>%
@@ -189,14 +252,10 @@ results %>%
 ```
 
 ```{r}
-results %>% filter(choice!=supposed_answer)
-library(lmerTest)
 model <- lmer(
   # 以下はどれでも変わらず
-  # rate ~ dev_env * stim_devoiced * span_tokyo + (1 | subj_id),
-  # rate ~ dev_env * stim_devoiced * span_kinki + (1 | subj_id),
-  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subj_id),
-  data = results %>% filter(choice==supposed_answer)
+  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subject_id),
+  data = results
 )
 summary(model)
 ```
@@ -211,6 +270,29 @@ summary(model)
 > dev_envTRUE:stim_devoicedTRUE                    1.002e+00  8.142e-02  2.885e+03  12.303  < 2e-16 ***
 > dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio  6.963e-02  1.031e-01  2.884e+03   0.675 0.499658    
 
+交互作用があったので、データを制限して分析
+
+```{r}
+# 差は0.2
+results %>% filter(choice==supposed_answer) %>% group_by(stim_devoiced) %>% 
+  summarise(score=mean(rate)) %>% print()
+
+for (true_false in c(TRUE, FALSE)){
+  print("===================================================================")
+  print(paste("dev_env:", as.character(true_false)))
+  model <- lmer(
+    rate ~ stim_devoiced * tokyo_kinki_ratio + (1 | subject_id),
+    data = results %>% filter(choice==supposed_answer & dev_env==true_false)
+  )
+  print(summary(model))
+}
+```
+
+無声化すべきときにしていれば+0.236、
+すべきでないときにしていると-0.778 の評定で、両方に有意な差があった。
+
+### 差分の分析
+
 追加の分析として対応づけられたデータの差分を分析する。
 つまり、無声化環境のときの無声化、非無声化のレートを被験者ごとに計算する。
 例として、「えすぽ」としての評価を[esupo]と[espo]で比較する。
@@ -220,9 +302,8 @@ devoiced環境のときに dev-non_dev の値は高くなってほしい。
 # 400件が落ちる
 print(nrow(results))
 results_match <- results %>%
-  filter(choice == supposed_answer) %>%
   pivot_wider(
-    id_cols = c(subj_id, tokyo_kinki_ratio, span_tokyo, span_kinki, pair, spkr, dev_env),
+    id_cols = c(subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki, pair, spkr, dev_env),
     names_from = stim_devoiced,
     values_from = rate,
     names_prefix = "stim_devoiced_"
@@ -250,11 +331,8 @@ results_match %>% filter(dev_env==TRUE) %>%
 
 ```{r}
 results_match
-library(lmerTest)
 model <- lmer(
-  # rate_stim_dev_match ~ span_tokyo + (1 | subj_id),
-  # rate_stim_dev_match ~ span_kinki + (1 | subj_id),
-  rate_stim_dev_match ~ tokyo_kinki_ratio + (1 | subj_id),
+  rate_stim_dev_match ~ tokyo_kinki_ratio + (1 | subject_id),
   data = results_match %>% filter(dev_env=TRUE)
 )
 summary(model)
@@ -264,11 +342,10 @@ summary(model)
 データは無声化環境で従属変数は stim_devoiced_TRUE - stim_devoiced_FALSE なので、
 仮に無声化の知識が影響するなら。
 
-近畿方言話者がもっている、という解釈はできないか。
+近畿方言話者もパターンを理解している、という解釈はできないか。
 
-(Intercept)       2.117e-01  6.492e-02 1.647e+03   3.261  0.00113 **
-(Intercept)       2.117e-01  6.492e-02 1.647e+03   3.261  0.00113 **
-
+epso -> epuso となる。
+epuso -> epso となる。
 
 (Intercept)       2.117e-01  6.492e-02 1.647e+03   3.261  0.00113 **
   
@@ -277,12 +354,33 @@ summary(model)
 例として、「えすぽ」としての評価を[esupo]と[espo]で比較する。
 devoiced環境のときに dev-non_dev の値は高くなってほしい。
 
-
-
-特に差はなかった。
+特に差はなかった。0.2あがる。差の分析と変化なし。
 true のときに高くなる。傾向に差はなさそう。
 無声化環境で有声はおかしいし、有声化環境で無声化はおかしい。
 単に非無声化環境での音声がおかしかった、というものでも解釈できる。
+
+どうやら違いはあるらしいが、レーティングがあがる程度である。
+カテゴリカルな違いとして認識できるだろうか。
+
+というか無声化と音の差がわかってしまう時点で、
+いや近畿方言話者も...とならない？
+例えば、そのスコアを使ってしまうとかどう？
+無声化への拒否率、みたいなもの。
+devoicing_preferenceがマイナスなら、各アイテムにおいて
+無声化の環境で無声化の特典を下げた人、ということになる。
+
+やはり「なんとなく不自然」程度であって、極端に悪いわけではない。
+→ 聞いただけではわからない(効果が0.2では...)。
+評定がほんの少し変わるだけ。
+
+区別できるレベルの差であるかを検証
+
+```{r}
+devoicing_preference = results_match %>% filter(dev_env=TRUE) %>% group_by(subject_id) %>% 
+  summarise(devoicing_preference=mean(rate_stim_dev_match))
+
+write_csv(devoicing_preference, "devoicing_preference_by_subj.csv")
+```
 
 ## Appendix
 
