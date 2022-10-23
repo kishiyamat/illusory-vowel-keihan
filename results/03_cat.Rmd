@@ -28,10 +28,8 @@ https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/
 オンライン課題の分析を行うため、
 -->
 
-## Method
-
+## Method 
 ### 刺激　
-
 ### 手順
 
 > 音がどの表記（ひらがな）に当てはまり(8候補)、
