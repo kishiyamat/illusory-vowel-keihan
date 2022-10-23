@@ -220,11 +220,13 @@ library(lmerTest)
 # 行数が異常でないことを確認
 results_by_subject %>% distinct()
 # 248行
+less_accurate_subj_id = c("12_lcptn15","243_tomjelly","249_パテマ","67_tumetume" )
 print(nrow(results_by_subject))
+results_by_subject
 model <- lmer(
   to_tokyo_pattern ~
   tokyo_kinki_ratio + (1 | item_id),
-  data = results_by_subject
+  data = (results_by_subject %>% filter(!subj_id %in% less_accurate_subj_id))
 )
 summary(model)
 ```
