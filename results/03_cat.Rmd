@@ -61,7 +61,14 @@ library(readr)
 library(stringr)
 library(tidyr)
 library(lmerTest)
+
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
 source("script/subject_info.R")
+
 source("script/results_pitch.R") # load mutated data
 ```
 
@@ -240,6 +247,8 @@ results = results_raw %>%
 
 ### 3-way interaction
 
+#### Visualize
+
 見たいのは環境がdevoicedなのに刺激がvoicedなとき、またその逆の場合に、
 東京方言話者が気づくか。
 
@@ -272,6 +281,86 @@ results %>%
   )
 
 ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 6)
+```
+#### Stats(Main)
+
+```{r}
+model <- stan_lmer(
+  formula =  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio +
+    (1 | subject_id)+(1|item_id),
+  data = results,
+  prior = normal(3, 3, autoscale = FALSE),
+  chains = 10, iter = 5000, warmup = 1000
+)
+summary(model)
+```
+
+> Estimates:
+                                                  mean   sd   10%   50%   90%
+(Intercept)                                      4.9    0.2  4.7   4.9   5.1 
+dev_envTRUE                                     -0.4    0.2 -0.6  -0.4  -0.2 
+stim_devoicedTRUE                               -0.8    0.2 -1.0  -0.8  -0.6 
+tokyo_kinki_ratio                                0.0    0.1 -0.2   0.0   0.2 
+dev_envTRUE:stim_devoicedTRUE                    1.2    0.2  0.9   1.2   1.5 
+dev_envTRUE:tokyo_kinki_ratio                    0.0    0.1 -0.1   0.0   0.1 
+stim_devoicedTRUE:tokyo_kinki_ratio              0.0    0.1 -0.1   0.0   0.1 
+dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio  0.1    0.1 -0.1   0.1   0.2 
+
+とある。収束を示すRhatの値も1なので問題なく結果は収束している。
+
+> MCMC diagnostics
+                                                mcse Rhat n_eff
+(Intercept)                                     0.0  1.0   3203
+dev_envTRUE                                     0.0  1.0   4787
+stim_devoicedTRUE                               0.0  1.0   4820
+tokyo_kinki_ratio                               0.0  1.0   2641
+dev_envTRUE:stim_devoicedTRUE                   0.0  1.0   4683
+dev_envTRUE:tokyo_kinki_ratio                   0.0  1.0  16239
+stim_devoicedTRUE:tokyo_kinki_ratio             0.0  1.0  17488
+dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio 0.0  1.0  13963
+
+各パラメタの事後分布で考えると、効果があるのはIntercept(4.9)、
+dev_envTRUE(-0.4)、stim_devoicedTRUE(-0.8)、
+
+>                                                          5%           95%
+(Intercept)                                      4.610707698  5.113067e+00
+dev_envTRUE                                     -0.648327103 -9.319705e-02
+stim_devoicedTRUE                               -1.052349509 -5.087998e-01
+tokyo_kinki_ratio                               -0.214697083  2.127467e-01
+dev_envTRUE:stim_devoicedTRUE                    0.804916510  1.571824e+00
+dev_envTRUE:tokyo_kinki_ratio                   -0.125624335  1.138492e-01
+stim_devoicedTRUE:tokyo_kinki_ratio             -0.118278513  1.068271e-01
+dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio -0.111683931  2.153518e-01
+
+```{r}
+posterior_interval(model,
+pars = c(
+  "(Intercept)",
+  "dev_envTRUE",
+  "stim_devoicedTRUE",
+  "tokyo_kinki_ratio",
+  "dev_envTRUE:stim_devoicedTRUE",
+  "dev_envTRUE:tokyo_kinki_ratio",
+  "stim_devoicedTRUE:tokyo_kinki_ratio",
+  "dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio"),
+                   )
+```
+```{r}
+library(bayesplot)
+
+mcmc_areas(
+as.matrix(model),
+pars = c(
+  "(Intercept)",
+  "dev_envTRUE",
+  "stim_devoicedTRUE",
+  "tokyo_kinki_ratio",
+  "dev_envTRUE:stim_devoicedTRUE",
+  "dev_envTRUE:tokyo_kinki_ratio",
+  "stim_devoicedTRUE:tokyo_kinki_ratio",
+  "dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio"),
+prob = 0.95
+)
 ```
 
 ```{r}
