@@ -28,6 +28,11 @@ https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/
 オンライン課題の分析を行うため、
 -->
 
+以下、色々と分析するが議論に必要なデータと議論に不要で、
+聞かれたら答えられるデータに分けておく。
+議論に必要なデータはミニマルに、統計と図だけまとめておく。
+残りの細かい分析で、かつ直接的な示唆のないものはAppendixに押し込む。
+
 ## Method 
 ### 刺激　
 ### 手順
@@ -159,7 +164,15 @@ results_with_outlier <- results_cat %>%
       ("k-t" == pair) & (!dev_env) ~ "egudo"
     )
   ) %>%
-  distinct()
+  distinct() %>% 
+  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
+  mutate(tokyo_kinki_ratio_bin=case_when(
+    tokyo_kinki_ratio_bin==0~-1,
+    tokyo_kinki_ratio_bin==1~-0.5,
+    tokyo_kinki_ratio_bin==2~0,
+    tokyo_kinki_ratio_bin==3~0.5,
+    tokyo_kinki_ratio_bin==4~1)) %>% 
+  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin))
 
 # 外れ値の対処
 hist(results_with_outlier$rt_rate, breaks = 1000)
@@ -237,16 +250,28 @@ voicedなのに刺激がdevoicedの調音が悪かっただけ、という線も
 ```{r}
 results %>%
   filter(choice == supposed_answer) %>%
+  mutate(dev_env = case_when(
+    dev_env~"Devoicing Env.",
+    !dev_env~"No-Devoicing Env.")) %>%
   ggplot() +
   # facet_grid(pair ~ dev_env) +
   facet_grid(. ~ dev_env) +
-  # geom_boxplot(aes(
-  geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 7),
+  geom_boxplot(aes(
+    x = tokyo_kinki_ratio_bin,
     y = rate,
     color = stim_devoiced,
     fill = stim_devoiced
-  ))
+  )) +
+  theme_bw() +
+  theme(legend.position = "top",
+        text = element_text(family = "Times")
+        ) +
+  labs(
+    x = "Tokyo-residence ratio",
+    y = "Acceptability"
+  )
+
+ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 6)
 ```
 
 ```{r}
@@ -321,7 +346,7 @@ results_match %>% filter(dev_env==TRUE) %>%
   # facet_grid(.~pair ) +
   # geom_boxplot(aes(
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 4),
+    x = tokyo_kinki_ratio_bin,
     y = rate_stim_dev_match
     # y = rate_stim_dev_match_odds
   ))
@@ -379,41 +404,6 @@ devoicing_preference = results_match %>% filter(dev_env=TRUE) %>% group_by(subje
 
 write_csv(devoicing_preference, "devoicing_preference_by_subj.csv")
 ```
-
-## Appendix
-
-```{r}
-# rateを可視化
-results %>%
-  group_by(stim) %>%
-  summarise(rate = mean(rate)) %>%
-  print()
-
-# spkr によってひどい差はない
-results %>% ggplot() +
-  facet_grid(stim ~ spkr) +
-  geom_histogram(aes(x = rate), stat = "count")
-```
-
-非無声化環境で無声化、あるいは無声化環境で無声化していなければスコアは
-低くなっていてほしい。
-
-```{r}
-results %>%
-  rowwise() %>%
-  ggplot() +
-  facet_grid(pair ~ stim_devoiced) +
-  geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 4),
-    y = rate,
-    color = dev_env
-  ))
-```
-
-dev_env がTなのは無声化で、Fは非無声化
-青で母音がある（右列）はおかしい。
-
-いや、しかし質が悪かったとして、問題になるのは有声性の効果のみ。
 
 ```{r}
 print("EOF")
