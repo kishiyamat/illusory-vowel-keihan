@@ -70,6 +70,9 @@ library("bayestestR")
 source("script/subject_info.R")
 
 source("script/results_pitch.R") # load mutated data
+
+print(packageVersion("rstanarm"))
+print(packageVersion("bayestestR"))
 ```
 
 1. catのタスクを見る
@@ -100,7 +103,7 @@ subject_info <- rbind(subject_info_sone, subject_info_cw) %>%
 results_bound <- rbind(
   read_csv("csv/illusory-vowel-keihan.csv") %>% mutate(data_src = "sone"),
   read_csv("csv/illusory-vowel-keihan-cw.csv") %>% mutate(data_src = "cw")
-) %>%  mutate(subject_id = paste0(data_src, "-", run_id))
+) %>% mutate(subject_id = paste0(data_src, "-", run_id))
 ```
 
 1. catでの選択を特定
@@ -171,15 +174,16 @@ results_with_outlier <- results_cat %>%
       ("k-t" == pair) & (!dev_env) ~ "egudo"
     )
   ) %>%
-  distinct() %>% 
-  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
-  mutate(tokyo_kinki_ratio_bin=case_when(
-    tokyo_kinki_ratio_bin==0~-1,
-    tokyo_kinki_ratio_bin==1~-0.5,
-    tokyo_kinki_ratio_bin==2~0,
-    tokyo_kinki_ratio_bin==3~0.5,
-    tokyo_kinki_ratio_bin==4~1)) %>% 
-  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin))
+  distinct() %>%
+  mutate(tokyo_kinki_ratio_bin = factor(range01(tokyo_kinki_ratio), 4)) %>%
+  mutate(tokyo_kinki_ratio_bin = case_when(
+    tokyo_kinki_ratio_bin == 0 ~ -1,
+    tokyo_kinki_ratio_bin == 1 ~ -0.5,
+    tokyo_kinki_ratio_bin == 2 ~ 0,
+    tokyo_kinki_ratio_bin == 3 ~ 0.5,
+    tokyo_kinki_ratio_bin == 4 ~ 1
+  )) %>%
+  mutate(tokyo_kinki_ratio_bin = as.factor(tokyo_kinki_ratio_bin))
 
 # 外れ値の対処
 hist(results_with_outlier$rt_rate, breaks = 1000)
@@ -207,42 +211,55 @@ results_raw %>% ggplot() +
 
 ```{r}
 # アイテム間の正答率
-acc_by_stimulus = results_raw %>%
-  group_by(stim) %>% 
-  summarise(score_by_stim = mean(supposed_answer==choice)) %>% ungroup()
+acc_by_stimulus <- results_raw %>%
+  group_by(stim) %>%
+  summarise(score_by_stim = mean(supposed_answer == choice)) %>%
+  ungroup()
 
-acc_by_stimulus %>% 
-  ggplot(aes(x=stim, y=score_by_stim)) +
+acc_by_stimulus %>%
+  ggplot(aes(x = stim, y = score_by_stim)) +
   geom_boxplot() +
   coord_flip()
 
-less_accurate_stimulus = acc_by_stimulus %>% filter(score_by_stim< 0.75) %>%  select(stim) %>% unlist
+less_accurate_stimulus <- acc_by_stimulus %>%
+  filter(score_by_stim < 0.75) %>%
+  select(stim) %>%
+  unlist()
 print(less_accurate_stimulus)
 ```
 
 ```{r}
 # 被験者間の正答率
-acc_by_subj = results_raw %>% group_by(subject_id, tokyo_kinki_ratio) %>% 
-  summarise(score_by_suj = mean(supposed_answer==choice)) %>% ungroup()
+acc_by_subj <- results_raw %>%
+  group_by(subject_id, tokyo_kinki_ratio) %>%
+  summarise(score_by_suj = mean(supposed_answer == choice)) %>%
+  ungroup()
 
-acc_by_subj %>% 
-  ggplot(aes(x=subject_id, y=score_by_suj)) +
+acc_by_subj %>%
+  ggplot(aes(x = subject_id, y = score_by_suj)) +
   geom_boxplot() +
   coord_flip()
 
 # 0.75以下は具合が悪そう
-acc_by_subj %>% ggplot(aes(x=tokyo_kinki_ratio, y=score_by_suj)) +
+acc_by_subj %>% ggplot(aes(x = tokyo_kinki_ratio, y = score_by_suj)) +
   geom_point()
 
 print("less accurate subj_id:")
-less_accurate_subj_id = acc_by_subj %>% filter(score_by_suj< 0.75) %>%  select(subject_id) %>% unlist
+less_accurate_subj_id <- acc_by_subj %>%
+  filter(score_by_suj < 0.75) %>%
+  select(subject_id) %>%
+  unlist()
 print(less_accurate_subj_id)
 ```
 
 ```{r}
-results = results_raw %>% 
-  filter(choice==supposed_answer) %>% 
+results <- results_raw %>%
+  filter(choice == supposed_answer) %>%
   filter(!subject_id %in% less_accurate_subj_id)
+```
+
+```{r}
+summary(results)
 ```
 
 ### 3-way interaction
@@ -260,8 +277,9 @@ voicedなのに刺激がdevoicedの調音が悪かっただけ、という線も
 results %>%
   filter(choice == supposed_answer) %>%
   mutate(dev_env = case_when(
-    dev_env~"Devoicing Env.",
-    !dev_env~"No-Devoicing Env.")) %>%
+    dev_env ~ "Devoicing Env.",
+    !dev_env ~ "No-Devoicing Env."
+  )) %>%
   ggplot() +
   # facet_grid(pair ~ dev_env) +
   facet_grid(. ~ dev_env) +
@@ -272,9 +290,10 @@ results %>%
     fill = stim_devoiced
   )) +
   theme_bw() +
-  theme(legend.position = "top",
-        text = element_text(family = "Times")
-        ) +
+  theme(
+    legend.position = "top",
+    text = element_text(family = "Times")
+  ) +
   labs(
     x = "Tokyo-residence ratio",
     y = "Acceptability"
@@ -282,94 +301,54 @@ results %>%
 
 ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 6)
 ```
+
 #### Stats(Main)
 
 ```{r}
 model <- stan_lmer(
-  formula =  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio +
-    (1 | subject_id)+(1|item_id),
+  formula = rate ~ dev_env + stim_devoiced + tokyo_kinki_ratio +
+    dev_env:stim_devoiced +
+    dev_env:stim_devoiced:tokyo_kinki_ratio +
+    (1 | subject_id) + (1 | item_id),
   data = results,
-  prior = normal(3, 3, autoscale = FALSE),
-  chains = 10, iter = 5000, warmup = 1000
+  prior = normal(0, 10),
+  chains = 4, iter = 5000, warmup = 1000
 )
 summary(model)
 ```
 
-> Estimates:
-                                                  mean   sd   10%   50%   90%
-(Intercept)                                      4.9    0.2  4.7   4.9   5.1 
-dev_envTRUE                                     -0.4    0.2 -0.6  -0.4  -0.2 
-stim_devoicedTRUE                               -0.8    0.2 -1.0  -0.8  -0.6 
-tokyo_kinki_ratio                                0.0    0.1 -0.2   0.0   0.2 
-dev_envTRUE:stim_devoicedTRUE                    1.2    0.2  0.9   1.2   1.5 
-dev_envTRUE:tokyo_kinki_ratio                    0.0    0.1 -0.1   0.0   0.1 
-stim_devoicedTRUE:tokyo_kinki_ratio              0.0    0.1 -0.1   0.0   0.1 
-dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio  0.1    0.1 -0.1   0.1   0.2 
-
-とある。収束を示すRhatの値も1なので問題なく結果は収束している。
-
-> MCMC diagnostics
-                                                mcse Rhat n_eff
-(Intercept)                                     0.0  1.0   3203
-dev_envTRUE                                     0.0  1.0   4787
-stim_devoicedTRUE                               0.0  1.0   4820
-tokyo_kinki_ratio                               0.0  1.0   2641
-dev_envTRUE:stim_devoicedTRUE                   0.0  1.0   4683
-dev_envTRUE:tokyo_kinki_ratio                   0.0  1.0  16239
-stim_devoicedTRUE:tokyo_kinki_ratio             0.0  1.0  17488
-dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio 0.0  1.0  13963
-
-各パラメタの事後分布で考えると、効果があるのはIntercept(4.9)、
-dev_envTRUE(-0.4)、stim_devoicedTRUE(-0.8)、
-
->                                                          5%           95%
-(Intercept)                                      4.610707698  5.113067e+00
-dev_envTRUE                                     -0.648327103 -9.319705e-02
-stim_devoicedTRUE                               -1.052349509 -5.087998e-01
-tokyo_kinki_ratio                               -0.214697083  2.127467e-01
-dev_envTRUE:stim_devoicedTRUE                    0.804916510  1.571824e+00
-dev_envTRUE:tokyo_kinki_ratio                   -0.125624335  1.138492e-01
-stim_devoicedTRUE:tokyo_kinki_ratio             -0.118278513  1.068271e-01
-dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio -0.111683931  2.153518e-01
 
 ```{r}
 posterior_interval(model,
-pars = c(
-  "(Intercept)",
-  "dev_envTRUE",
-  "stim_devoicedTRUE",
-  "tokyo_kinki_ratio",
-  "dev_envTRUE:stim_devoicedTRUE",
-  "dev_envTRUE:tokyo_kinki_ratio",
-  "stim_devoicedTRUE:tokyo_kinki_ratio",
-  "dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio"),
-                   )
+  pars = c(
+    "(Intercept)",
+    "dev_envTRUE",
+    "stim_devoicedTRUE",
+    "tokyo_kinki_ratio",
+    "dev_envTRUE:stim_devoicedTRUE",
+    "dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio"
+  ),
+)
 ```
+
+傾きの図
+
 ```{r}
 library(bayesplot)
 
+# 作図が難しい+テーブルで情報は十分であるため保留
 mcmc_areas(
-as.matrix(model),
-pars = c(
-  "(Intercept)",
-  "dev_envTRUE",
-  "stim_devoicedTRUE",
-  "tokyo_kinki_ratio",
-  "dev_envTRUE:stim_devoicedTRUE",
-  "dev_envTRUE:tokyo_kinki_ratio",
-  "stim_devoicedTRUE:tokyo_kinki_ratio",
-  "dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio"),
-prob = 0.95
+  as.matrix(model),
+  pars = c(
+    "(Intercept)",
+    "dev_envTRUE",
+    "stim_devoicedTRUE",
+    "tokyo_kinki_ratio",
+    "dev_envTRUE:stim_devoicedTRUE",
+    "dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio"
+  ),
+  prob = 0.95
 )
-```
-
-```{r}
-model <- lmer(
-  # 以下はどれでも変わらず
-  rate ~ dev_env * stim_devoiced * tokyo_kinki_ratio + (1 | subject_id),
-  data = results
-)
-summary(model)
 ```
 
 正答のみに制限したばあい、大体、平均で4.84くらいの容認度だった。
@@ -382,21 +361,38 @@ summary(model)
 > dev_envTRUE:stim_devoicedTRUE                    1.002e+00  8.142e-02  2.885e+03  12.303  < 2e-16 ***
 > dev_envTRUE:stim_devoicedTRUE:tokyo_kinki_ratio  6.963e-02  1.031e-01  2.884e+03   0.675 0.499658    
 
-交互作用があったので、データを制限して分析
+交互作用があったので、データを制限して分析する。
 
 ```{r}
 # 差は0.2
-results %>% filter(choice==supposed_answer) %>% group_by(stim_devoiced) %>% 
-  summarise(score=mean(rate)) %>% print()
+results %>%
+  group_by(stim_devoiced) %>%
+  summarise(score = mean(rate)) %>%
+  print()
 
-for (true_false in c(TRUE, FALSE)){
+for (true_false in c(TRUE, FALSE)) {
   print("===================================================================")
   print(paste("dev_env:", as.character(true_false)))
-  model <- lmer(
-    rate ~ stim_devoiced * tokyo_kinki_ratio + (1 | subject_id),
-    data = results %>% filter(choice==supposed_answer & dev_env==true_false)
+  model_i <- stan_lmer(
+    formula = rate ~ stim_devoiced * tokyo_kinki_ratio +
+      (1 | subject_id) + (1 | item_id),
+    data = results %>% filter(dev_env == true_false),
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
   )
-  print(summary(model))
+  print(summary(model_i))
+  plot_i = mcmc_areas(
+    as.matrix(model),
+    pars = c(
+      "(Intercept)",
+      "stim_devoicedTRUE",
+      "tokyo_kinki_ratio",
+      "stim_devoicedTRUE:tokyo_kinki_ratio"
+    ),
+    prob = 0.95
+  )
+  print(plot_i)
+  print("===================================================================")
 }
 ```
 
@@ -420,16 +416,19 @@ results_match <- results %>%
     values_from = rate,
     names_prefix = "stim_devoiced_"
   ) %>%
-  mutate_all(~replace(., is.na(.), 0)) %>%
+  mutate_all(~ replace(., is.na(.), 0)) %>%
   # drop_na() %>%
-  mutate(rate_stim_dev_match = stim_devoiced_TRUE - stim_devoiced_FALSE,
-         rate_stim_dev_match_odds = log((stim_devoiced_TRUE+1)/(stim_devoiced_FALSE+1)))
+  mutate(
+    rate_stim_dev_match = stim_devoiced_TRUE - stim_devoiced_FALSE,
+    rate_stim_dev_match_odds = log((stim_devoiced_TRUE + 1) / (stim_devoiced_FALSE + 1))
+  )
 
 print(nrow(results_match))
 ```
 
 ```{r}
-results_match %>% filter(dev_env==TRUE) %>% 
+results_match %>%
+  filter(dev_env == TRUE) %>%
   ggplot() +
   # facet_grid(spkr ~ dev_env) +
   # facet_grid(.~pair ) +
@@ -445,7 +444,7 @@ results_match %>% filter(dev_env==TRUE) %>%
 results_match
 model <- lmer(
   rate_stim_dev_match ~ tokyo_kinki_ratio + (1 | subject_id),
-  data = results_match %>% filter(dev_env=TRUE)
+  data = results_match %>% filter(dev_env = TRUE)
 )
 summary(model)
 ```
@@ -488,8 +487,10 @@ devoicing_preferenceがマイナスなら、各アイテムにおいて
 区別できるレベルの差であるかを検証
 
 ```{r}
-devoicing_preference = results_match %>% filter(dev_env=TRUE) %>% group_by(subject_id) %>% 
-  summarise(devoicing_preference=mean(rate_stim_dev_match))
+devoicing_preference <- results_match %>%
+  filter(dev_env = TRUE) %>%
+  group_by(subject_id) %>%
+  summarise(devoicing_preference = mean(rate_stim_dev_match))
 
 write_csv(devoicing_preference, "devoicing_preference_by_subj.csv")
 ```
