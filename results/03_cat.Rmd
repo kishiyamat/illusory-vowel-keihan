@@ -380,26 +380,68 @@ for (true_false in c(TRUE, FALSE)) {
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
   )
+  # model_i は list に入れた段階でただの行列になってしまっていそう
+  # (ので、listに格納してあとから分析、みたいな紀要なことはできない)
   print(summary(model_i))
-  plot_i = mcmc_areas(
-    as.matrix(model),
-    pars = c(
-      "(Intercept)",
-      "stim_devoicedTRUE",
-      "tokyo_kinki_ratio",
-      "stim_devoicedTRUE:tokyo_kinki_ratio"
-    ),
-    prob = 0.95
-  )
-  print(plot_i)
   print("===================================================================")
 }
 ```
 
-無声化すべきときにしていれば+0.236、
-すべきでないときにしていると-0.778 の評定で、両方に有意な差があった。
+結果は以下の通り。95%信頼区間に0を含まないものは
+Interceptとstim_devoicedのみであった。
+結果では無声化環境のときに無声化している場合、評定は0.4あがる。
 
-### 差分の分析
+
+> [1] "dev_env: TRUE"
+> Estimates:
+                                            mean   sd   10%   50%   90%
+(Intercept)                                4.5    0.2  4.3   4.5   4.7 
+stim_devoicedTRUE                          0.4    0.2  0.2   0.4   0.7 
+tokyo_kinki_ratio                          0.0    0.1 -0.2   0.0   0.2 
+stim_devoicedTRUE:tokyo_kinki_ratio        0.0    0.1  0.0   0.0   0.1
+
+非無声化環境のときも95%信頼区間に0を含まないものは
+Interceptとstim_devoicedのみであった。こちらは
+非無声化環境のときに無声化している場合は氷帝が1下がる。
+
+> [1] "dev_env: FALSE"
+> Estimates:
+                                            mean   sd   10%   50%   90%
+(Intercept)                                4.9    0.2  4.7   4.9   5.1 
+stim_devoicedTRUE                         -0.8    0.2 -1.0  -0.8  -0.6 
+tokyo_kinki_ratio                          0.0    0.1 -0.2   0.0   0.2 
+stim_devoicedTRUE:tokyo_kinki_ratio        0.0    0.1 -0.1   0.0   0.1 
+
+
+無声化すべきときにしていれば+0.4、
+すべきでないときにしていると-0.8 の評定で、両方に有意な差があった。
+
+### ベイズファクター
+
+```{r}
+model
+```
+
+```{r}
+model_BF <- bayesfactor_parameters(model, null = c(-0.01, 0.01))
+model
+```
+
+```{r}
+model_BF
+```
+
+```{r}
+library(see)
+plot(model_BF)
+```
+
+```{r}
+bayesfactor_parameters(model, null = c(-1, 1))
+```
+
+
+### Appendix: 差分の分析
 
 追加の分析として対応づけられたデータの差分を分析する。
 つまり、無声化環境のときの無声化、非無声化のレートを被験者ごとに計算する。
