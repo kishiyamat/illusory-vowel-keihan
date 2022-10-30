@@ -422,6 +422,34 @@ stim_devoicedTRUE:tokyo_kinki_ratio        0.0    0.1 -0.1   0.0   0.1
 model
 ```
 
+> stan_lmer
+>  family:       gaussian [identity]
+>  formula:      rate ~ dev_env + stim_devoiced + tokyo_kinki_ratio + dev_env:stim_devoiced + 
+> 	   dev_env:stim_devoiced:tokyo_kinki_ratio + (1 | subject_id) + 
+> 	   (1 | item_id)
+>  observations: 2864
+> ------
+>                                                   Median MAD_SD
+> (Intercept)                                        4.9    0.2  
+> dev_envTRUE                                       -0.4    0.2  
+> stim_devoicedTRUE                                 -0.8    0.2  
+> tokyo_kinki_ratio                                  0.0    0.1  
+> dev_envTRUE:stim_devoicedTRUE                      1.2    0.2  
+> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio  0.0    0.1  
+> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio   0.0    0.1  
+> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio   0.0    0.1  
+> 
+> Auxiliary parameter(s):
+>       Median MAD_SD
+> sigma 1.0    0.0   
+> 
+> Error terms:
+>  Groups     Name        Std.Dev.
+>  subject_id (Intercept) 0.79    
+>  item_id    (Intercept) 0.39    
+>  Residual               1.05    
+> Num. levels: subject_id 67, item_id 48 
+
 ```{r}
 model_BF <- bayesfactor_parameters(model, null = c(-0.01, 0.01))
 model
@@ -430,6 +458,21 @@ model
 ```{r}
 model_BF
 ```
+
+> Bayes Factor (Null-Interval) 
+> 
+> Parameter                                         |       BF
+> ------------------------------------------------------------
+> (Intercept)                                       | 4.48e+30
+> dev_envTRUE                                       |    0.180
+> stim_devoicedTRUE                                 |   185.91
+> tokyo_kinki_ratio                                 |    0.012
+> dev_envTRUE:stim_devoicedTRUE                     | 1.23e+04
+> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio |    0.007
+> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio  |    0.008
+> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio  |    0.008
+> 
+> * Evidence Against The Null: [-0.010, 0.010]
 
 ```{r}
 library(see)
@@ -440,6 +483,22 @@ plot(model_BF)
 bayesfactor_parameters(model, null = c(-1, 1))
 ```
 
+> Sampling priors, please wait...
+fixed-effect model matrix is rank deficient so dropping 1 column / coefficient
+Bayes Factor (Null-Interval) 
+> 
+> Parameter                                         |       BF
+> ------------------------------------------------------------
+> (Intercept)                                       | 1.75e+25
+> dev_envTRUE                                       | 4.19e-05
+> stim_devoicedTRUE                                 |    0.009
+> tokyo_kinki_ratio                                 | 1.01e-09
+> dev_envTRUE:stim_devoicedTRUE                     |    0.324
+> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio | 0.00e+00
+> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio  | 1.66e-15
+> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio  | 0.00e+00
+> 
+> * Evidence Against The Null: [-1.000, 1.000]
 
 ### Appendix: 差分の分析
 
