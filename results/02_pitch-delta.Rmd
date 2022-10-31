@@ -238,39 +238,31 @@ summary(model)
 - ベイズファクターの分析は保留(勉強不足)
 
 ```{r}
-# install.packages("bayestestR")
-library(brms)
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
+```
 
-# 切片のみ（帰無仮説）
-model_0 <- brm(
-  to_tokyo_pattern ~
-  1 + (1 | subj_id) + (1 | item_id),
-  data = results_by_subject,
-  save_all_pars = TRUE,
-  # prior = prior(cauchy(0,10),class=b),
-  iter = 10000
-)
 
-model_1 <- brm(
-  to_tokyo_pattern ~
-  tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
-  data = results_by_subject,
-  save_all_pars = TRUE,
-  # prior = prior(cauchy(0,10),class=b),
-  iter = 10000
+```{r}
+model_stan <- stan_lmer(
+  to_tokyo_pattern ~ tokyo_kinki_ratio + (1 | item_id),
+  data = (results_by_subject %>% filter(!subj_id %in% less_accurate_subj_id)),
+    prior = normal(0, 100),  # 0, 10 くらいだと警告があった
+    chains = 4, iter = 5000, warmup = 1000
 )
 ```
 
 ```{r}
-summary(model_0)
+print(summary(model_stan, digits = 3))
 ```
 
 ```{r}
-summary(model_1)
-```
-
-```{r}
-brms::bayes_factor(model_1, model_0)
+# 片側検定
+bayesfactor_parameters(model_stan, null = c(-Inf, 0))
 ```
 
 ## 音素とピッチタイプ
