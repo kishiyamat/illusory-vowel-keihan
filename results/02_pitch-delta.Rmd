@@ -262,6 +262,7 @@ print(summary(model_stan, digits = 3))
 
 ```{r}
 # 片側検定
+# https://easystats.github.io/bayestestR/articles/bayes_factors.html
 bayesfactor_parameters(model_stan, null = c(-Inf, 0))
 ```
 
