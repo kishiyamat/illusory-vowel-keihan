@@ -207,41 +207,32 @@ results_mean %>%
 
 ### 交互作用(正答率)
 
-LME
-
-- voicedだと正答率が下がる
-
-```{r}
-# ペアなし交互作用
-model <- lmer(
-  is_correct_mean ~
-    condition * devoicing_preference + (1 | subject_id),
-  data = results_mean
-)
-print(summary(model))
-
-# ペアなし交互作用
-model <- lmer(
-  is_correct_mean ~
-    condition * tokyo_kinki_ratio + (1 | subject_id),
-  data = results_mean
-)
-print(summary(model))
-```
-
 ベイズファクター
 
 ```{r}
-# https://easystats.github.io/bayestestR/articles/bayes_factors.html
 model <- stan_lmer(
-  formula = is_correct_mean ~ condition * tokyo_kinki_ratio+ (1 | subject_id),
+  formula = is_correct_mean ~ condition * tokyo_kinki_ratio
+  # formula = is_correct_mean ~  condition * devoicing_preference
+  + (1 | subject_id),
   data = results_mean,
   # 平均は0でバラツキも0.5としよう
   # 効果は0を中心として、せいぜい+-0.5くらい。
-  prior = normal(0, 0.5, autoscale = FALSE),
-  chains = 10, iter = 5000, warmup = 1000
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
 )
 ```
+```{r}
+# FIXME: 95%になっていない
+print(summary(model, digits = 3))
+# Estimates:
+#                                             mean   sd     10%    50%    90% 
+# (Intercept)                                0.596  0.013  0.580  0.597  0.613
+# conditionvoiced                           -0.009  0.016 -0.030 -0.010  0.011
+# tokyo_kinki_ratio                          0.019  0.017 -0.003  0.019  0.039
+# conditionvoiced:tokyo_kinki_ratio         -0.004  0.021 -0.031 -0.004  0.023
+```
+
+Intercept 以外は95%信頼区間に0を含んだ。
 
 ```{r}
 print(model, digits = 3)
@@ -257,13 +248,80 @@ print(model, digits = 3)
 
 ```{r}
 # 正答率を割合を5%上げる・下げないならそれは無意味
-My_first_BF <- bayesfactor_parameters(model, null = c(-0.01, 0.01))
-My_first_BF
+model_BF <- bayesfactor_parameters(model, null = c(-0.001, 0.001))
+model_BF
+# Parameter                         |       BF
+# --------------------------------------------
+# (Intercept)                       | 2.00e+58
+# conditionvoiced                   |    0.002
+# tokyo_kinki_ratio                 |    0.003
+# conditionvoiced:tokyo_kinki_ratio |    0.002
+```
+
+## アイテム追加
+
+```{r}
+model_by_pairs <- stan_lmer(
+  formula = is_correct_mean ~ condition * pair * tokyo_kinki_ratio 
+  # formula = is_correct_mean ~  condition * devoicing_preference
+  + (1 | subject_id),
+  data = results_mean,
+  # 平均は0でバラツキも0.5としよう
+  # 効果は0を中心として、せいぜい+-0.5くらい。
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
+)
 ```
 
 ```{r}
-library(see)
-plot(My_first_BF)
+# アイテム毎だと95%信頼区間以内に0を含まない？
+print(summary(model_by_pairs, digits = 3))
+# conditionvoiced:pairts-k:tokyo_kinki_ratio が含まない
+# Estimates:
+#                                              mean   sd     10%    50%    90% 
+# (Intercept)                                 0.629  0.024  0.599  0.629  0.660
+# conditionvoiced                            -0.039  0.033 -0.080 -0.039  0.002
+# pairp-s                                    -0.043  0.033 -0.084 -0.043 -0.001
+# pairs-p                                    -0.042  0.033 -0.084 -0.042 -0.001
+# pairts-k                                   -0.046  0.033 -0.088 -0.046 -0.005
+# tokyo_kinki_ratio                          -0.005  0.030 -0.044 -0.005  0.034
+# conditionvoiced:pairp-s                     0.058  0.046 -0.002  0.058  0.117
+# conditionvoiced:pairs-p                     0.062  0.046  0.003  0.062  0.120
+# conditionvoiced:pairts-k                   -0.001  0.046 -0.061 -0.001  0.058
+# conditionvoiced:tokyo_kinki_ratio           0.031  0.042 -0.023  0.031  0.084
+# pairp-s:tokyo_kinki_ratio                   0.045  0.042 -0.008  0.045  0.098
+# pairs-p:tokyo_kinki_ratio                   0.000  0.041 -0.053 -0.001  0.053
+# pairts-k:tokyo_kinki_ratio                  0.052  0.042 -0.002  0.052  0.106
+# conditionvoiced:pairp-s:tokyo_kinki_ratio  -0.013  0.059 -0.089 -0.013  0.062
+# conditionvoiced:pairs-p:tokyo_kinki_ratio  -0.012  0.059 -0.087 -0.012  0.064
+# conditionvoiced:pairts-k:tokyo_kinki_ratio -0.114  0.059 -0.190 -0.114 -0.038
+```
+
+```{r}
+# 正答率を割合を5%上げる・下げないならそれは無意味
+# いわゆる有意差があってもマイナス→つまり、正答率を1%あげる効果もない
+# というか、そもそもプラスにいっていないのか
+model_by_pairs_BF <- bayesfactor_parameters(model_by_pairs, null = c(-0.001, 0.001))
+model_by_pairs_BF
+
+# Parameter                                  |       BF
+# -----------------------------------------------------
+# (Intercept)                                | 4.31e+75
+# conditionvoiced                            |    0.007
+# pairp-s                                    |    0.008
+# pairs-p                                    |    0.007
+# pairts-k                                   |    0.009
+# tokyo_kinki_ratio                          |    0.003
+# conditionvoiced:pairp-s                    |    0.010
+# conditionvoiced:pairs-p                    |    0.011
+# conditionvoiced:pairts-k                   |    0.005
+# conditionvoiced:tokyo_kinki_ratio          |    0.006
+# pairp-s:tokyo_kinki_ratio                  |    0.008
+# pairs-p:tokyo_kinki_ratio                  |    0.004
+# pairts-k:tokyo_kinki_ratio                 |    0.009
+# conditionvoiced:pairp-s:tokyo_kinki_ratio  |    0.006
+# conditionvoiced:pairs-p:tokyo_kinki_ratio  |    0.006
+# conditionvoiced:pairts-k:tokyo_kinki_ratio |    0.037
 ```
 
 ### 交互作用(正答率)
