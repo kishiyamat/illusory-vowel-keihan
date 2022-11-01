@@ -314,21 +314,16 @@ model <- stan_lmer(
   prior = normal(0, 10),
   chains = 4, iter = 5000, warmup = 1000
 )
-summary(model)
 ```
-
-
 ```{r}
-posterior_interval(model,
-  pars = c(
-    "(Intercept)",
-    "dev_envTRUE",
-    "stim_devoicedTRUE",
-    "tokyo_kinki_ratio",
-    "dev_envTRUE:stim_devoicedTRUE",
-    "dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio"
-  ),
-)
+# 
+model %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^dev", "^stim", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
 ```
 
 傾きの図
@@ -339,14 +334,7 @@ library(bayesplot)
 # 作図が難しい+テーブルで情報は十分であるため保留
 mcmc_areas(
   as.matrix(model),
-  pars = c(
-    "(Intercept)",
-    "dev_envTRUE",
-    "stim_devoicedTRUE",
-    "tokyo_kinki_ratio",
-    "dev_envTRUE:stim_devoicedTRUE",
-    "dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio"
-  ),
+  regex_pars = c("^\\(Intercept\\)", "^dev", "^stim", "tokyo_kinki_ratio"),
   prob = 0.95
 )
 ```
@@ -380,9 +368,13 @@ for (true_false in c(TRUE, FALSE)) {
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
   )
-  # model_i は list に入れた段階でただの行列になってしまっていそう
-  # (ので、listに格納してあとから分析、みたいな紀要なことはできない)
-  print(summary(model_i))
+  model_i %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^stim", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
   print("===================================================================")
 }
 ```
@@ -393,93 +385,71 @@ Interceptとstim_devoicedのみであった。
 
 
 > [1] "dev_env: TRUE"
-> Estimates:
-                                            mean   sd   10%   50%   90%
-(Intercept)                                4.5    0.2  4.3   4.5   4.7 
-stim_devoicedTRUE                          0.4    0.2  0.2   0.4   0.7 
-tokyo_kinki_ratio                          0.0    0.1 -0.2   0.0   0.2 
-stim_devoicedTRUE:tokyo_kinki_ratio        0.0    0.1  0.0   0.0   0.1
+Estimates:
+                                      mean   sd     5%     95% 
+(Intercept)                          4.468  0.172  4.186  4.745
+stim_devoicedTRUE                    0.431  0.203  0.106  0.764
+tokyo_kinki_ratio                   -0.018  0.131 -0.233  0.196
+stim_devoicedTRUE:tokyo_kinki_ratio  0.044  0.070 -0.070  0.159
 
 非無声化環境のときも95%信頼区間に0を含まないものは
 Interceptとstim_devoicedのみであった。こちらは
 非無声化環境のときに無声化している場合は氷帝が1下がる。
 
 > [1] "dev_env: FALSE"
-> Estimates:
-                                            mean   sd   10%   50%   90%
-(Intercept)                                4.9    0.2  4.7   4.9   5.1 
-stim_devoicedTRUE                         -0.8    0.2 -1.0  -0.8  -0.6 
-tokyo_kinki_ratio                          0.0    0.1 -0.2   0.0   0.2 
-stim_devoicedTRUE:tokyo_kinki_ratio        0.0    0.1 -0.1   0.0   0.1 
-
+Estimates:
+                                      mean   sd     5%     95% 
+(Intercept)                          4.866  0.152  4.617  5.118
+stim_devoicedTRUE                   -0.799  0.155 -1.054 -0.544
+tokyo_kinki_ratio                   -0.009  0.141 -0.241  0.222
+stim_devoicedTRUE:tokyo_kinki_ratio -0.004  0.069 -0.118  0.110
 
 無声化すべきときにしていれば+0.4、
 すべきでないときにしていると-0.8 の評定で、両方に有意な差があった。
 
 ### ベイズファクター
 
-```{r}
-model
-```
+モデルの推定は以下で、tokyo_kinki_ratioは+で
+tokyo_kinki_ratioの交互作用はマイナスだった。
+ので、それぞれのBFを見てみる。
+ポジティブとしたしたとき、1.52になる。つまり根拠なし。
+ネガティブとしたときも、3未満なので事例的な根拠。
 
-> stan_lmer
->  family:       gaussian [identity]
->  formula:      rate ~ dev_env + stim_devoiced + tokyo_kinki_ratio + dev_env:stim_devoiced + 
-> 	   dev_env:stim_devoiced:tokyo_kinki_ratio + (1 | subject_id) + 
-> 	   (1 | item_id)
->  observations: 2864
-> ------
->                                                   Median MAD_SD
-> (Intercept)                                        4.9    0.2  
-> dev_envTRUE                                       -0.4    0.2  
-> stim_devoicedTRUE                                 -0.8    0.2  
-> tokyo_kinki_ratio                                  0.0    0.1  
-> dev_envTRUE:stim_devoicedTRUE                      1.2    0.2  
-> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio  0.0    0.1  
-> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio   0.0    0.1  
-> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio   0.0    0.1  
-> 
-> Auxiliary parameter(s):
->       Median MAD_SD
-> sigma 1.0    0.0   
-> 
-> Error terms:
->  Groups     Name        Std.Dev.
->  subject_id (Intercept) 0.79    
->  item_id    (Intercept) 0.39    
->  Residual               1.05    
-> Num. levels: subject_id 67, item_id 48 
+> Estimates:
+>                                                     mean   sd     5%     95% 
+> (Intercept)                                        4.875  0.155  4.620  5.128
+> dev_envTRUE                                       -0.375  0.173 -0.664 -0.093
+> stim_devoicedTRUE                                 -0.794  0.172 -1.079 -0.513
+> tokyo_kinki_ratio                                  0.035  0.129 -0.175  0.247
+> dev_envTRUE:stim_devoicedTRUE                      1.196  0.239  0.804  1.593
+> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio -0.040  0.067 -0.151  0.073
+> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio  -0.046  0.073 -0.165  0.073
+> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio  -0.044  0.069 -0.157  0.069
 
 ```{r}
-model_BF <- bayesfactor_parameters(model, null = c(-0.01, 0.01))
-model
+model_BF_neg <- bayesfactor_parameters(model, null = c(-Inf, 0))
+model_BF_neg
 ```
 
 ```{r}
-model_BF
+model_BF_pos <- bayesfactor_parameters(model, null = c(0, Inf))
+model_BF_pos
 ```
 
-> Bayes Factor (Null-Interval) 
-> 
 > Parameter                                         |       BF
-> ------------------------------------------------------------
-> (Intercept)                                       | 4.48e+30
-> dev_envTRUE                                       |    0.180
-> stim_devoicedTRUE                                 |   185.91
-> tokyo_kinki_ratio                                 |    0.012
-> dev_envTRUE:stim_devoicedTRUE                     | 1.23e+04
-> dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio |    0.007
-> dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio  |    0.008
-> dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio  |    0.008
-> 
-> * Evidence Against The Null: [-0.010, 0.010]
+------------------------------------------------------------
+(Intercept)                                       | 0.00e+00
+dev_envTRUE                                       |    71.30
+stim_devoicedTRUE                                 | 2.43e+04
+tokyo_kinki_ratio                                 |    0.648
+dev_envTRUE:stim_devoicedTRUE                     | 5.78e-07
+dev_envFALSE:stim_devoicedFALSE:tokyo_kinki_ratio |     2.65
+dev_envTRUE:stim_devoicedFALSE:tokyo_kinki_ratio  |     2.78
+dev_envFALSE:stim_devoicedTRUE:tokyo_kinki_ratio  |     2.86
+
 
 ```{r}
-library(see)
-plot(model_BF)
-```
-
-```{r}
+# 以下の設定も可能
 bayesfactor_parameters(model, null = c(-1, 1))
 ```
 
