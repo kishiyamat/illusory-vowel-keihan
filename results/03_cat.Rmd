@@ -316,7 +316,6 @@ model <- stan_lmer(
 )
 ```
 ```{r}
-# 
 model %>% 
   summary(
     regex_pars = c("^\\(Intercept\\)", "^dev", "^stim", "tokyo_kinki_ratio"),

@@ -154,53 +154,44 @@ results_mean <- results_filtered %>%
   )) %>%
   droplevels() %>%
   distinct()
+results_mean$tokyo_kinki_ratio_bin = factor(range01(results_mean$tokyo_kinki_ratio), 4)
+results_mean = results_mean %>% 
+  mutate(tokyo_kinki_ratio_bin = case_when(
+    tokyo_kinki_ratio_bin == 0 ~ -1,
+    tokyo_kinki_ratio_bin == 1 ~ -0.5,
+    tokyo_kinki_ratio_bin == 2 ~ 0,
+    tokyo_kinki_ratio_bin == 3 ~ 0.5,
+    tokyo_kinki_ratio_bin == 4 ~ 1
+  )) %>%
+  mutate(tokyo_kinki_ratio_bin = as.factor(tokyo_kinki_ratio_bin))
 ```
 
 ## 可視化
 
 ```{r}
-# rt
-results_mean %>%
-  ggplot() +
-  facet_grid(pair ~ condition) +
-  geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 7),
-    y = log(rt_mean),
-    color = phoneme_envs,
-    fill = phoneme_envs,
-  ))
+level_order <- c(-1, -0.5, 0, 0.5, 1) %>% as.character()
+level_order <- base::factor(results_mean$tokyo_kinki_ratio_bin, level = level_order)
 
 results_mean %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 7),
+    x = level_order,
     y = is_correct_mean,
     color = phoneme_envs,
     fill = phoneme_envs,
-  ))
-```
-```{r}
-# rt
-results_mean %>%
-  ggplot() +
-  facet_grid(pair ~ condition) +
-  geom_violin(aes(
-    x = factor(range01(devoicing_preference), 7),
-    y = log(rt_mean),
-    color = phoneme_envs,
-    fill = phoneme_envs,
-  ))
+  ))+
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    text = element_text(family = "Times")
+  ) +
+  labs(
+    x = "Tokyo-residence ratio",
+    y = "Accuracy"
+  )
 
-results_mean %>%
-  ggplot() +
-  facet_grid(pair ~ condition) +
-  geom_violin(aes(
-    x = factor(range01(devoicing_preference), 7),
-    y = is_correct_mean,
-    color = phoneme_envs,
-    fill = phoneme_envs,
-  ))
+ggsave(paste0("artifact/results_axb_allophone.pdf"), unit = "cm", width = 7, height = 7)
 ```
 
 ## 分析
@@ -213,42 +204,27 @@ results_mean %>%
 model <- stan_lmer(
   formula = is_correct_mean ~ condition * tokyo_kinki_ratio
   # formula = is_correct_mean ~  condition * devoicing_preference
-  + (1 | subject_id),
+  + (1 | subject_id) + (1 | pair),
   data = results_mean,
-  # 平均は0でバラツキも0.5としよう
-  # 効果は0を中心として、せいぜい+-0.5くらい。
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
 )
 ```
 ```{r}
-# FIXME: 95%になっていない
-print(summary(model, digits = 3))
-# Estimates:
-#                                             mean   sd     10%    50%    90% 
-# (Intercept)                                0.596  0.013  0.580  0.597  0.613
-# conditionvoiced                           -0.009  0.016 -0.030 -0.010  0.011
-# tokyo_kinki_ratio                          0.019  0.017 -0.003  0.019  0.039
-# conditionvoiced:tokyo_kinki_ratio         -0.004  0.021 -0.031 -0.004  0.023
+model %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^condition", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
 ```
 
 Intercept 以外は95%信頼区間に0を含んだ。
 
 ```{r}
-print(model, digits = 3)
-# LME
-#                                     Estimate Std. Error         df t value Pr(>|t|)    
-# (Intercept)                         0.593200   0.012650 182.828889  46.894   <2e-16 ***
-# conditionvoiced                    -0.004368   0.016091 494.999999  -0.271    0.786    
-# tokyo_kinki_ratio                   0.014103   0.016073 182.828889   0.877    0.381    
-# conditionvoiced:tokyo_kinki_ratio  -0.004327   0.020445 494.999999  -0.212    0.832    
-```
-
-正答率を1.4%上げるが、SDも1.6%ある。
-
-```{r}
 # 正答率を割合を5%上げる・下げないならそれは無意味
-model_BF <- bayesfactor_parameters(model, null = c(-0.001, 0.001))
+model_BF <- bayesfactor_parameters(model, null = c(-Inf, 0))
 model_BF
 # Parameter                         |       BF
 # --------------------------------------------
@@ -263,11 +239,8 @@ model_BF
 ```{r}
 model_by_pairs <- stan_lmer(
   formula = is_correct_mean ~ condition * pair * tokyo_kinki_ratio 
-  # formula = is_correct_mean ~  condition * devoicing_preference
   + (1 | subject_id),
   data = results_mean,
-  # 平均は0でバラツキも0.5としよう
-  # 効果は0を中心として、せいぜい+-0.5くらい。
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
 )
@@ -275,33 +248,39 @@ model_by_pairs <- stan_lmer(
 
 ```{r}
 # アイテム毎だと95%信頼区間以内に0を含まない？
-print(summary(model_by_pairs, digits = 3))
-# conditionvoiced:pairts-k:tokyo_kinki_ratio が含まない
+model_by_pairs %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^condition","^pair", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
+
 # Estimates:
-#                                              mean   sd     10%    50%    90% 
-# (Intercept)                                 0.629  0.024  0.599  0.629  0.660
-# conditionvoiced                            -0.039  0.033 -0.080 -0.039  0.002
-# pairp-s                                    -0.043  0.033 -0.084 -0.043 -0.001
-# pairs-p                                    -0.042  0.033 -0.084 -0.042 -0.001
-# pairts-k                                   -0.046  0.033 -0.088 -0.046 -0.005
-# tokyo_kinki_ratio                          -0.005  0.030 -0.044 -0.005  0.034
-# conditionvoiced:pairp-s                     0.058  0.046 -0.002  0.058  0.117
-# conditionvoiced:pairs-p                     0.062  0.046  0.003  0.062  0.120
-# conditionvoiced:pairts-k                   -0.001  0.046 -0.061 -0.001  0.058
-# conditionvoiced:tokyo_kinki_ratio           0.031  0.042 -0.023  0.031  0.084
-# pairp-s:tokyo_kinki_ratio                   0.045  0.042 -0.008  0.045  0.098
-# pairs-p:tokyo_kinki_ratio                   0.000  0.041 -0.053 -0.001  0.053
-# pairts-k:tokyo_kinki_ratio                  0.052  0.042 -0.002  0.052  0.106
-# conditionvoiced:pairp-s:tokyo_kinki_ratio  -0.013  0.059 -0.089 -0.013  0.062
-# conditionvoiced:pairs-p:tokyo_kinki_ratio  -0.012  0.059 -0.087 -0.012  0.064
-# conditionvoiced:pairts-k:tokyo_kinki_ratio -0.114  0.059 -0.190 -0.114 -0.038
+#                                              mean   sd     5%     95% 
+# (Intercept)                                 0.629  0.024  0.590  0.668
+# conditionvoiced                            -0.040  0.033 -0.093  0.014
+# pairp-s                                    -0.043  0.033 -0.097  0.012
+# pairs-p                                    -0.042  0.033 -0.096  0.011
+# pairts-k                                   -0.047  0.033 -0.100  0.007
+# tokyo_kinki_ratio                          -0.005  0.030 -0.055  0.045
+# conditionvoiced:pairp-s                     0.059  0.046 -0.017  0.134
+# conditionvoiced:pairs-p                     0.062  0.046 -0.014  0.138
+# conditionvoiced:pairts-k                    0.000  0.046 -0.076  0.075
+# conditionvoiced:tokyo_kinki_ratio           0.030  0.042 -0.039  0.098
+# pairp-s:tokyo_kinki_ratio                   0.045  0.042 -0.024  0.112
+# pairs-p:tokyo_kinki_ratio                  -0.001  0.042 -0.070  0.068
+# pairts-k:tokyo_kinki_ratio                  0.051  0.041 -0.016  0.121
+# conditionvoiced:pairp-s:tokyo_kinki_ratio  -0.013  0.059 -0.110  0.084
+# conditionvoiced:pairs-p:tokyo_kinki_ratio  -0.011  0.059 -0.109  0.086
+# conditionvoiced:pairts-k:tokyo_kinki_ratio -0.114  0.059 -0.211 -0.018
 ```
 
 ```{r}
 # 正答率を割合を5%上げる・下げないならそれは無意味
 # いわゆる有意差があってもマイナス→つまり、正答率を1%あげる効果もない
 # というか、そもそもプラスにいっていないのか
-model_by_pairs_BF <- bayesfactor_parameters(model_by_pairs, null = c(-0.001, 0.001))
+model_by_pairs_BF <- bayesfactor_parameters(model_by_pairs, null = c(0, Inf))
 model_by_pairs_BF
 
 # Parameter                                  |       BF
@@ -351,6 +330,32 @@ summary(model)
 ```
 
 ## Appendix
+
+### 反応時間
+
+```{r}
+# rt
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
+    y = log(rt_mean),
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))
+
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
+    y = is_correct_mean,
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))
+
+```
 
 ### バイナリーなのでモデル変更
 
