@@ -38,7 +38,7 @@ TODO
   - 「正答率」は aとbのどちらに寄せるか。
     - 平均で(前と後ろの選好性を平均する)
     -掛け算
-- [ ] 外れ値の除外 (正答率、反応時間)
+- [x] 外れ値の除外 (正答率、反応時間)
   - 正答率に関しては適当に受けるとチャンスレベルになるので問題
   - 分析対象を変えていくよりは、行う分析を決めて一気に進めたほうがよい　
 
@@ -132,10 +132,14 @@ head(results_by_subject)
 #### シンプル
 ```{r}
 # range 0 to 1
-range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+range01 <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
 # factor が わかりづらくしてる
-factor_str = function(x, res) {as.character(as.integer(floor(x*res)))}
-factor_str(range01(c(1,2,3,4)), 2)
+factor_str <- function(x, res) {
+  as.character(as.integer(floor(x * res)))
+}
+factor_str(range01(c(1, 2, 3, 4)), 2)
 ```
 
 ```{r}
@@ -158,15 +162,16 @@ ggsave(paste0("artifact/preference_by_tokyo_kinki_ratio_simple.png"),
 
 ```{r}
 # H_L だと分布がちょっと下におちて、tokyo_pref, つまりXが少なくなっている。
-g = results_by_subject %>%
-  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
-  mutate(tokyo_kinki_ratio_bin=case_when(
-    tokyo_kinki_ratio_bin==0~-1,
-    tokyo_kinki_ratio_bin==1~-0.5,
-    tokyo_kinki_ratio_bin==2~0,
-    tokyo_kinki_ratio_bin==3~0.5,
-    tokyo_kinki_ratio_bin==4~1)) %>% 
-  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin)) %>% 
+g <- results_by_subject %>%
+  mutate(tokyo_kinki_ratio_bin = factor(range01(tokyo_kinki_ratio), 4)) %>%
+  mutate(tokyo_kinki_ratio_bin = case_when(
+    tokyo_kinki_ratio_bin == 0 ~ -1,
+    tokyo_kinki_ratio_bin == 1 ~ -0.5,
+    tokyo_kinki_ratio_bin == 2 ~ 0,
+    tokyo_kinki_ratio_bin == 3 ~ 0.5,
+    tokyo_kinki_ratio_bin == 4 ~ 1
+  )) %>%
+  mutate(tokyo_kinki_ratio_bin = as.factor(tokyo_kinki_ratio_bin)) %>%
   ggplot() +
   facet_grid(pitch_from ~ phoneme) +
   geom_violin(aes(
@@ -174,9 +179,10 @@ g = results_by_subject %>%
     y = to_tokyo_pattern, color = pitch_from, fill = pitch_from
   )) +
   theme_bw() +
-  theme(legend.position = "none",
-        text = element_text(family = "Times")
-        ) +
+  theme(
+    legend.position = "none",
+    text = element_text(family = "Times")
+  ) +
   labs(
     x = "Tokyo-residence ratio",
     y = "Tokyo-pattern preference"
@@ -189,16 +195,21 @@ ggsave(paste0("artifact/results_perception.pdf"), unit = "cm", width = 7, height
 
 ```{r}
 results_by_subject %>%
-  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
-  select(subj_id, age, is_tokyo) %>% distinct() %>% 
-  group_by(is_tokyo) %>% 
-  mutate(age_mean=mean(age),
-         age_sd=sd(age))
+  mutate(is_tokyo = span_tokyo > span_kinki) %>%
+  select(subj_id, age, is_tokyo) %>%
+  distinct() %>%
+  group_by(is_tokyo) %>%
+  mutate(
+    age_mean = mean(age),
+    age_sd = sd(age)
+  )
 
 results_by_subject %>%
-  mutate(is_tokyo = span_tokyo > span_kinki) %>% 
-  select(subj_id, age, is_tokyo) %>% distinct() %>% 
-  filter(!is_tokyo) %>% nrow
+  mutate(is_tokyo = span_tokyo > span_kinki) %>%
+  select(subj_id, age, is_tokyo) %>%
+  distinct() %>%
+  filter(!is_tokyo) %>%
+  nrow()
 ```
 
 
@@ -217,10 +228,16 @@ head(results_by_subject)
 
 ```{r}
 library(lmerTest)
+# 行数が異常でないことを確認
+results_by_subject %>% distinct()
+# 248行
+less_accurate_subj_id <- c("12_lcptn15", "243_tomjelly", "249_パテマ", "67_tumetume")
+print(nrow(results_by_subject))
+results_by_subject
 model <- lmer(
   to_tokyo_pattern ~
-  tokyo_kinki_ratio + (1 | item_id),
-  data = results_by_subject
+    tokyo_kinki_ratio + (1 | item_id),
+  data = (results_by_subject %>% filter(!subj_id %in% less_accurate_subj_id))
 )
 summary(model)
 ```
@@ -228,46 +245,57 @@ summary(model)
 
 #### Bayes
 
-- アイテムと被験者を要因としてモデルを組む
-- ベイズファクターの分析は保留(勉強不足)
+- 被験者とアイテムを要因としてモデルを組む
 
 ```{r}
-# install.packages("bayestestR")
-library(brms)
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
+```
 
-# 切片のみ（帰無仮説）
-model_0 <- brm(
-  to_tokyo_pattern ~
-  1 + (1 | subj_id) + (1 | item_id),
-  data = results_by_subject,
-  save_all_pars = TRUE,
-  # prior = prior(cauchy(0,10),class=b),
-  iter = 10000
-)
 
-model_1 <- brm(
-  to_tokyo_pattern ~
-  tokyo_kinki_ratio + (1 | subj_id) + (1 | item_id),
-  data = results_by_subject,
-  save_all_pars = TRUE,
-  # prior = prior(cauchy(0,10),class=b),
-  iter = 10000
+```{r}
+model_stan <- stan_lmer(
+  to_tokyo_pattern ~ tokyo_kinki_ratio + (1 | item_id) + (1 | subj_id),
+  data = (results_by_subject %>% filter(!subj_id %in% less_accurate_subj_id)),
+  prior = normal(0, 100), # 0, 10 くらいだと警告があった
+  chains = 4, iter = 5000, warmup = 1000
 )
 ```
 
 ```{r}
-summary(model_0)
+model_stan %>%
+  summary(
+    pars = c("(Intercept)", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
+
+# Estimates:
+#                     mean   sd     5%     95%
+# (Intercept)        0.048  0.086 -0.086  0.183
+# tokyo_kinki_ratio  0.060  0.029  0.012  0.109
 ```
 
 ```{r}
-summary(model_1)
+# 片側検定
+# https://easystats.github.io/bayestestR/articles/bayes_factors.html
+model_stan %>%
+  bayesfactor_parameters(null = c(-Inf, 0))
+
+# Parameter         |    BF
+# -------------------------
+# (Intercept)       |  3.25
+# tokyo_kinki_ratio | 56.31
 ```
 
-```{r}
-brms::bayes_factor(model_1, model_0)
-```
+## Appendix
 
-## 音素とピッチタイプ
+### 音素とピッチタイプ
 
 ランダム効果はsingular fitになる。ドキュメントを読むとベイズ使えと言われる。
 
@@ -281,7 +309,7 @@ summary(model)
 ```{r}
 library(brms)
 model <- brm(to_tokyo_pattern ~
-tokyo_kinki_ratio + phoneme * pitch_from +
+  tokyo_kinki_ratio + phoneme * pitch_from +
   (1 | subj_id),
 data = results_by_subject
 )
@@ -298,8 +326,6 @@ plot(model, variable = "^b_", regex = TRUE)
 dev.off()
 # ?plot.brmsfit
 ```
-
-## Appendix
 
 かなり詳しい図
 

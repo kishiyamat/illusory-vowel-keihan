@@ -1,0 +1,55 @@
+---
+title: "00_bayes"
+output: html_document
+date: '2022-10-15'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+model <- stan_glm(
+  formula = extra ~ group,
+  data = sleep,
+  prior = normal(0, 3, autoscale = FALSE),
+  chains = 10, iter = 5000, warmup = 1000
+)
+```
+
+```{r}
+model
+```
+
+
+```{r}
+My_first_BF <- bayesfactor_parameters(model, null = c(-1, 1))
+My_first_BF
+```
+
+```{r}
+library(see)
+plot(My_first_BF)
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

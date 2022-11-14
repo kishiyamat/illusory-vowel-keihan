@@ -3,44 +3,63 @@ title: "Allophone"
 output: github_document
 ---
 
-- 異音の分析なんだが、ツッコミから始まるアンチパターンに陥っている。
-- ポジティブな、理論的な貢献を視座高くして考えるべき。
-- 行動実験の結果にはノイズが乗っているから、新しく要因とするには不安...
+<!--
+最新のドキュメント
+https://docs.google.com/document/d/1VywiSaEORlVrRDb7nxGQx2D0pu6huftZrEiVQKmCGWY/edit
+論文としてのまとめ方はkilpatrickを参考に進める。
+https://drive.google.com/drive/folders/1-Dfuzcas58w9ERrDzoPggfp9vIAjPo7_
+昔のもの
+https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
+-->
 
-todo
+01でallophoneの効果を見るが、そもそも受け入れられるかは
+03のcatで見ており、これは「音声としての自然さ」として解釈できる。
 
+03の結果に基づき、分析から外す被験者やアイテムを先に指定しておく。
+
+被験者ごとに voiced-voiceless を求めるか。
+
+- 独立変数
+  - 被験者要因(居住歴|無声化率)
+- 従属変数
 1. 被験者ごとのデータをまとめる
   * 産出課題: 無声化率(環境毎)
-  * 近畿の居住年数
+  * *居住歴* (tokyo_kinki_ratio)
+  - ランダム効果  
 1. 被験者ごとのデータをまとめる
   * 無声化
     * AXB
     * 判定課題
   * トーンの復元
   
-タスクの確認
-
-item_id がないのは練習問題
-
-* production
-* axb
-  * item_id でタスクが分かれる
-* cat
-  * item_id でタスクが分かれる
-* rate(音としてどれくらい良いか)
-  * item_id でタスクが分かれる
-  
-無声化
-https://docs.google.com/document/d/1OKkkZ4sELLtTBjiBWUG_P37EsWdFsidrGv0eOqiwIic/edit?usp=sharing
-
 ```{r setup, include=FALSE}
 library(dplyr)
 library(ggplot2)
 library(readr)
 library(stringr)
 library(tidyr)
+library(lmerTest)
 source("script/subject_info.R")
 source("script/results_pitch.R") # load mutated data
+
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
+
+# 03_cat.Rmd の結果より
+# `summarise()` has grouped output by 'subject_id'. You can override using the `.groups` argument.
+# [1] "less accurate subj_id:"
+# subject_id1 subject_id2 subject_id3 subject_id4 
+#     "cw-12"    "cw-243"    "cw-249"     "cw-67" 
+less_accurate_subj_id = c("cw-12"   ,"cw-243",   "cw-249"    ,"cw-67" )
+```
+
+```{r}
+devoicing_preference = read_csv("devoicing_preference_by_subj.csv")
+head(devoicing_preference)
 ```
 
 ```{r}
@@ -59,67 +78,313 @@ results <- rbind(
   filter(task == "axb") %>%
   left_join(subject_info, by = c("run_id", "data_src")) %>%
   select(c(run_id, item_id, is_correct, rt, span_kinki, span_tokyo, span_unknown, age, data_src, correct)) %>%
-  mutate(item_id = as.numeric(item_id)) %>%
-  mutate(rt = as.numeric(rt)) %>%
-  mutate(item_id = as.numeric(item_id)) %>%
-  mutate(is_correct = is_correct == "true") %>%
-  # boolにしている
+  mutate(
+    item_id = as.numeric(item_id),
+    rt = as.numeric(rt),
+    item_id = as.numeric(item_id),
+    is_correct = is_correct == "true"
+  ) %>%
   drop_na() %>%
   mutate(
-    span_tokyo_span_kinki = span_tokyo - span_kinki,
     tokyo_kinki_ratio = (span_tokyo - span_kinki) / age
   ) %>%
   filter(age > 18) %>%
   merge(item_list, on = "item_id") %>%
   filter(type == "target") %>%
-  group_by(c1, c2, run_id, data_src) %>%
   mutate(
-    is_correct_mean = mean(is_correct),
     phoneme_envs = paste0(c1, "-", c2),
-    subject_id = paste0(data_src, "-", run_id)
-  ) %>%
-  mutate(
+    subject_id = paste0(data_src, "-", run_id),
     pair = case_when(
       phoneme_envs %in% c("s-p", "z-b") ~ "s-p",
       phoneme_envs %in% c("p-s", "b-z") ~ "p-s",
       phoneme_envs %in% c("k-t", "g-d") ~ "k-t",
       phoneme_envs %in% c("ts-k", "dz-g") ~ "ts-k"
-    ),
-  )
-```
-
-アイテムリストのマージ
-
-```{r}
-head(results, 100)
-results$phoneme_envs %>% unique()
+    )
+  ) %>%
+  left_join(devoicing_preference, by = c("subject_id")) %>% 
+  filter(!subject_id %in% less_accurate_subj_id)
+nrow(results)
 ```
 
 ```{r}
+results
+# 右裾の確認, 10s 以上は外れ値とする
 results %>%
+  select(rt) %>%
+  unlist() %>%
+  hist(breaks = 100)
+# 左裾はそこまで以上な値はなさそう.
+results %>%
+  filter(rt < 400) %>%
+  select(rt) %>%
+  unlist() %>%
+  hist(breaks = 100)
+# 対数を取って反応の正規分布を確認, 2sd以上の反応は除外
+results_filtered <- results %>% filter(between(rt, 0, 15000))
+# FIXME: ここらへんのデータ処理はあとできれいにかく（丸めも必要）
+# hist(log(results_filtered$rt))
+# sd_log_rt = 2*sd(log(results_filtered$rt))
+# mean_log_rt = mean(log(results_filtered$rt))
+# floor_log_rt = mean_log_rt-sd_log_rt
+# ceil_log_rt = mean_log_rt+sd_log_rt
+# print(floor_log_rt)
+# print(ceil_log_rt)
+# results_filtered = results_filtered %>%
+#   mutate(log_rt = log(rt)) %>% filter(between(log_rt,floor_log_rt,ceil_log_rt))
+results_filtered$rt %>%
+  summary() %>%
+  print()
+print(nrow(results_filtered))
+```
+
+
+```{r}
+results_mean <- results_filtered %>%
+  group_by(subject_id, tokyo_kinki_ratio, devoicing_preference, pair, condition, phoneme_envs) %>%
+  # item_idがあるとebzo ebuzo ebuzoとebuzo ebuzo ebzoで分かれて平均できない
+  mutate(
+    # ここ、NAがあるならどうなる？
+    is_correct_mean = mean(is_correct, na.rm = T),
+    rt_mean = mean(rt, na.rm = T),
+  ) %>%
+  select(c(
+    subject_id, tokyo_kinki_ratio, span_tokyo, span_kinki, devoicing_preference,
+    pair, condition, phoneme_envs,
+    is_correct_mean, rt_mean
+  )) %>%
+  droplevels() %>%
+  distinct()
+results_mean$tokyo_kinki_ratio_bin = factor(range01(results_mean$tokyo_kinki_ratio), 4)
+results_mean = results_mean %>% 
+  mutate(tokyo_kinki_ratio_bin = case_when(
+    tokyo_kinki_ratio_bin == 0 ~ -1,
+    tokyo_kinki_ratio_bin == 1 ~ -0.5,
+    tokyo_kinki_ratio_bin == 2 ~ 0,
+    tokyo_kinki_ratio_bin == 3 ~ 0.5,
+    tokyo_kinki_ratio_bin == 4 ~ 1
+  )) %>%
+  mutate(tokyo_kinki_ratio_bin = as.factor(tokyo_kinki_ratio_bin))
+```
+
+## 可視化
+
+```{r}
+level_order <- c(-1, -0.5, 0, 0.5, 1) %>% as.character()
+level_order <- base::factor(results_mean$tokyo_kinki_ratio_bin, level = level_order)
+
+results_mean %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_violin(aes(
-    x = factor(range01(tokyo_kinki_ratio), 5),
+    x = level_order,
+    y = is_correct_mean,
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))+
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    text = element_text(family = "Times")
+  ) +
+  labs(
+    x = "Tokyo-residence ratio",
+    y = "Accuracy"
+  )
+
+ggsave(paste0("artifact/results_axb_allophone.pdf"), unit = "cm", width = 7, height = 7)
+```
+
+## 分析
+
+### 交互作用(正答率)
+
+ベイズファクター
+
+```{r}
+model <- stan_lmer(
+  formula = is_correct_mean ~ condition * tokyo_kinki_ratio
+  # formula = is_correct_mean ~  condition * devoicing_preference
+  + (1 | subject_id) + (1 | pair),
+  data = results_mean,
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
+)
+```
+```{r}
+model %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^condition", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
+```
+
+Intercept 以外は95%信頼区間に0を含んだ。
+
+```{r}
+# 正答率を割合を5%上げる・下げないならそれは無意味
+model_BF <- bayesfactor_parameters(model, null = c(-Inf, 0))
+model_BF
+# Parameter                         |       BF
+# --------------------------------------------
+# (Intercept)                       | 2.00e+58
+# conditionvoiced                   |    0.002
+# tokyo_kinki_ratio                 |    0.003
+# conditionvoiced:tokyo_kinki_ratio |    0.002
+```
+
+## アイテム追加
+
+```{r}
+model_by_pairs <- stan_lmer(
+  formula = is_correct_mean ~ condition * pair * tokyo_kinki_ratio 
+  + (1 | subject_id),
+  data = results_mean,
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
+)
+```
+
+```{r}
+# アイテム毎だと95%信頼区間以内に0を含まない？
+model_by_pairs %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^condition","^pair", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
+
+# Estimates:
+#                                              mean   sd     5%     95% 
+# (Intercept)                                 0.629  0.024  0.590  0.668
+# conditionvoiced                            -0.040  0.033 -0.093  0.014
+# pairp-s                                    -0.043  0.033 -0.097  0.012
+# pairs-p                                    -0.042  0.033 -0.096  0.011
+# pairts-k                                   -0.047  0.033 -0.100  0.007
+# tokyo_kinki_ratio                          -0.005  0.030 -0.055  0.045
+# conditionvoiced:pairp-s                     0.059  0.046 -0.017  0.134
+# conditionvoiced:pairs-p                     0.062  0.046 -0.014  0.138
+# conditionvoiced:pairts-k                    0.000  0.046 -0.076  0.075
+# conditionvoiced:tokyo_kinki_ratio           0.030  0.042 -0.039  0.098
+# pairp-s:tokyo_kinki_ratio                   0.045  0.042 -0.024  0.112
+# pairs-p:tokyo_kinki_ratio                  -0.001  0.042 -0.070  0.068
+# pairts-k:tokyo_kinki_ratio                  0.051  0.041 -0.016  0.121
+# conditionvoiced:pairp-s:tokyo_kinki_ratio  -0.013  0.059 -0.110  0.084
+# conditionvoiced:pairs-p:tokyo_kinki_ratio  -0.011  0.059 -0.109  0.086
+# conditionvoiced:pairts-k:tokyo_kinki_ratio -0.114  0.059 -0.211 -0.018
+```
+
+```{r}
+# 正答率を割合を5%上げる・下げないならそれは無意味
+# いわゆる有意差があってもマイナス→つまり、正答率を1%あげる効果もない
+# というか、そもそもプラスにいっていないのか
+model_by_pairs_BF <- bayesfactor_parameters(model_by_pairs, null = c(0, Inf))
+model_by_pairs_BF
+
+# Parameter                                  |       BF
+# -----------------------------------------------------
+# (Intercept)                                | 4.31e+75
+# conditionvoiced                            |    0.007
+# pairp-s                                    |    0.008
+# pairs-p                                    |    0.007
+# pairts-k                                   |    0.009
+# tokyo_kinki_ratio                          |    0.003
+# conditionvoiced:pairp-s                    |    0.010
+# conditionvoiced:pairs-p                    |    0.011
+# conditionvoiced:pairts-k                   |    0.005
+# conditionvoiced:tokyo_kinki_ratio          |    0.006
+# pairp-s:tokyo_kinki_ratio                  |    0.008
+# pairs-p:tokyo_kinki_ratio                  |    0.004
+# pairts-k:tokyo_kinki_ratio                 |    0.009
+# conditionvoiced:pairp-s:tokyo_kinki_ratio  |    0.006
+# conditionvoiced:pairs-p:tokyo_kinki_ratio  |    0.006
+# conditionvoiced:pairts-k:tokyo_kinki_ratio |    0.037
+```
+
+### 交互作用(正答率)
+
+有意傾向
+
+```{r}
+# ペアなし交互作用
+model <- lmer(
+  rt_mean ~
+    condition * tokyo_kinki_ratio + (1 | subject_id),
+  data = results_mean
+)
+summary(model)
+```
+
+### アイテムごと
+
+```{r}
+# ペアあり交互作用(補足の分析)
+model <- lmer(
+  is_correct_mean ~
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+  data = results_mean
+)
+summary(model)
+```
+
+## Appendix
+
+### 反応時間
+
+```{r}
+# rt
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
+    y = log(rt_mean),
+    color = phoneme_envs,
+    fill = phoneme_envs,
+  ))
+
+results_mean %>%
+  ggplot() +
+  facet_grid(pair ~ condition) +
+  geom_violin(aes(
+    x = factor(range01(devoicing_preference), 7),
     y = is_correct_mean,
     color = phoneme_envs,
     fill = phoneme_envs,
   ))
+
 ```
 
-全体的に有声音の環境ではアイテムの作成の難しさから弁別が用意になっているかもしれない。
+### バイナリーなのでモデル変更
 
-- まぁ普通に近畿で錯覚が増えていることにはならない
-- bzの方がps より錯覚が起きやすい
+データをそのまま使うこともできる。
 
 ```{r}
-library(lmerTest)
 model <- lmer(
-  is_correct_mean ~
-  condition * pair + tokyo_kinki_ratio + (1 | subject_id),
-  data = results
+  rt ~
+    # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+  # data = results_filtered
+  data = (results_filtered %>% filter(pair != "p-s")),
 )
+summary(model)
+```
 
+```{r}
+results_filtered %>% filter(pair %in% c("p-s", "s-p"))
+model <- glmer(
+  is_correct ~
+    # condition * tokyo_kinki_ratio + (1 | subject_id) + (1|pair),
+    # condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+    condition * pair * tokyo_kinki_ratio + (1 | subject_id),
+  # data = results_filtered,
+  data = (results_filtered %>% filter(pair %in% c("p-s", "s-p"))),
+  family = binomial
+)
+print(nrow(results_filtered))
 # 居住歴の効果はない(トーンの錯覚とは対照的)
 summary(model)
 ```
@@ -129,3 +394,40 @@ summary(model)
   - ts-k は下がる, k-t も下がる（おそらくベースライン）
 - p-s や p-s、ts-k は下がる
   - 摩擦や破裂、といった要素でモデリングしたほうが良さそう
+
+効果はなかった。個別の差を分析する感じがよいか。
+
+## デルタ(対応付け)
+
+```{r}
+results_mean_delta <- results_mean %>%
+  pivot_wider(
+    id_cols = c(subject_id, tokyo_kinki_ratio, pair),
+    names_from = "condition", values_from = is_correct_mean
+  ) %>%
+  mutate(delta = voiced - devoiced)
+results_mean_delta %>%
+  ggplot() +
+  facet_grid(pair ~ .) +
+  geom_violin(aes(
+    x = factor(range01(tokyo_kinki_ratio), 4),
+    y = delta,
+    # y = is_correct_mean,
+    color = pair,
+    fill = pair,
+  ))
+```
+```{r}
+
+model <- lmer(
+  delta ~
+    tokyo_kinki_ratio + (1 | subject_id),
+  data = results_mean_delta
+  # data = (results_filtered %>% filter(pair!="p-s")),
+)
+summary(model)
+```
+
+```{r}
+print("EOF")
+```
