@@ -329,6 +329,49 @@ model <- lmer(
 summary(model)
 ```
 
+### 先行研究のreplicationをする。
+
+- /sp/が/ps/より弁別精度が低いことの再現
+  - これは統計的に再現できそう
+  - 東京方言での交互作用、という形
+- 方言差が現れるかの検証
+  - 仮に異音的なものなら、そのままで効果が現れるはず
+  - 異音が関係なく、単に音響的な効果なら近畿でも同様の傾向が見られるはず
+- 仮に方言差が現れないとして、まぁ示唆する程度かと。
+
+```{r}
+results_mean_kilpatric = results_mean %>%
+  filter(pair %in% c("p-s", "s-p"))
+  # filter(condition=="devoiced" & pair %in% c("p-s", "s-p"))
+
+model_kilpatric <- stan_lmer(
+  formula = is_correct_mean ~ pair * tokyo_kinki_ratio 
+  + (1 | subject_id),
+  data = results_mean_kilpatric,
+    prior = normal(0, 10),
+    chains = 4, iter = 5000, warmup = 1000
+)
+```
+```{r}
+model_kilpatric %>% 
+  summary(
+    regex_pars = c("^\\(Intercept\\)", "^pair", "tokyo_kinki_ratio"),
+    probs = c(0.05, 0.95),
+    digits = 3
+  ) %>%
+  print()
+```
+
+```{r}
+model_by_pairs_BF <- bayesfactor_parameters(model_kilpatric, null = c(-Inf, 0))
+model_by_pairs_BF
+```
+
+- 制限すると方言差で弁別制度があがる
+- spで東京だと下がる
+  - こう考えると、たしかに効果はある？
+  - 東京でpsは区別できるが、spは区別が辛くなる
+
 ## Appendix
 
 ### 反応時間
