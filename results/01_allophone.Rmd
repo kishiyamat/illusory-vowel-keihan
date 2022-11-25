@@ -110,17 +110,17 @@ nrow(results)
 results
 # 右裾の確認, 10s 以上は外れ値とする
 results %>%
-  select(rt) %>%
+  `$`(rt) %>%
   unlist() %>%
   hist(breaks = 100)
 # 左裾はそこまで以上な値はなさそう.
 results %>%
   filter(rt < 400) %>%
-  select(rt) %>%
-  unlist() %>%
+  `$`(rt) %>%
   hist(breaks = 100)
 # 対数を取って反応の正規分布を確認, 2sd以上の反応は除外
-results_filtered <- results %>% filter(between(rt, 0, 15000))
+results_filtered <- results %>% filter(between(rt, 0, 10000))
+results_filtered %>% `$`(rt) %>% hist(breaks = 100)
 # FIXME: ここらへんのデータ処理はあとできれいにかく（丸めも必要）
 # hist(log(results_filtered$rt))
 # sd_log_rt = 2*sd(log(results_filtered$rt))
@@ -204,12 +204,16 @@ ggsave(paste0("artifact/results_axb_allophone.pdf"), unit = "cm", width = 7, hei
 model <- stan_lmer(
   formula = is_correct_mean ~ condition * tokyo_kinki_ratio
   # formula = is_correct_mean ~  condition * devoicing_preference
-  + (1 | subject_id) + (1 | pair),
+  + (1 | subject_id) + (1 + condition | pair),
   data = results_mean,
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
 )
 ```
+```{r}
+source("https://gist.githubusercontent.com/kishiyamat/e06cb97a098043a2754a58b2b4f64e76/raw")
+```
+
 ```{r}
 model %>% 
   summary(
@@ -218,20 +222,28 @@ model %>%
     digits = 3
   ) %>%
   print()
+
+# Estimates:
+#                                     mean   sd     5%     95% 
+# (Intercept)                        0.597  0.017  0.570  0.624
+# conditionvoiced                   -0.009  0.022 -0.043  0.025
+# tokyo_kinki_ratio                  0.019  0.017 -0.009  0.047
+# conditionvoiced:tokyo_kinki_ratio -0.005  0.021 -0.039  0.030
 ```
 
 Intercept 以外は95%信頼区間に0を含んだ。
 
 ```{r}
 # 正答率を割合を5%上げる・下げないならそれは無意味
-model_BF <- bayesfactor_parameters(model, null = c(-Inf, 0))
+# 帰無仮説は「あげる」であるはず
+model_BF <- bayesfactor_parameters(model, null = c(0, Inf))
 model_BF
 # Parameter                         |       BF
 # --------------------------------------------
-# (Intercept)                       | 2.00e+58
-# conditionvoiced                   |    0.002
-# tokyo_kinki_ratio                 |    0.003
-# conditionvoiced:tokyo_kinki_ratio |    0.002
+# (Intercept)                       | 0.00e+00
+# conditionvoiced                   |     2.17
+# tokyo_kinki_ratio                 |    0.150
+# conditionvoiced:tokyo_kinki_ratio |     1.42
 ```
 
 ## アイテム追加
@@ -239,7 +251,7 @@ model_BF
 ```{r}
 model_by_pairs <- stan_lmer(
   formula = is_correct_mean ~ condition * pair * tokyo_kinki_ratio 
-  + (1 | subject_id),
+  + (1 + pair| subject_id),
   data = results_mean,
     prior = normal(0, 10),
     chains = 4, iter = 5000, warmup = 1000
@@ -345,7 +357,8 @@ results_mean_kilpatric = results_mean %>%
   # filter(condition=="devoiced" & pair %in% c("p-s", "s-p"))
 
 model_kilpatric <- stan_lmer(
-  formula = is_correct_mean ~ pair * tokyo_kinki_ratio 
+  formula = is_correct_mean ~ pair * condition
+  # formula = is_correct_mean ~ pair * tokyo_kinki_ratio * condition
   + (1 | subject_id),
   data = results_mean_kilpatric,
     prior = normal(0, 10),
@@ -355,7 +368,7 @@ model_kilpatric <- stan_lmer(
 ```{r}
 model_kilpatric %>% 
   summary(
-    regex_pars = c("^\\(Intercept\\)", "^pair", "tokyo_kinki_ratio"),
+    regex_pars = c("^\\(Intercept\\)", "^pair", "^cond","tokyo_kinki_ratio"),
     probs = c(0.05, 0.95),
     digits = 3
   ) %>%
