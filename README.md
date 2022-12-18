@@ -178,4 +178,7 @@ pip install praat-parselmouth
 問題の原因だったのかもしれない。
 あと likelihood の縦が 1 になってなかったり。
 
+## ICPhS
+
+- https://www.icphs2023.org/call-for-papers/ からテンプレ
 
