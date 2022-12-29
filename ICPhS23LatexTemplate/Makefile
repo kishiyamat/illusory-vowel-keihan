@@ -1,5 +1,4 @@
 pdf:
-	cp icphs2023-template.tex template.tex
 	rm -f template.blg
 	rm -f template.bbl
 	rm -f template.aux
