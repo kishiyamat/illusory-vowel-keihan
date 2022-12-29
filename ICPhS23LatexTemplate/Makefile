@@ -2,6 +2,7 @@ pdf:
 	rm -f template.blg
 	rm -f template.bbl
 	rm -f template.aux
+	rm -f template.ent
 	rm -f mybib.bib
 	curl https://raw.githubusercontent.com/kishiyamat/bibliography/master/bibliography.bib > mybib.bib
 	pdflatex template.tex
