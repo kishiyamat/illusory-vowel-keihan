@@ -147,20 +147,16 @@ $\hat{c} = \argmax_{c} P(c | c_{t-1})P(S_{\text{new}}|c)$
 during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study because P(\textsubring{\textturnm}|/u/) or P( [s] | /su/ ) is not zero given that the Kinki dialect speakers hear them since these are in Tokyo-dialect, which are prevalent in Japan. Given Bayes Theorem, however, the equation can be rewritten as equations (\ref{disc}).
 
 
-\textsubring{\textturnm}
-\textturnm
-
 % cˆ = argmax c P(c|ct−1) (P(c |Snew )/P(c))
 % FIXME: ここの修正
 \begin{equation} \label{disc}
-    \hat{c} = \argmax_{c} P(c | c_{t-1})P(S_{\text{new}}|c)
+    \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)}
 \end{equation}
 
 The equation above implies that the above equation integrates a discriminative model rather than a generative model with the auditory distribution. Thus, it can employ other discriminative models, such as neural networks and multinomial logistic regressions. Since previous studies have already supported the validity of HMM \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HSMM to explain behavioral data.
 
 \bibliographystyle{IEEEtran}
-\bibliography{mybib}
 
-\theendnotes
+\bibliography{mybib}
 
 \end{document}
