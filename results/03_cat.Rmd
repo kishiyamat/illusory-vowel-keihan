@@ -276,19 +276,24 @@ voicedなのに刺激がdevoicedの調音が悪かっただけ、という線も
 ```{r}
 results %>%
   filter(choice == supposed_answer) %>%
-  mutate(dev_env = case_when(
-    dev_env ~ "Devoicing Env.",
-    !dev_env ~ "No-Devoicing Env."
-  )) %>%
+  mutate(
+    dev_env = case_when(
+      dev_env ~ "Devoicing Env.",
+      !dev_env ~ "No-Devoicing Env."),
+    stim_devoiced = case_when(
+      stim_devoiced ~ "devoiced",
+      !stim_devoiced ~ "not devoiced")
+  ) %>%
+  rename(Stimulus=stim_devoiced) %>% 
   ggplot() +
-  # facet_grid(pair ~ dev_env) +
   facet_grid(. ~ dev_env) +
   geom_boxplot(aes(
     x = tokyo_kinki_ratio_bin,
     y = rate,
-    color = stim_devoiced,
-    fill = stim_devoiced
-  )) +
+    fill = Stimulus
+  ),
+  lwd=0.3
+  ) +
   theme_bw() +
   theme(
     legend.position = "top",
@@ -296,10 +301,10 @@ results %>%
   ) +
   labs(
     x = "Tokyo-residence ratio",
-    y = "Acceptability"
+    y = "Acceptability",
   )
 
-ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 6)
+ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 5)
 ```
 
 #### Stats(Main)
