@@ -106,13 +106,13 @@ Although we found no effect for the presence or absence of the residence ratio, 
 
 $BF = Posterior Odds / Prior Odds$
 
-Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the null effect. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the \textit{null region} (Kruschke, 2010), considered to have no effect, was set to a positive value [0, Inf]. The probability of effect is the probability that slope $b$ falls outside the \textit{null region}. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior Odds$ is calculated based on the prior distribution, whereas $Posterior Odds$ is calculated based on the observed data.
+Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the null effect. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the \textit{null region} (Kruschke, 2010), considered to have no effect, was set to a positive value [0, \infty]. The probability of effect is the probability that slope $b$ falls outside the \textit{null region}. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior Odds$ is calculated based on the prior distribution, whereas $Posterior Odds$ is calculated based on the observed data.
 
-$Prior  Odds = P(b\notin[0, Inf]) / P(b\in[0, Inf])$
+$Prior  Odds = P(b\notin[0, \infty]) / P(b\in[0, \infty])$
 
-$Posterior Odds = P(b\notin[0, Inf] | Data) / P(b\in[0, Inf] | Data)$
+$Posterior Odds = P(b\notin[0, \infty] | Data) / P(b\in[0, \infty] | Data)$
 
-The BF of the Tokyo--Kansai ratio was 0.15 when the null region was set to [0, Inf] in this analysis, which could indicate that the null hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
+The BF of the Tokyo--Kansai ratio was 0.15 when the null region was set to [0, \infty] in this analysis, which could indicate that the null hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
 
 \subsection{Discussion}
 
@@ -148,7 +148,7 @@ Figure X shows that overall ratings are above the mean of 3. In the left pane, w
 
 To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. Five independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, an interaction between the three variables, an interaction between environment and stimulus, and an interaction of the three factors. Subjects and items were random effects. As a prior distribution for each parameter, we employed a normal distribution with a mean of 0 and a standard deviation of 10, which we consider a uniform distribution with a sufficiently wide range. Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
 
-Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0. First, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The BF for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\inf, 0]$, indicating robust evidence of no effect.
+Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0. First, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The BF for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
 
 \subsection{Discussion}
 
