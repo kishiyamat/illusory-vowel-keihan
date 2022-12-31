@@ -104,15 +104,17 @@ We created a Bayesian linear mixed-effects model \cite{lme4, rstanarm, easystats
 
 Although we found no effect for the presence or absence of the residence ratio, a Bayes factor for the Tokyo--Kansai ratio was calculated to evaluate the null hypothesis. The Bayes factor was 0.150, providing substantial evidence for the null hypothesis. In the framework of Bayesian statistics, the Bayes factor is used as a decision-making index when comparing and discussing the effects of models and factors. Bayes factor can be derived in several ways, but in this study, we used as following.
 
-$BF = Posterior Odds / Prior Odds$
+$$
+BF = \frac{Posterior \text{ }Odds }{Prior \text{ }Odds}
+$$
 
-Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the null effect. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the \textit{null region} (Kruschke, 2010), considered to have no effect, was set to a positive value [0, \infty]. The probability of effect is the probability that slope $b$ falls outside the \textit{null region}. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior Odds$ is calculated based on the prior distribution, whereas $Posterior Odds$ is calculated based on the observed data.
+Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the null effect. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the \textit{null region} (Kruschke, 2010), considered to have no effect, was set to a positive value [0, $\infty$]. The probability of effect is the probability that slope $b$ falls outside the \textit{null region}. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior \text{ }Odds$ is calculated based on the prior distribution, whereas $Posterior \text{ }Odds$ is calculated based on the observed data.
 
-$Prior  Odds = P(b\notin[0, \infty]) / P(b\in[0, \infty])$
+$$ Prior\text{ }Odds = \frac{P(b\notin[0, \infty])}{P(b\in[0, \infty])} $$
 
-$Posterior Odds = P(b\notin[0, \infty] | Data) / P(b\in[0, \infty] | Data)$
+$$ Posterior \text{ }Odds = \frac{P(b\notin[0, \infty] | Data)}{P(b\in[0, \infty] | Data)} $$
 
-The BF of the Tokyo--Kansai ratio was 0.15 when the null region was set to [0, \infty] in this analysis, which could indicate that the null hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
+The BF of the Tokyo--Kansai ratio was 0.15 when the null region was set to [0, $\infty$] in this analysis, which could indicate that the null hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
 
 \subsection{Discussion}
 
@@ -133,7 +135,7 @@ Subjects listened to the stimuli, selected which of the above eight options show
 
 \subsection{Results}
 
-In analyzing the categorization results, Figure \ref{fig:cat_results} shows the Tokyo-Kansai ratio on the X-axis and the goodness of fit rating on the Y-axis in a boxplot. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
+In analyzing the categorization results, Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio on the X-axis and the goodness of fit rating on the Y-axis in a boxplot. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
 
 % FIXME: caption変更
 \begin{figure}[!ht]
