@@ -121,12 +121,13 @@ Next, categorization task investigated dialectal differences and acceptability j
 
 The subjects in the perceptual task also participated in this task. All sounds presented in the perceptual task were categorized. There are eight different patterns: four to be devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four not to be devoiced (ezubo, egudo, ebuzo, edzugo). Each of them had devoiced version, and the choices were shown in Japanese letters on the screen. Since three speakers recorded 16 patterns, the subjects listened to 48 stimuli.
 
-Subjects listened to the stimuli, selected which of the above eight options shown above was closest to it, and rated its acceptability on a 7-point scale (0--6). In the goodness of fit rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
+Subjects listened to the stimuli, selected which of the above eight options shown above was closest to it, and rated its acceptability on a 7-point scale (0--6). In the rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
 
 \subsection{Results}
 
 % FIXME: 色を修正
-The x-axis in the Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio and the y-axis shows the goodness of fit rating. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
+% FIXME: 左右をチェック
+The x-axis in the Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio and the y-axis shows the goodness of fit rating. The left and right panes indicate the environment of speech (devoicing or not), and the color difference shows wheter the actual stimulus was devoiced or not. The overall ratings were above the mean of 4. The devoiced stimulus were rated higher in the the devoiced environment (left pane), while they were rated lower in the no-devoicing environment (right pane). The residential history does not contribute to these differences.
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=6.5cm]{../results/artifact/results_categorization.pdf}
@@ -134,21 +135,17 @@ The x-axis in the Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio and
 \end{center}
 \end{figure}
 
-The figure shows overall ratings were above the mean of 3. In the left pane, which represents the devoiced environment, the ratings of the devoiced stimulus were higher, as shown in blue. In contrast, the right pane, which represents the no-devoicing environment, suggests the devoiced stimulus decreased the ratings. The residential history does not contribute to these differences.
-
 % FIXME: table追加は検討(直近では含まない方向)
-To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. Five independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, an interaction between the three variables, an interaction between environment and stimulus, and an interaction of the three factors. Subjects and items were random effects. As a prior distribution for each parameter, we employed a normal distribution with a mean of 0 and a standard deviation of 10, which we consider a uniform distribution with a sufficiently wide range.
+To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. The independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, and the itneractions of them. Subjects and items were random effects and we employed a normal distribution ($M=0$, $SD=10$) as a prior distribution for each parameter.
 
 % Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
 
 % Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0.
-As a results, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null-region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
+The mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null-region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
 
 \subsection{Discussion}
 
-The results showed that the overall responses were above 4, which means that the quality of the stimuli in this study was not lower than in previous studies \cite{kilpatrick2018japanese}. If the subjects can judge the devoiced speech in the Tokyo dialect offline without epenthesis, then the goodness rate of devoiced stimuli would be above three because it is appropriate in devoicing environment and less than three if it is in a no-devoicing environment. In contrast, when vowels are inserted, all are appropriate and acceptable; thus, responses would be above 4.
-
-The results of the categorization task showed that both Tokyo dialect and Kansai dialect speakers showed higher ratings when the environment and speech were in the Tokyo dialect. In other words, the results showed that the rating increased when the speech was devoiced in a devoicing environment. At the same time, it decreased when the devoiced stimuli were in the no-devoicing environment. However, the effect was only about 1, not high enough to cross the threshold between unnatural and natural.
+The results showed that the overall responses were above 4, which means that the quality of the stimuli in this study was not lower than in previous studies \cite{kilpatrick2018japanese}. If the subjects can judge the devoiced speech in the Tokyo dialect offline without epenthesis, the rate of devoiced stimuli in no-devoicing environment would be less than. The results of the categorization task showed that both Tokyo dialect and Kansai dialect speakers showed that the rating increased when the speech was devoiced in a devoicing environment while it decreased when the devoiced stimuli were in the no-devoicing environment. However, the effect of the interaction was only about 1, not high enough to cross the threshold between unnatural and natural.
 
 \section{General Discussion}
 
