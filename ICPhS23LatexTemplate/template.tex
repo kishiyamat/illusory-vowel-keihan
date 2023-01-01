@@ -152,7 +152,7 @@ To test these points, we created a Bayesian linear mixed-effects model with the 
 % Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
 
 % Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0.
-As a results, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
+As a results, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null-region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
 
 \subsection{Discussion}
 
@@ -166,15 +166,14 @@ Previous research proposed that the vowel illusion was caused by devoicing. In a
 
 First, the results of the discrimination accuracy and categorization tasks in the previous studies were not due to the effect of devoicing but to acoustic differences. Suppose the perceptual epenthesis was due to the devoicing or deletion. In that case, the discrimination accuracy of Tokyo dialect speakers should be lower than that of Kansai dialect speakers who do not devoice or delete the vowels, but there was no such effect. Instead, the Kansai dialect speakers perceived the illusory vowels as the Tokyo dialect speakers do in our study.
 
-Second, regarding how acoustic cues affect speech perception, previous studies \cite{wilson2013bayesian, kishiyama2021influence} have assumed Eq. \ref{hmm} during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero given that the Kinki dialect speakers hear them since these are in Tokyo-dialect, which are prevalent in Japan. Given Bayes Theorem, however, the equation can be rewritten as Eq. (\ref{disc}).
-
-% cˆ = argmax c P(c|ct−1) (P(c |Snew )/P(c))
-% FIXME: ここの修正
+% FIXME: ここに古川くんのwhisper考察を入れる
+Second, regarding how acoustic cues affect speech perception, previous studies \cite{wilson2013bayesian, kishiyama2021influence} have assumed Eq. \ref{hmm} during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero given that the Kinki dialect speakers hear them since these are in Tokyo-dialect, which are prevalent in Japan. Given Bayes Theorem the equation can be rewritten as Eq. (\ref{disc}) and it integrates discriminative models.
+%
 \begin{equation} \label{disc}
     \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)}
 \end{equation}
-
-The equation above implies that the above equation integrates a discriminative model rather than a generative model with the auditory distribution. Thus, it can employ other discriminative models, such as neural networks and multinomial logistic regressions. Since previous studies have already supported the validity of HMMs \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data.
+%
+Thus, it allows us to employ other discriminative models, such as neural networks and multinomial logistic regressions. Since previous studies have already supported the validity of HMMs \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data.
 
 \bibliographystyle{IEEEtran}
 
