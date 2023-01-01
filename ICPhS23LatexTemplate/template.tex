@@ -114,28 +114,28 @@ $$ Prior\text{ }Odds = \frac{P(b\notin[0, \infty])}{P(b\in[0, \infty])} $$
 
 $$ Posterior \text{ }Odds = \frac{P(b\notin[0, \infty] | Data)}{P(b\in[0, \infty] | Data)} $$
 
-The $BF$ of the Tokyo--Kansai ratio was 0.15 when the null-region was set to [0, $\infty$] in this analysis, which could indicate that the null-hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
+The $BF$ of the Tokyo--Kansai ratio was 0.15 when the null-region was set to [0, $\infty$] in this analysis, which indicated that the null-hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
 
 \subsection{Discussion}
 
-This study discusses whether models of phoneme perception should incorporate devoicing and deletion. If the allophone creates the illusion of a vowel, the Tokyo dialect speakers with the allophone should have lower accuracy in the discrimination experiment than speakers without devoicing. However, the results of the AXB task showed that the discrimination accuracy of both Kansai and Tokyo dialect speakers, regardless of their language experience, was around 0.59, which is close to a chance level. In addition, the Bayes factor values suggested that the language experience did not affect the rate of illusions in the discrimination task. Thus, we suggested that the presence or absence of an unusual sound did not cause the illusion.
+If the allophone creates the illusion of a vowel, the Tokyo dialect speakers with the allophone should have lower accuracy in the discrimination experiment than speakers without devoicing. However, the results of the AXB task showed that the discrimination accuracy of both Kansai and Tokyo dialect speakers, regardless of their language experience, was around 0.59, which is close to a chance level. In addition, the $BF$ suggested that the language experience and devoicing did not affect the rate of illusions in the discrimination task.
 
-Next, we conducted an offline categorization task to confirm that Kansai dialect speakers perceive the stimuli the same way as Tokyo dialect speakers. This experiment provides information on the acceptabilities of the stimuli and the subject's rate of correct responses to the task. It also provides an offline evaluation of the illusion.
+% Next, we conducted an offline categorization task to confirm that Kansai dialect speakers perceive the stimuli the same way as Tokyo dialect speakers. This experiment provides information on the acceptabilities of the stimuli and the subject's rate of correct responses to the task. It also provides an offline evaluation of the illusion.
 
+Next, categorization task investigated dialectal differences and acceptability judgments about devoicing in offline processing. We examined whether dialect differences in language experience affect the goodness rating of deletion/devoicing. Note that we performed this categorization task after the online process to avoid any effect on the validation of the online process.
 
 \section{Categorization task}
 
-The categorization task investigated dialectal differences and acceptability judgments about devoicing in offline processing. We examined whether dialect differences in language experience affect the goodness rating of deletion/devoicing. Note that we performed this categorization assignment after the online process to avoid any effect on the validation of the online process.
-
 \subsection{Materials and methods}
 
-The same subjects participated in the perceptual task. All speech sounds presented in the perceptual experiment were to be classified. There are a total of eight different patterns: four environments to be devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four devoiced settings (espo, ekto, epso, etsko). The choices were shown in Japanese letters on the screen, and the correct ones were esupo, ekuto, epuso, and etsuko, respectively. The environment where devoicing does not occur is one in which each of the above eight patterns of consonants is switched to voiced sounds, and the correct responses are ezubo, egudo, ebuzo, and edzugo, respectively. Since three speakers recorded 16 patterns, the subjects heard 48 stimuli.
+The same subjects participated in the perceptual task. All speech sounds presented in the perceptual experiment were to be classified. There are a total of eight different patterns: four environments to be devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four devoiced settings (espo, ekto, epso, etsko). The choices were shown in Japanese letters on the screen, and the correct ones were esupo, ekuto, epuso, and etsuko, respectively. In the environment where devoicing does not occur, each of the above eight patterns of consonants is switched to voiced sounds, and the correct responses were ezubo, egudo, ebuzo, and edzugo, respectively. Since three speakers recorded 16 patterns, the subjects listened to 48 stimuli.
 
 Subjects listened to the stimuli, selected which of the above eight options shown above was closest to it, and immediately rated its acceptability on a 7-point scale (0--6). In the goodness of fit rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
 
 \subsection{Results}
 
-In analyzing the categorization results, Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio on the X-axis and the goodness of fit rating on the Y-axis in a boxplot. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
+% FIXME: 色を修正
+The x-axis in the Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio and the y-axis shows the goodness of fit rating. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
 
 \begin{figure}[!ht]
 \begin{center}
@@ -144,12 +144,15 @@ In analyzing the categorization results, Figure \ref{fig:cat_results} shows the 
 \end{center}
 \end{figure}
 
-Figure X shows that overall ratings are above the mean of 3. In the left pane, which represents the devoiced environment, the ratings of the devoiced stimulus were higher, as shown in blue. In contrast, the right pane, which represents the no-devoicing environment, suggests the devoiced stimulus decreased the ratings. Residential history does not contribute to these differences.
+The figure shows The overall ratings were above the mean of 3. In the left pane, which represents the devoiced environment, the ratings of the devoiced stimulus were higher, as shown in blue. In contrast, the right pane, which represents the no-devoicing environment, suggests the devoiced stimulus decreased the ratings. The residential history does not contribute to these differences.
 
 % FIXME: table追加は検討(直近では含まない方向)
-To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. Five independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, an interaction between the three variables, an interaction between environment and stimulus, and an interaction of the three factors. Subjects and items were random effects. As a prior distribution for each parameter, we employed a normal distribution with a mean of 0 and a standard deviation of 10, which we consider a uniform distribution with a sufficiently wide range. Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
+To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. Five independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, an interaction between the three variables, an interaction between environment and stimulus, and an interaction of the three factors. Subjects and items were random effects. As a prior distribution for each parameter, we employed a normal distribution with a mean of 0 and a standard deviation of 10, which we consider a uniform distribution with a sufficiently wide range.
 
-Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0. First, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
+% Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
+
+% Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0.
+As a results, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
 
 \subsection{Discussion}
 
