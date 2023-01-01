@@ -74,7 +74,7 @@ What allows multiple interpretations for the experiments is the confounding of t
 
 \subsection{Materials and methods}
 
-%FIXME: 
+%FIXME: MやSDの値をダブルチェク
 We used an outsourcing service to recruit subjects who were older than 18 years and from Tokyo or the Kansai region, and those who had never lived in other areas since birth had priority in the recruitment process. We had 62 valid subjects participated in the experiment ($M$=40, $SD$=15), while excluding the results of the four subjects whose answers were under 75\% accuracy in the categorization task (\S3).
 
 In the AXB task, the participants were to distinguish between VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V in a list of target stimuli with 32 items based on the combination of the four conditions below. (1) For environments where deletion and devoicing occur, we established four pairs for C$_\text{1}$C$_\text{2}$: s--p, k--t, p--s, and ts--k. (2) We also had stimuli VC$_\text{1}$VC$_\text{2}$V with /u/ between C$_\text{1}$ and C$_\text{2}$ that the participants had to discriminate from VC$_\text{1}$C$_\text{2}$V. (3) We also created two patterns depending on whether a trial's stimulus in the X position was either VC$_\text{1}$VC$_\text{2}$V or VC$_\text{1}$C$_\text{2}$V, which is to be distinguished in the AXB task. (4) We prepared voiced counterparts of C$_\text{1}$ and C$_\text{2}$, such as b--z, where neither deletion nor devoicing occurs. The positions of correct answers were counterbalanced, A or B.
@@ -85,11 +85,8 @@ After three sets of practice tasks, 32 target items and 24 filler items were ran
 
 \subsection{Results}
 
-The results of the experiment are shown in Figure \ref{fig:axb_results}. 
+The y-axis in the Figure \ref{fig:axb_results} shows the average discrimination accuracy of VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V in the AXB discrimination task. On the left and right panes, we indicated whether the stimulus was in devoicing environment (e.g., k--t if C$_\text{1}$C$_\text{2}$ was devoicing condition, g--d if not). The x-axis shows the Tokyo--Kansai ratio, the ratio of residential history between Tokyo and the Kansai region. For example, if a subject has lived in Tokyo for 25 years and in Kansai for 15 years, the ratio is $(25-15)/40$, or $0.25$. We showed four items vertically to see tendencies for each item,
 
-The vertical axis shows the average discrimination accuracy of VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V in the AXB discrimination task. On the left and right sides, we indicated whether the stimulus was in devoicing environment (e.g., k--t if C$_\text{1}$C$_\text{2}$ was devoicing condition, g--d if not). The horizontal axis shows the Tokyo--Kansai ratio, the ratio of residential history between Tokyo and the Kansai region. For example, if a subject has lived in Tokyo for 25 years and in Kansai for 15 years, the ratio is $(25-15)/40$, or $0.25$. We showed four items vertically to see tendencies for each item,
-
-% FIXME: caption変更
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=7cm]{../results/artifact/results_axb_allophone.pdf}
@@ -97,24 +94,27 @@ The vertical axis shows the average discrimination accuracy of VC$_\text{1}$VC$_
 \end{center}
 \end{figure}
 
+% FIXME: この1%は Place holder
+We checked the distribution of the reaction time data and excluded the 1\% of data with a reaction time of 10 seconds or longer as outliers. We calculated the mean accuracy, averaging four patterns based on the X in AXB (VC$_\text{1}$VC$_\text{2}$V or VC$_\text{1}$C$_\text{2}$V) and the correct answer position (A or B) and excluding missing values.
 
-We checked the distribution of the reaction time data and excluded the 1\% of data with a reaction time of 10 seconds or longer as outliers. We calculated the average accuracy based on the X in AXB (VC$_\text{1}$VC$_\text{2}$V or VC$_\text{1}$C$_\text{2}$V) and the correct answer position (A or B), reducing the data amount to 1/4. In doing so, we excluded missing values. The dependent variable was the average of correct and incorrect answers.
+% FIXME: Table を追加するか検討
+We created a Bayesian linear mixed-effects model \cite{lme4, rstanarm, easystats} with the Tokyo--Kansai ratio as the independent variable and the AXB task discrimination accuracy as the dependent variable. Item type and subjects were modeled as random effects. The analysis revealed an overall mean accuracy of 0.59, without consistent effects for environmental. The estimates of dialectal differences were positive (0.019) and not in the direction of decreasing precision.
 
-We created a Bayesian linear mixed-effects model \cite{lme4, rstanarm, easystats} with the Tokyo--Kansai ratio as the independent variable and the AXB task discrimination accuracy as the dependent variable. Item type and subjects were added as random effects. The analysis revealed an overall mean accuracy of 0.59, with no consistent effect for environmental or dialectal differences. The estimates were also positive and not in the direction of decreasing precision (Table 1).
-
-Although we found no effect for the presence or absence of the residence ratio, a Bayes factor for the Tokyo--Kansai ratio was calculated to evaluate the null hypothesis. The Bayes factor was 0.150, providing substantial evidence for the null hypothesis. In the framework of Bayesian statistics, the Bayes factor is used as a decision-making index when comparing and discussing the effects of models and factors. Bayes factor can be derived in several ways, but in this study, we used as following.
+% FIXME: Bayes Factor 周りの記述を再読して修正
+% https://easystats.github.io/bayestestR/articles/bayes_factors.html
+Although we found no effect of the residence ratio, a Bayes factor ($BF$) for the Tokyo--Kansai ratio was calculated to evaluate the null-hypothesis. The Bayes factor was 0.150, providing substantial evidence for the null-hypothesis. In the framework of Bayesian statistics, the Bayes factor is used as a decision-making index when comparing and discussing the effects of models and factors. Bayes factor can be derived in several ways, but in this study, we used as following.
 
 $$
 BF = \frac{Posterior \text{ }Odds }{Prior \text{ }Odds}
 $$
 
-Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the null effect. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the \textit{null region} (Kruschke, 2010), considered to have no effect, was set to a positive value [0, $\infty$]. The probability of effect is the probability that slope $b$ falls outside the \textit{null region}. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior \text{ }Odds$ is calculated based on the prior distribution, whereas $Posterior \text{ }Odds$ is calculated based on the observed data.
+Each $Odds$ above calculates the ratio of (i) the probability of the factor's effect to (ii) the probability supporting the \textit{null-effect}\cite{kruschke2010believe}. This time, the factor was the Tokyo--Kansai ratio, an independent variable whose effect was supposed to be negative. Therefore, the null-region, considered to have no effect, was set to a positive value [0, $\infty$]. The probability of effect is the probability that slope $b$ falls outside the null-region. In contrast, the probability of no effect is the probability that it falls within the region. The $Prior \text{ }Odds$ is calculated based on the prior distribution, whereas $Posterior \text{ }Odds$ is calculated based on the observed data.
 
 $$ Prior\text{ }Odds = \frac{P(b\notin[0, \infty])}{P(b\in[0, \infty])} $$
 
 $$ Posterior \text{ }Odds = \frac{P(b\notin[0, \infty] | Data)}{P(b\in[0, \infty] | Data)} $$
 
-The $BF$ of the Tokyo--Kansai ratio was 0.15 when the null region was set to [0, $\infty$] in this analysis, which could indicate that the null hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
+The $BF$ of the Tokyo--Kansai ratio was 0.15 when the null-region was set to [0, $\infty$] in this analysis, which could indicate that the null-hypothesis of a positive effect is 1/0.15, or about 6.67 times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions and reduces the accuracy.
 
 \subsection{Discussion}
 
@@ -137,7 +137,6 @@ Subjects listened to the stimuli, selected which of the above eight options show
 
 In analyzing the categorization results, Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio on the X-axis and the goodness of fit rating on the Y-axis in a boxplot. The left and right panes indicate the environment of speech (devoicing or not), and the color difference is shown in blue when the actual stimulus was devoiced and in red when it is not.
 
-% FIXME: caption変更
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=7cm]{../results/artifact/results_categorization.pdf}
@@ -147,6 +146,7 @@ In analyzing the categorization results, Figure \ref{fig:cat_results} shows the 
 
 Figure X shows that overall ratings are above the mean of 3. In the left pane, which represents the devoiced environment, the ratings of the devoiced stimulus were higher, as shown in blue. In contrast, the right pane, which represents the no-devoicing environment, suggests the devoiced stimulus decreased the ratings. Residential history does not contribute to these differences.
 
+% FIXME: table追加は検討(直近では含まない方向)
 To test these points, we created a Bayesian linear mixed-effects model with the goodness of fit rating as the dependent variable. Five independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced / not devoiced), the Tokyo--Kansai ratio, an interaction between the three variables, an interaction between environment and stimulus, and an interaction of the three factors. Subjects and items were random effects. As a prior distribution for each parameter, we employed a normal distribution with a mean of 0 and a standard deviation of 10, which we consider a uniform distribution with a sufficiently wide range. Table X below shows the coefficients, sd, and 95\% Bayesian confidence intervals for each factor obtained by MCMC sampling. All Rhat values were one, and the model converged.
 
 Below is the table which summarizes statistics whose 95\% Bayesian confidence interval did not include 0. First, the mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, i.e., the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
