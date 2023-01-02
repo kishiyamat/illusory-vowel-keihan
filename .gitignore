@@ -18,3 +18,12 @@ model/wav/*
 .Rproj.user
 *.npy
 *.RData
+
+ICPhS23LatexTemplate/mybib.bib
+ICPhS23LatexTemplate/template.aux
+ICPhS23LatexTemplate/template.bbl
+ICPhS23LatexTemplate/template.blg
+ICPhS23LatexTemplate/template.ent
+ICPhS23LatexTemplate/template.log
+ICPhS23LatexTemplate/template.pdf
+

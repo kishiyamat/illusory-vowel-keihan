@@ -175,12 +175,13 @@ level_order <- base::factor(results_mean$tokyo_kinki_ratio_bin, level = level_or
 results_mean %>%
   ggplot() +
   facet_grid(pair ~ condition) +
-  geom_violin(aes(
+  geom_boxplot(aes(
+  # geom_violin(aes(
     x = level_order,
     y = is_correct_mean,
-    color = phoneme_envs,
-    fill = phoneme_envs,
-  ))+
+    fill = phoneme_envs),
+  lwd=0.3
+  )+
   theme_bw() +
   theme(
     legend.position = "none",
