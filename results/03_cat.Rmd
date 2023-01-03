@@ -292,7 +292,8 @@ results %>%
     y = rate,
     fill = Stimulus
   ),
-  lwd=0.3
+  lwd=0.3,
+  outlier.size=0.5
   ) +
   theme_bw() +
   theme(
@@ -302,7 +303,8 @@ results %>%
   labs(
     x = "Tokyo-residence ratio",
     y = "Acceptability",
-  )
+  ) +
+  scale_fill_grey(start = 0.7, end = 1.0)
 
 ggsave(paste0("artifact/results_categorization.pdf"), unit = "cm", width = 7, height = 5)
 ```

@@ -103,7 +103,8 @@ results <- rbind(
   ) %>%
   left_join(devoicing_preference, by = c("subject_id")) %>% 
   filter(!subject_id %in% less_accurate_subj_id)
-nrow(results)
+n_results = nrow(results)
+nrow(n_results)
 ```
 
 ```{r}
@@ -134,7 +135,11 @@ results_filtered %>% `$`(rt) %>% hist(breaks = 100)
 results_filtered$rt %>%
   summary() %>%
   print()
-print(nrow(results_filtered))
+n_results_filtered = nrow(results_filtered)
+print(n_results_filtered)
+```
+```{r}
+print((1-(n_results_filtered/n_results))*100)
 ```
 
 
@@ -180,7 +185,8 @@ results_mean %>%
     x = level_order,
     y = is_correct_mean,
     fill = phoneme_envs),
-  lwd=0.3
+  lwd=0.3,
+  outlier.size=0.5
   )+
   theme_bw() +
   theme(
