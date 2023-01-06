@@ -58,7 +58,7 @@ First, phonotactics provide insights into the vowel illusion \cite{halle2014spec
 
 Second, experiments with native speakers of Brazilian Portuguese and Japanese have revealed the influence of formant cues on illusory vowels \cite{dupoux2011illusory}. Both languages do not allow /bz/, and the default vowels that were inserted were /i/ and /u/, respectively. The study deleted the vowels between /b/--/z/ in [ebizo] and [ebuzo], leaving the vowels' acoustic cues in /b/. The remnant of formant cues affected the participants of both languages, increasing the insertion rate of the non-default /i/ for Japanese.
 
-One-step models can explain these results, where phonotactics and acoustic cues simultaneously affect the illusion \cite{dupoux2011illusory}. These one-step models can be represented by hidden Markov models (HMMs), which can also represent perceptual assimilation models \cite{best2001discrimination} and models in exemplar theory \cite{lacerda1995perceptual}, through reproducing the illusory vowels \cite{kishiyama2021influence} by calculating
+One-step models can explain these results, where phonotactics and acoustic cues simultaneously affect the illusion \cite{dupoux2011illusory}. These one-step models can be represented by hidden Markov models (HMMs), which can also represent perceptual assimilation models \cite{best2001discrimination} and models in exemplar theory \cite{lacerda1995perceptual}. The statistical inference \cite{feldman2009influence, wilson2013bayesian} reproduced the illusory vowels \cite{kishiyama2021influence} by calculating
 % no break
 \begin{equation} \label{hmm}
     \hat{c} = \argmax_{c} P(c | c_{t-1})P(S_{\text{new}}|c).
@@ -121,7 +121,7 @@ Furthermore, we examined whether dialect differences in language experience affe
 
 \subsection{3.1. Materials and methods}
 
-The participants in the perceptual task also completed the categorization task. All sounds presented in the perceptual task were categorized. There are eight different patterns: four that are devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four that are not devoiced (ezubo, egudo, ebuzo, edzugo). Each of them had a devoiced counterpart, and the choices were shown in Japanese letters on the screen. Because three speakers recorded 16 patterns, the participants listened to 48 stimuli, selected one of the above eight options shown above that was closest to them, and rated its acceptability on a 7-point scale (0--6). In the rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
+The participants in the perceptual task also completed the categorization task. All sounds presented in the perceptual task were categorized and rated. There were eight different patterns: four that were devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four that were not devoiced (ezubo, egudo, ebuzo, edzugo). Each of them had a devoiced counterpart, and the choices were shown in Japanese letters on the screen. Because three speakers recorded 16 patterns, the participants listened to 48 stimuli, selected one of the above eight options above that was closest to them, and rated its acceptability on a 7-point scale (0--6). In the rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
 
 \subsection{3.2. Results}
 
@@ -137,11 +137,11 @@ The $x$-axis in Figure \ref{fig:cat_results} shows the Tokyo--Kansai ratio, and 
 
 To test these points, we created a Bayesian linear mixed-effects model, with the goodness of fit rating as the dependent variable. The independent variables were environment (devoicing/no-devoicing), stimulus type (devoiced/not devoiced), the Tokyo--Kansai ratio, and their interactions. Participants and items were random effects, and we employed a normal distribution ($M=0$, $SD=10$), as a prior distribution for each parameter.
 
-The mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The estimates of The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, that is, the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating very strong evidence for the null hypothesis.
+The mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The estimates of the devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, that is, the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating very strong evidence for the null hypothesis.
 
 \subsection{3.3. Discussion}
 
-The results showed that the overall responses were above 4, which means that the quality of the stimuli in this study was not lower than those in previous studies \cite{kilpatrick2018japanese}. If the participants can judge the devoiced speech in the Tokyo dialect offline without epenthesis, the rate of devoiced stimuli in a no-devoicing environment would be less than three. Considering the results of the categorization task, both the Tokyo and Kansai dialect speakers showed that the rating increased when the speech was devoiced in a devoicing environment, while it decreased when the devoiced stimuli were in a no-devoicing environment. However, the interaction's $b$ was 1.19, and not high enough to cross the threshold between unnatural and natural.
+The results showed that the overall responses were above 4, which means that the quality of the stimuli in this study was not lower than those in previous studies \cite{kilpatrick2018japanese}. If the participants can judge the devoiced speech in the Tokyo dialect offline without epenthesis, the rate of devoiced stimuli in a no-devoicing environment would be less than three. Considering the results of the categorization task, both the Tokyo and Kansai dialect speakers showed the increased rating when the speech was devoiced in a devoicing environment, while it decreased when the devoiced stimuli were in a no-devoicing environment. However, the interaction's $b$ was 1.19, and not high enough to cross the threshold between unnatural and natural.
 
 \section{General Discussion}
 
@@ -149,14 +149,13 @@ Previous research proposed that devoicing could cause the perceptual epenthesis.
 
 First, the results of the discrimination accuracy and categorization tasks in the previous studies might not be due to the effect of devoicing, but because of acoustic differences. If the perceptual epenthesis were due to the devoicing or deletion, the discrimination accuracy of the Tokyo dialect speakers would be lower than that of the Kansai dialect speakers, who do not devoice or delete the vowels. However, no such effect was observed. Instead, Kansai dialect speakers perceived the illusory vowels almost the same as the Tokyo dialect speakers, in our study.
 
-Second, regarding how acoustic cues affect speech perception, previous studies \cite{wilson2013bayesian, kishiyama2021influence} have assumed Eq. (\ref{hmm}) during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study, because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, given that the Kinki dialect speakers hear them because these are in Tokyo dialect, which is prevalent in Japan. Given the Bayes Theorem, the equation can be rewritten as
+Second, regarding how acoustic cues affect speech perception, previous studies \cite{feldman2009influence, wilson2013bayesian, kishiyama2021influence} have assumed Eq. (\ref{hmm}) during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$, and it does not need to be a generative model. This makes the results consistent with the previous study, because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, given that the Kinki dialect speakers hear them in Tokyo dialect, which is prevalent in Japan. Given the Bayes' Theorem, the equation can be rewritten as
 %
 \begin{equation} \label{disc}
     \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)},
 \end{equation}
 %
-and it integrates discriminative models.
-Thus, it allows us to employ other discriminative models, such as neural networks and multinomial logistic regressions. Given that previous studies have already supported the validity of HMMs \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data, in future studies.
+and it integrates discriminative models instead of generative models. This allows us to employ other discriminative models, such as neural networks and multinomial logistic regressions. Given that previous studies have already supported the validity of HMMs \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data, in future studies.
 
 % FIXME
 % \section{Acknowledgements}
