@@ -63,7 +63,7 @@ One-step models can explain these results, where phonotactics and acoustic cues 
 \begin{equation} \label{hmm}
     \hat{c} = \argmax_{c} P(c | c_{t-1})P(S_{\text{new}}|c).
 \end{equation}
-Eq. (\ref{hmm}) calculates two likelihoods: $P(c|c_{t-1})$ represents the likelihood of the phoneme array $c_{t-1}$ to $c$, and $P(S_{\text{new}}|c)$ represents the likelihood of the input speech $S_{\text{new}}$ for a phoneme $c$. Consequently, the phoneme $c$ that maximizes the likelihoods is activated as $\hat{c}$.
+Eq. (\ref{hmm}) calculates two likelihoods: $P(c|c_{t-1})$ is the likelihood of the phoneme array $c_{t-1}$ to $c$, and $P(S_{\text{new}}|c)$ is the likelihood of the input speech $S_{\text{new}}$ for a phoneme $c$. Consequently, the phoneme $c$ that maximizes the likelihoods is activated as $\hat{c}$.
 % no break
 Traditionally, all elements $c$ above were phonemes \cite{wilson2013bayesian}. However, recent studies have suggested that allophones should be treated as discrete units in perceptual models.
 
