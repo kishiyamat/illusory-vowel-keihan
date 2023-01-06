@@ -1,37 +1,38 @@
 \documentclass[a4paper,11pt,twocolumn]{article}
 
 \usepackage{icphs2023}
-\usepackage{metalogo} % Only needed for the XeLaTeX logo
 \usepackage{epstopdf}
-\usepackage{tipa} %
-\newcommand{\ipa}{\textipa}
+\usepackage{tipa}
 \usepackage{amsmath}% http://ctan.org/pkg/amsmath
 \newcommand{\argmax}{\mathop{\rm arg~max}\limits}
 \newcommand{\argmin}{\mathop{\rm arg~min}\limits}
-\usepackage{svg}
 
 \hyphenpenalty=10000 % no hyphenation
 % https://docs.google.com/document/d/1df4t0mZm1gUytgQOYaZNg6-mcneA4knqTvUPMIhoMMc/edit?usp=sharing
 % https://docs.google.com/document/d/1VywiSaEORlVrRDb7nxGQx2D0pu6huftZrEiVQKmCGWY/edit?usp=sharing
 
 \title{The role of allophones in phoneme perception models: Do devoiced vowels trigger vowel epenthesis?}
-% \name{
 \author{
     Takeshi Kishiyama$^1$,
     Chuyu Huang$^2$,
     Kei Furukawa$^3$,
     Yuki Hirose$^1$}
-% \address{
+% NAIST の前のスペースがでかすぎるので調整
+% https://tex.stackexchange.com/questions/494582/spacing-of-newline-and
 \organization{
-  $^1$Graduate School of Arts and Sciences, The University of Tokyo, Japan\\
-  $^2$Faculty of Foreign Studies, Nagoya Gakuin University, Japan\\
-  $^3$Nara Institute of Science and Technology, Japan}
+  $^1$The University of Tokyo, Japan
+  $^2$Nagoya Gakuin University, Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
+  $^3$Nara Institute of Science and Technology, Japan
+  }
+% \organization{
+%   $^1$The University of Tokyo, Japan\\
+%   $^2$Nagoya Gakuin University, Japan\\
+%   $^3$Nara Institute of Science and Technology, Japan}
 \email{
     kishiyama.t@gmail.com,
     huang@ngu.ac.jp,
     furukawa.kei.fi4@is.naist.jp,
-    hirose@boz.c.u-tokyo.ac.jp
-    }
+    hirose@boz.c.u-tokyo.ac.jp}
 \begin{document}
 
 \maketitle
@@ -60,13 +61,13 @@ Traditionally, all elements $c$ above were phonemes \cite{wilson2013bayesian}. H
 
 First, devoiced/deleted vowels in Japanese are reported to increase the perceptual epenthesis \cite{kilpatrick2018japanese}. The Tokyo dialect in Japanese deletes the high vowel /u/ in /esupo/, and it would be [espo] when the vowel follows fricatives or affricates \cite{fujimoto2003devoice_eng, shaw2018lingual}. In other cases, the vowel in /epuso/ becomes devoiced as [ep\textsubring{\textturnm}so]. The study reported that the deletion/devoicing encouraged assimilation and increased the perceptual epenthesis. Second, transition probabilities between allophones are reported to cause the vowel illusion \cite{kilpatrick2020japanese}. Japanese [\textctc], a realization of /s/ precedes /i/, but not other vowels. The study investigated whether [\textctc{}] induces the illusion of /i/ more \cite{kilpatrick2020japanese}, and found that it was perceived more frequently after [\textctc], than after [g]. This result suggests that allophones and their transition probabilities affect the vowel illusion.
 
-The question is whether phoneme perception models should consider allophones as categorical, rather than as continuous. Without the assumption of categorical allophones, the one-step models can explain the results above. The difference in the auditory cues within the deleted and devoiced vowels yield different $P(S_{\text{new}}|c)$ in Eq. (1). Furthermore, the stimuli [\textctc] is supposed to have acoustic cues of /i/ \cite{kubozono1999japanese_eng}, which can also change $P(S_{\text{new}}|c)$ in Eq. (1). To explain the results, therefore, these models do not need to have categorical allophones.
+The question is whether phoneme perception models should consider allophones as categorical, rather than as continuous. Without the assumption of categorical allophones, the one-step models can explain the results above. The difference in the auditory cues within the deleted and devoiced vowels yield different $P(S_{\text{new}}|c)$ in Eq. (\ref{hmm}). Furthermore, the stimuli [\textctc] is supposed to have acoustic cues of /i/ \cite{kubozono1999japanese_eng}, which can also change $P(S_{\text{new}}|c)$ in Eq. (\ref{hmm}). To explain the results, therefore, these models do not need to have categorical allophones.
 
 The multiple interpretations for the experiments are allowed by confounding the allophones and the acoustic cues. We leveraged the dialectal differences between the Kansai and Tokyo dialects in Japanese \cite{kishiyama2022onestep}. First, in [ep\textsubring{\textturnm}so] and [espo], not only the allophones (devoiced/deleted) but the preceding speech sounds ([p]/[s]) are also different. Second, when comparing [egpo] and [e\textctc{}po], the transition probability from [g] or [\textctc] to the next vowel is confounded with the acoustic cues of [g] or [\textctc]. We can deal with this issue by focusing on the Kansai dialect speakers, who tend to devoice/delete vowels less frequently than the Tokyo dialect speakers \cite{byun2011_eng, byun2012_eng}. According to the assumption that the deletion and devoicing caused the illusion, Kansai dialect speakers, who are less exposed to these allophones, should rarely yield illusions and more accurate responses in discriminative AXB tasks.
 
 \section{Perception experiment}
 
-\subsection{Materials and methods}
+\subsection{2.1. Materials and methods}
 
 We used an outsourcing service to recruit participants who were older than 18 years, and from the Tokyo or Kansai region. Those who had never lived in other areas since birth had priority during the recruitment process. We had 62 participants, including 33 Tokyo speakers (mean age 38, $SD = 10.9$) and 29 Kinki speakers (mean age 37, $SD = 11.9$), and excluded the results of four participants whose answers were under 75\% accuracy in the categorization task (\S3).
 
@@ -76,7 +77,7 @@ We recorded stimuli from three male speakers, and adjusted the loudness to 75 dB
 
 After three sets of practice tasks, 32 target and 24 filler items were randomized, and presented in an experimental environment conducted on web browsers. A "+" was displayed in the center of the screen for 1000 ms before the audio stimuli, and the three audio items were presented at intervals of 200 ms. After the presentation was over, they were to respond as quickly as possible. We didn't provide feedbacks on correctness to avoid learning during the task, and the program only provided answers in the practice task. When a trial ended, the participants could start the next trial by pressing the space key.
 
-\subsection{Results}
+\subsection{2.2. Results}
 
 The y-axis in the Figure \ref{fig:axb_results} shows the average discrimination accuracy of VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V in the AXB discrimination task. On the left and right panes, we indicated whether the stimulus was in devoicing environment (e.g., k--t if C$_\text{1}$C$_\text{2}$ was devoicing condition, g--d if not). The x-axis shows the Tokyo--Kansai ratio, and the ratio of residential history between the Tokyo and Kansai region. For example, if a participant has lived in Tokyo for 25 years and in Kansai for 15 years, the ratio is $(25-15)/40$, or $0.25$. We showed four items vertically, to see the tendencies for each item,
 \begin{figure}[!ht]
@@ -96,7 +97,7 @@ To evaluate the null hypothesis, we calculated a Bayes factor ($BF$) for the Tok
 
 The $BF$ of the Tokyo--Kansai ratio was 0.15, which indicated that the null hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis of a negative effect. This result contradicts the interpretation that the allophone increases the rate of illusions, and decreases its accuracy.
 
-\subsection{Discussion}
+\subsection{2.3. Discussion}
 
 If the allophone creates the illusion of a vowel, Tokyo dialect speakers should have lower accuracy in the discrimination experiment, than those without devoicing. However, the results of the AXB task showed that the discrimination accuracy of both Kansai and Tokyo dialect speakers, regardless of their language experience, was around 0.59, which is close to a chance level. In addition, the $BF$ suggested that the language experience and devoicing did not affect the rate of illusions in the discrimination task.
 
@@ -104,13 +105,13 @@ Furthermore, the categorization task investigated dialectal differences and acce
 
 \section{Categorization task}
 
-\subsection{Materials and methods}
+\subsection{3.1. Materials and methods}
 
 The participants in the perceptual task also completed this task. All sounds presented in the perceptual task were categorized. There are eight different patterns: four that are devoiced in the Tokyo dialect (esupo, ekuto, epuso, etsuko) and four that are not devoiced (ezubo, egudo, ebuzo, edzugo). Each of them had devoiced versions, and the choices were shown in Japanese letters on the screen. Because three speakers recorded 16 patterns, they listened to 48 stimuli.
 
 They listened to the stimuli, selected one of the above eight options shown above that was closest to them, and rated its acceptability on a 7-point scale (0--6). In the rating, zero was considered "not appropriate at all," and six was considered "completely appropriate."
 
-\subsection{Results}
+\subsection{3.2. Results}
 
 % FIXME: make the figure gray-scale
 % FIXME: check left/right panes
@@ -126,7 +127,7 @@ To test these points, we created a Bayesian linear mixed-effects model, with the
 
 The mean rating was 4.87, indicating that the evaluation was generally natural, given that the rating range was 0--6. The devoicing environment and the devoiced stimulus were $-0.37$ and $-0.79$, respectively. Furthermore, the interaction, that is, the devoiced stimulus in the devoiced environment, increased the rating by 1.19. The $BF$ for the Tokyo--Kansai ratio was 0.012 when the null region was set to $[-\infty, 0]$, indicating robust evidence of no effect.
 
-\subsection{Discussion}
+\subsection{3.3. Discussion}
 
 The results showed that the overall responses were above 4, which means that the quality of the stimuli in this study was not lower than those in previous studies \cite{kilpatrick2018japanese}. If the participants can judge the devoiced speech in the Tokyo dialect offline without epenthesis, the rate of devoiced stimuli in a no-devoicing environment would be less than three. The results of the categorization task suggested that both the Tokyo and Kansai dialect speakers showed that the rating increased when the speech was devoiced in a devoicing environment, while it decreased when the devoiced stimuli were in a no-devoicing environment. However, the effect of the interaction was only about 1, and not high enough to cross the threshold between unnatural and natural.
 
@@ -136,13 +137,17 @@ Previous research proposed that the vowel illusion was caused by devoicing. In a
 
 First, the results of the discrimination accuracy and categorization tasks in the previous studies were not due to the effect of devoicing, but because of acoustic differences. If the perceptual epenthesis were due to the devoicing or deletion, the discrimination accuracy of the Tokyo dialect speakers would be lower than that of the Kansai dialect speakers, who do not devoice or delete the vowels. However, no such effect was observed. Instead, Kansai dialect speakers perceived the illusory vowels almost the same as the Tokyo dialect speakers, in our study.
 
-Second, regarding how acoustic cues affect speech perception, previous studies \cite{wilson2013bayesian, kishiyama2021influence} have assumed Eq. \ref{hmm} during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study, because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, given that the Kinki dialect speakers hear them because these are in Tokyo dialect, which is prevalent in Japan. Given the Bayes Theorem, the equation can be rewritten as Eq. (\ref{disc}), and it integrates discriminative models.
+Second, regarding how acoustic cues affect speech perception, previous studies \cite{wilson2013bayesian, kishiyama2021influence} have assumed Eq. (\ref{hmm}) during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$. This formula makes the results consistent with the previous study, because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, given that the Kinki dialect speakers hear them because these are in Tokyo dialect, which is prevalent in Japan. Given the Bayes Theorem, the equation can be rewritten as Eq. (\ref{disc}), and it integrates discriminative models.
 %
 \begin{equation} \label{disc}
     \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)}
 \end{equation}
 %
 Thus, it allows us to employ other discriminative models, such as neural networks and multinomial logistic regressions. Given that previous studies have already supported the validity of HMMs \cite{kishiyama2021influence}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data, in future studies.
+
+\section{Acknowledgements}
+
+This work was supported by JSPS KAKENHI Grant Numbers 20H01254 and 21K20027.
 
 \bibliographystyle{IEEEtran}
 
