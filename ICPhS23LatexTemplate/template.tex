@@ -15,12 +15,7 @@
 \title{The role of allophones in phoneme perception models: Do devoiced vowels trigger vowel epenthesis?}
 
 \author{
-    Takeshi Kishiyama\thanks{Corresponding author: kishiyama.t@gmail.com
-    The research was conducted in accordance with ethical requirements and it has been approved by the institution.
-    We obtained informed consent from research participants.
-    We conducted the research according to appropriate practices that are considered standard in psycholinguistics.
-    All data and script are available at 
-    https://github.com/kishiyamat/illusory-vowel-keihan .} \textrm{  }$^1$,
+    Takeshi Kishiyama$^1$,
     Chuyu Huang$^2$,
     Kei Furukawa$^3$,
     Yuki Hirose$^1$}
@@ -28,8 +23,8 @@
 % https://tex.stackexchange.com/questions/494582/spacing-of-newline-and
 % Graduate School of Arts and Sciences, The University of Tokyo, Japan2  Nagoya Gakuin University, J
 \organization{
-  $^1$Graduate School of Arts and Sciences, The University of Tokyo, Japan
-  $^2$Faculty of Foreign Studies, Nagoya Gakuin University, Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
+  $^1$Graduate School of Arts and Sciences, The University of Tokyo, Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
+  $^2$Faculty~of~Foreign~Studies,~Nagoya~Gakuin~University,~Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
   $^3$Graduate School of Science and Technology, Nara Institute of Science and Technology, Japan
   }
 % \organization{
@@ -81,7 +76,7 @@ We leveraged the dialectal differences between the Kansai and Tokyo dialects in 
 
 \subsection{2.1. Materials and methods}
 
-We used an outsourcing service to recruit participants older than 18 years from the Tokyo or Kansai region. Those who had never lived in other areas since birth had priority during the recruitment process. We had 62 participants, including 33 Tokyo speakers (mean age 38, $SD = 10.9$) and 29 Kinki speakers (mean age 37, $SD = 11.9$), and excluded the data from four participants whose answers were under 75\% accuracy in the categorization task (\S3).
+We used an outsourcing service to recruit participants older than 18 years from the Tokyo or Kansai region. Those who had never lived in other areas since birth had priority during the recruitment process. We had 62 participants, including 33 Tokyo speakers (mean age 38, $SD = 10.9$) and 29 Kinki speakers (mean age 37, $SD = 11.9$), and excluded the data from four participants whose answers were under 75\% accuracy in the categorization task (\S3). The research was conducted in accordance with ethical requirements approved by the institution, obtaining informed consent from participants. 
 
 In the AXB task, they were asked to distinguish between VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V, from a list of target stimuli, with 32 items based on a combination of the four conditions below. (1) For environments where deletion and devoicing occur, we established four pairs for C$_\text{1}$C$_\text{2}$: s--p, k--t, p--s, and ts--k. (2) We also had stimuli VC$_\text{1}$VC$_\text{2}$V with /u/ between C$_\text{1}$ and C$_\text{2}$ that were discriminated from VC$_\text{1}$C$_\text{2}$V. (3) We created two patterns, depending on whether a trial's stimulus in the X position was either VC$_\text{1}$VC$_\text{2}$V or VC$_\text{1}$C$_\text{2}$V. (4) We prepared voiced counterparts of C$_\text{1}$ and C$_\text{2}$, such as b--z, where neither deletion nor devoicing occurs. The positions of the correct answers were counterbalanced, A or B.
 
@@ -111,7 +106,7 @@ We created a Bayesian linear mixed-effects model \cite{lme4, rstanarm, easystats
 
 To evaluate the null hypothesis, we calculated a Bayes factor ($BF$) for the Tokyo--Kansai ratio. The Bayes factor, which is used to compare the models in the framework of Bayesian statistics, was 0.150 and provided substantial evidence for the null hypothesis. In this study, we calculated the $BF$ as $Posterior \text{ }Odds / Prior \text{ }Odds$, where each $Odds$ is calculated as $P(b\notin[0, \infty] | Data)/P(b\in[0, \infty] | Data)$ and $P(b\notin[0, \infty])/P(b\in[0, \infty])$, respectively. Given that $b$, the estimates of the Tokyo--Kansai ratio, was supposed to be negative, the null region \cite{kruschke2010believe}, considered to have no effect, was set to a positive value [0, $\infty$].
 
-The $BF$ of the Tokyo--Kansai ratio was 0.15, which indicated that the null hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis. This result contradicts the interpretation that the allophone increases the rate of illusions, and decreases its accuracy.
+The $BF$ of the Tokyo--Kansai ratio was 0.15, which indicated that the null hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis. This result contradicts the interpretation that the allophone increases the rate of illusions, and decreases its accuracy. All data and script are available at the corresponding author's repository https://github.com/kishiyamat/icphs2023~.
 
 \subsection{2.3. Discussion}
 
