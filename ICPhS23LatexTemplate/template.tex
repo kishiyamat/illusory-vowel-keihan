@@ -2,10 +2,13 @@
 
 \usepackage{icphs2023}
 \usepackage{epstopdf}
+\usepackage[affil-it]{authblk}
 \usepackage{tipa}
 \usepackage{amsmath}% http://ctan.org/pkg/amsmath
 \newcommand{\argmax}{\mathop{\rm arg~max}\limits}
 \newcommand{\argmin}{\mathop{\rm arg~min}\limits}
+\setlength\intextsep{0pt}
+\setlength\textfloatsep{0pt}
 
 \hyphenpenalty=10000 % no hyphenation
 % https://docs.google.com/document/d/1df4t0mZm1gUytgQOYaZNg6-mcneA4knqTvUPMIhoMMc/edit?usp=sharing
@@ -13,32 +16,28 @@
 
 \title{The role of allophones in phoneme perception models: Do devoiced vowels trigger vowel epenthesis?}
 
-% FIXME
-\author{XXX}
-\organization{XXX}
-\email{XXX}
-% FIXME
-% \author{
-%     Takeshi Kishiyama$^1$,
-%     Chuyu Huang$^2$,
-%     Kei Furukawa$^3$,
-%     Yuki Hirose$^1$}
-% % NAIST の前のスペースがでかすぎるので調整
-% % https://tex.stackexchange.com/questions/494582/spacing-of-newline-and
+\author{
+    Takeshi Kishiyama$^1$,
+    Chuyu Huang$^2$,
+    Kei Furukawa$^3$,
+    Yuki Hirose$^1$}
+% NAIST の前のスペースがでかすぎるので調整
+% https://tex.stackexchange.com/questions/494582/spacing-of-newline-and
+% Graduate School of Arts and Sciences, The University of Tokyo, Japan2  Nagoya Gakuin University, J
+\organization{
+  $^1$Graduate School of Arts and Sciences, The University of Tokyo, Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
+  $^2$Faculty~of~Foreign~Studies,~Nagoya~Gakuin~University,~Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
+  $^3$Graduate School of Science and Technology, Nara Institute of Science and Technology, Japan
+  }
 % \organization{
-%   $^1$The University of Tokyo, Japan
-%   $^2$Nagoya Gakuin University, Japan \vadjust{\vspace{-6pt}}\nolinebreak\hspace{\fill}\linebreak
-%   $^3$Nara Institute of Science and Technology, Japan
-%   }
-% % \organization{
-% %   $^1$The University of Tokyo, Japan\\
-% %   $^2$Nagoya Gakuin University, Japan\\
-% %   $^3$Nara Institute of Science and Technology, Japan}
-% \email{
-%     kishiyama.t@gmail.com,
-%     huang@ngu.ac.jp,
-%     furukawa.kei.fi4@is.naist.jp,
-%     hirose@boz.c.u-tokyo.ac.jp}
+%   $^1$The University of Tokyo, Japan\\
+%   $^2$Nagoya Gakuin University, Japan\\
+%   $^3$Nara Institute of Science and Technology, Japan}
+\email{
+    kishiyama.t@gmail.com,
+    huang@ngu.ac.jp,
+    furukawa.kei.fi4@is.naist.jp,
+    hirose@boz.c.u-tokyo.ac.jp}
 
 \begin{document}
 
@@ -52,18 +51,18 @@ This study investigated how phoneme perception models should incorporate allopho
 
 \section{Introduction}
 
-When hearing speech sounds that violate the phonotactics of the native language, the listener perceives the phonemes according to the native language's rules. For example, native Japanese speakers perceive [ebzo] as /ebuzo/ according to their phonotactics, perceptually inserting the \textit{illusory vowel}, even when the vowel is acoustically absent \cite{dupoux1999epentheticvi, dupoux2011illusory}. Vowel devoicing has recently been reported to affect the illusion \cite{kilpatrick2018japanese}. Our study re-examined these effects through experiments on speakers of different Japanese dialects with different degrees of devoicing of high vowels following certain consonants, and discussed how we should incorporate them into perceptual models.
+When hearing speech sounds that violate the phonotactics of the native language, the listener perceives the phonemes according to the native language's rules. For example, native Japanese speakers perceive [ebzo] as /ebuzo/ according to their phonotactics, perceptually inserting the \textit{illusory vowel} \cite{dupoux1999epentheticvi, dupoux2011illusory}. Vowel devoicing has been reported to affect the illusion \cite{kilpatrick2018japanese}. Our study re-examined these effects through experiments on speakers of different Japanese dialects with different degrees of devoicing of high vowels following certain consonants, and discussed how we should incorporate them into perceptual models.
 
 First, phonotactics provide insights into the vowel illusion \cite{halle2014special, monahan2009not, mattingley2015influence}, as shown in an experiment with native French and Japanese speakers \cite{dupoux1999epentheticvi}. Unlike French, Japanese prohibits consonant clusters such as /bz/, and in this experiment the speakers of each language tried to discriminate between [ebuzo] and [ebzo]. While French speakers successfully distinguished the two sequences, Japanese speakers perceived [ebzo] as /ebuzo/, which decreased their discrimination accuracy.
 
-Second, experiments with native speakers of Brazilian Portuguese and Japanese have revealed the influence of formant cues on illusory vowels \cite{dupoux2011illusory}. Both languages do not allow /bz/, and the default vowels that were inserted were /i/ and /u/, respectively. The study deleted the vowels between /b/--/z/ in [ebizo] and [ebuzo], leaving the vowels' acoustic cues in /b/. The remnant of formant cues affected the participants of both languages, increasing the insertion rate of the non-default /i/ for Japanese.
+Second, experiments with native speakers of Brazilian Portuguese and Japanese have revealed the influence of formant cues on illusory vowels \cite{dupoux2011illusory}. Both languages do not allow /bz/, and the default epenthetic vowels were /i/ and /u/, respectively. The study deleted the vowels between /b/--/z/ in [ebizo] and [ebuzo], leaving the vowels' acoustic cues in /b/. The remnant of formant cues affected the participants of both languages, increasing the insertion rate of the non-default /i/ for Japanese.
 
 One-step models can explain these results, where phonotactics and acoustic cues simultaneously affect the illusion \cite{dupoux2011illusory}. These one-step models can be represented by hidden Markov models (HMMs), which can also represent perceptual assimilation models \cite{best2001discrimination} and models in exemplar theory \cite{lacerda1995perceptual}. The statistical inference \cite{feldman2009influence, wilson2013bayesian} reproduced the illusory vowels \cite{kishiyama2021influence} by calculating
 % no break
 \begin{equation} \label{hmm}
     \hat{c} = \argmax_{c} P(c | c_{t-1})P(S_{\text{new}}|c).
 \end{equation}
-Eq. (\ref{hmm}) calculates two likelihoods: $P(c|c_{t-1})$ is the likelihood of the phoneme array $c_{t-1}$ to $c$, and $P(S_{\text{new}}|c)$ is the likelihood of the input speech $S_{\text{new}}$ for a phoneme $c$. Consequently, the phoneme $c$ that maximizes the likelihoods is activated as $\hat{c}$.
+Eq. (\ref{hmm}) calculates two likelihoods: $P(c|c_{t-1})$ is the likelihood of the phoneme array $c_{t-1}$ to $c$, and $P(S_{\text{new}}|c)$ is that of the input speech $S_{\text{new}}$ for a phoneme $c$. Consequently, the phoneme $c$ that maximizes the likelihoods is activated as $\hat{c}$.
 % no break
 Traditionally, all elements $c$ above were phonemes \cite{wilson2013bayesian}. However, recent studies have suggested that allophones should be treated as discrete units in perceptual models.
 
@@ -79,7 +78,7 @@ We leveraged the dialectal differences between the Kansai and Tokyo dialects in 
 
 \subsection{2.1. Materials and methods}
 
-We used an outsourcing service to recruit participants older than 18 years from the Tokyo or Kansai region. Those who had never lived in other areas since birth had priority during the recruitment process. We had 62 participants, including 33 Tokyo speakers (mean age 38, $SD = 10.9$) and 29 Kinki speakers (mean age 37, $SD = 11.9$), and excluded the data from four participants whose answers were under 75\% accuracy in the categorization task (\S3).
+We used an outsourcing service to recruit participants older than 18 years from the Tokyo or Kansai region. Those who had never lived in other areas since birth had priority during the recruitment process. We had 62 participants, including 33 Tokyo speakers (mean age 38, $SD = 10.9$) and 29 Kinki speakers (mean age 37, $SD = 11.9$), and excluded the data from four participants whose answers were under 75\% accuracy in the categorization task (\S3). The research was conducted in accordance with ethical requirements approved by the institution, obtaining informed consent from participants. 
 
 In the AXB task, they were asked to distinguish between VC$_\text{1}$VC$_\text{2}$V and VC$_\text{1}$C$_\text{2}$V, from a list of target stimuli, with 32 items based on a combination of the four conditions below. (1) For environments where deletion and devoicing occur, we established four pairs for C$_\text{1}$C$_\text{2}$: s--p, k--t, p--s, and ts--k. (2) We also had stimuli VC$_\text{1}$VC$_\text{2}$V with /u/ between C$_\text{1}$ and C$_\text{2}$ that were discriminated from VC$_\text{1}$C$_\text{2}$V. (3) We created two patterns, depending on whether a trial's stimulus in the X position was either VC$_\text{1}$VC$_\text{2}$V or VC$_\text{1}$C$_\text{2}$V. (4) We prepared voiced counterparts of C$_\text{1}$ and C$_\text{2}$, such as b--z, where neither deletion nor devoicing occurs. The positions of the correct answers were counterbalanced, A or B.
 
@@ -109,7 +108,7 @@ We created a Bayesian linear mixed-effects model \cite{lme4, rstanarm, easystats
 
 To evaluate the null hypothesis, we calculated a Bayes factor ($BF$) for the Tokyo--Kansai ratio. The Bayes factor, which is used to compare the models in the framework of Bayesian statistics, was 0.150 and provided substantial evidence for the null hypothesis. In this study, we calculated the $BF$ as $Posterior \text{ }Odds / Prior \text{ }Odds$, where each $Odds$ is calculated as $P(b\notin[0, \infty] | Data)/P(b\in[0, \infty] | Data)$ and $P(b\notin[0, \infty])/P(b\in[0, \infty])$, respectively. Given that $b$, the estimates of the Tokyo--Kansai ratio, was supposed to be negative, the null region \cite{kruschke2010believe}, considered to have no effect, was set to a positive value [0, $\infty$].
 
-The $BF$ of the Tokyo--Kansai ratio was 0.15, which indicated that the null hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis. This result contradicts the interpretation that the allophone increases the rate of illusions, and decreases its accuracy.
+The $BF$ of the Tokyo--Kansai ratio was 0.15, which indicated that the null hypothesis of a positive effect was $1/0.15(=6.67)$ times more plausible than the alternative hypothesis. This result contradicts the interpretation that the allophone increases the rate of illusions, and decreases its accuracy. All data and script are available at the corresponding author's repository https://github.com/kishiyamat/icphs2023~.
 
 \subsection{2.3. Discussion}
 
@@ -151,16 +150,17 @@ First, the results of the discrimination accuracy and categorization tasks in th
 
 Second, regarding how acoustic cues affect speech perception, previous studies \cite{feldman2009influence, wilson2013bayesian, kishiyama2021influence} have assumed Eq. (\ref{hmm}) during inference. On the right-hand side, $P(S_{\text{new}}|c)$ is thought to represent the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given $c$, and it does not need to be a generative model. This makes the results consistent with the previous study, because $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, given that the Kinki dialect speakers hear them in Tokyo dialect, which is prevalent in Japan. Given the Bayes' Theorem, the equation can be rewritten as
 %
-\begin{equation} \label{disc}
-    \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)},
-\end{equation}
+% \begin{equation} \label{disc}
+%     \hat{c} = \argmax_{c} P(c | c_{t-1}) \frac{P(c|S_{\text{new}})}{P(c)},
+% \end{equation}
 %
+$\hat{c} = \argmax_{c} P(c | c_{t-1}) P(c|S_{\text{new}}) / P(c)$,
 and it integrates discriminative models instead of generative models. This allows us to employ other discriminative models, such as neural networks and multinomial logistic regressions. Given that previous studies have already supported the validity of HMMs \cite{kishiyama2021influence, kishiyama2022onestep}, we will test whether we can incorporate the above discriminative model into HMMs to explain behavioral data, in future studies.
 
 % FIXME
-% \section{Acknowledgements}
-% 
-% This work was supported by JSPS KAKENHI Grant Numbers 20H01254 and 21K20027.
+\section{Acknowledgements}
+
+This work was supported by JSPS KAKENHI Grant Numbers 20H01254 and 21K20027.
 
 \bibliographystyle{IEEEtran}
 
