@@ -17,6 +17,7 @@ model/wav/*
 !**/.gitkeep
 .Rproj.user
 *.npy
+*.swp
 *.RData
 
 ICPhS23LatexTemplate/mybib.bib
