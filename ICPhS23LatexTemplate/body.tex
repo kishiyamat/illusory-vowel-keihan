@@ -14,19 +14,21 @@ One-step models can account for these findings, as they posit that phonotactics 
 \end{equation}
 Eq. (\ref{eq:hmmch3}) computes two likelihoods: $P(c|c_{t-1})$, which represents the probability of transitioning from the previous phoneme $c_{t-1}$ to the current phoneme $c$, and $P(S_{\text{new}}|c)$, which represents the likelihood of the input speech sound $S_{\text{new}}$ given phoneme $c$. The phoneme $c$ that maximizes these combined likelihoods is then selected as $\hat{c}$.
 
-Traditionally, all elements of $c$ referred to phonemes \parencite{wilson2013bayesian}. However, recent research suggests that allophones should be treated as discrete units within perceptual models, reflecting their role in speech perception more accurately.
+Traditionally, all elements of $c$ referred to phonemes \parencite{wilson2013bayesian}.
+However, recent research suggests that allophones should be treated as discrete units within perceptual models,
+reflecting their role in speech perception more accurately.
 
-First, devoiced or deleted vowels in Japanese have been reported to increase perceptual epenthesis \parencite{kilpatrick2018japanese}.
-In the Tokyo dialect, the high vowel /u/ in /esupo/ is often deleted,
-resulting in [espo] when it follows fricatives or affricates \parencite{fujimoto2003devoice_eng, shaw2018lingual}.
-In other cases, the vowel in /epuso/ is devoiced, resulting in [ep\textsubring{\textturnm}so].
-Studies have found that deletion or devoicing encourages perceptual assimilation, 
-leading to an increased likelihood of perceptual epenthesis. 
-Second, transition probabilities between allophones have been shown to influence vowel illusions \parencite{kilpatrick2020japanese}.
-For example, the allophone [\textctc], a realization of /s/ before /i/, is not typically followed by other vowels.
-Research found that [\textctc{}] frequently induces the perception of /i/ \parencite{kilpatrick2020japanese}, 
-more so than other consonants like [g]. 
-They argued that this means that allophones and their transition probabilities contribute to the vowel illusion.
+First, devoiced or deleted vowels in Japanese have been reported to increase perceptual epenthesis \parencite{kilpatrick2018japanese}.  
+In the Tokyo dialect, the high vowel /u/ in /esupo/ is often deleted, resulting in [espo] when it follows fricatives or affricates \parencite{fujimoto2003devoice_eng, shaw2018lingual}.  
+Similarly, in /epuso/, /u/ may undergo devoicing, yielding [ep\textsubring{\textturnm}so].  
+Studies suggest that deletion or devoicing facilitates perceptual assimilation, increasing the likelihood of perceptual epenthesis.  
+
+Second, the statistical patterns of allophonic transitions have been considered one factor influencing vowel illusions \parencite{kilpatrick2020japanese}.  
+For instance, the allophone [\textctc], a realization of /s/ before /i/, is rarely followed by other vowels.  
+Research indicates that [\textctc{}] frequently induces the perception of /i/ \parencite{kilpatrick2020japanese}, more so than other consonants like [g].  
+This observation has been interpreted as evidence that allophonic variation and transition patterns contribute to vowel illusions.  
+Indeed, [\textctc] appears before a devoiced vowel ([\textctc\textsubring{i}]), which may contribute to perceptual epenthesis.  
+However, whether such probabilities can be stored at the allophonic level remains uncertain.
 
 The key question is whether phoneme perception models should treat allophones as categorical entities, rather than as continuous. Without assuming categorical allophones, one-step models can explain the results described above. The variation in auditory cues within deleted or devoiced vowels results in different $P(S_{\text{new}}|c)$. Furthermore, the stimulus [\textctc] is thought to carry acoustic cues of /i/ \parencite{kubozono1999japanese_eng}, which can also influence $P(S_{\text{new}}|c)$. As such, these models can explain the results without needing to treat allophones as categorical.
 
