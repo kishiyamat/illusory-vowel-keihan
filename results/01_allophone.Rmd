@@ -42,12 +42,6 @@ library(lmerTest)
 source("script/subject_info.R")
 source("script/results_pitch.R") # load mutated data
 
-knitr::opts_chunk$set(echo = TRUE)
-set.seed(123)
-# install.packages("remotes")
-# remotes::install_github("easystats/easystats")
-library(rstanarm)
-library("bayestestR")
 
 # 03_cat.Rmd の結果より
 # `summarise()` has grouped output by 'subject_id'. You can override using the `.groups` argument.
@@ -208,6 +202,13 @@ ggsave(paste0("artifact/results_axb_allophone.pdf"), unit = "cm", width = 7, hei
 ベイズファクター
 
 ```{r}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(123)
+# install.packages("remotes")
+# remotes::install_github("easystats/easystats")
+library(rstanarm)
+library("bayestestR")
+
 model <- stan_lmer(
   formula = is_correct_mean ~ condition * tokyo_kinki_ratio
   # formula = is_correct_mean ~  condition * devoicing_preference
