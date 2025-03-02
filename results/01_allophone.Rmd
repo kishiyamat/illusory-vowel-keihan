@@ -172,6 +172,7 @@ level_order <- c(-1, -0.5, 0, 0.5, 1) %>% as.character()
 level_order <- base::factor(results_mean$tokyo_kinki_ratio_bin, level = level_order)
 
 results_mean %>%
+  mutate(pair = ifelse(pair == "devoiced", "Devoicing", "No-Devoicing")) %>%
   ggplot() +
   facet_grid(pair ~ condition) +
   geom_boxplot(aes(
