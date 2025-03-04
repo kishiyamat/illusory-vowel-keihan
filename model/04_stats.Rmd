@@ -45,6 +45,15 @@ results_mean <- results %>%
 
 results_mean
 ```
+```{r}
+library(lmerTest)
+results %>% filter(tokyo_pref!=0) %>% 
+  mutate(tokyo_pref=(tokyo_pref+1)/2) %>% 
+  glm(formula=tokyo_pref~tokyo_kinki_ratio*use_transition*use_pi,
+      family=binomial) %>%
+  summary
+  # glm(formula=tokyo_pref~tokyo_kinki_ratio*use_transition*use_pi, family=binomial)
+```
 
 
 ```{r}
