@@ -86,6 +86,7 @@ results <- rbind(results_sone, results_cw) %>%
 * 可視化
 
 ```{r}
+results
 # 可視化のため平均を取る
 # facet wrap したほうが説明がらく(モーラの位置は分析対象外)
 x_var <- "tokyo_kinki_ratio"
@@ -131,6 +132,59 @@ g <- result_x_var %>%
   ) +
   theme(legend.position = "none")
 ggsave(paste0("artifact/devoicing_by_item.png"), g, unit = "cm", width = 8, height = 8)
+g
+```
+
+```{r}
+# 可視化のため平均を取る
+# facet wrap したほうが説明がらく(モーラの位置は分析対象外)
+x_var <- "tokyo_kinki_ratio"
+result_x_var <- results %>%
+  pivot_longer(x_var_list, names_to = "span", values_to = "tokyo_kinki_ratio") %>%
+  filter(span == x_var) %>%
+  group_by(subj_id, item_id) %>%
+  mutate(devoiced_mean = mean(devoiced)) %>%
+  ungroup() %>%
+  select(-c(production_order)) %>%
+  distinct() %>%
+  mutate(item_id = item_id2char(item_id)) %>%
+  mutate(item_type = case_when(
+    str_detect(item_id, "KUT") ~ "KUT",
+    str_detect(item_id, "SUP") ~ "SUP",
+    str_detect(item_id, "PUS") ~ "PUS",
+    str_detect(item_id, "TSUK") ~ "TSUK"
+  )) %>%
+  mutate(check_first = case_when(
+    str_detect(item_id, "aKUT") ~ "Not onset",
+    str_detect(item_id, "eSUP") ~ "Not onset",
+    str_detect(item_id, "ePUS") ~ "Not onset",
+    str_detect(item_id, "oTSUK") ~ "Not onset",
+    TRUE ~ "Onset"
+  ))
+
+g <- result_x_var %>%
+  mutate(tokyo_kinki_ratio_bin=factor(range01(tokyo_kinki_ratio), 4)) %>% 
+  mutate(tokyo_kinki_ratio_bin=case_when(
+    tokyo_kinki_ratio_bin==0~-1,
+    tokyo_kinki_ratio_bin==1~-0.5,
+    tokyo_kinki_ratio_bin==2~0,
+    tokyo_kinki_ratio_bin==3~0.5,
+    tokyo_kinki_ratio_bin==4~1)) %>% 
+  mutate(tokyo_kinki_ratio_bin=as.factor(tokyo_kinki_ratio_bin)) %>% 
+  ggplot() +
+  # facet_wrap(.~item_type) +
+  facet_grid(item_type ~ check_first) +
+  geom_boxplot(aes(x = tokyo_kinki_ratio_bin, y = devoiced_mean)) +
+  # geom_violin(aes(x = tokyo_kinki_ratio_bin, y = devoiced_mean)) +
+  labs(
+    x = "Tokyo-residence ratio",
+    y = "Devoicing Ratio"
+  ) +
+  theme(legend.key.size = unit(0.3, "cm")) + 
+  theme( text = element_text(family = "Times") ) +
+  theme(text = element_text(size = 10)) +
+  theme(legend.position = "none")
+ggsave(paste0("artifact/devoicing_by_item_detail.pdf"), g, unit = "cm", width = 7, height = 6)
 g
 ```
 
