@@ -49,7 +49,11 @@ results_mean
 library(lmerTest)
 results %>% filter(tokyo_pref!=0) %>% 
   mutate(tokyo_pref=(tokyo_pref+1)/2) %>% 
-  glm(formula=tokyo_pref~tokyo_kinki_ratio*use_transition*use_pi,
+  glm(formula=tokyo_pref~
+        tokyo_kinki_ratio+
+        tokyo_kinki_ratio:use_transition+
+        tokyo_kinki_ratio:use_pi+
+        tokyo_kinki_ratio:use_transition:use_pi,
       family=binomial) %>%
   summary
   # glm(formula=tokyo_pref~tokyo_kinki_ratio*use_transition*use_pi, family=binomial)
