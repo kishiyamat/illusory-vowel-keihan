@@ -146,17 +146,26 @@ The results showed that the overall ratings exceeded 4, indicating that the qual
 
 \section{General Discussion}
 
-Previous research has suggested that devoicing may contribute to perceptual epenthesis. Additionally, probabilistic models have accounted for the distribution of auditory realizations. Based on the results from both the perceptual experiments and the categorization tasks in this study, two alternative interpretations are proposed.
+Previous research has suggested that devoicing may contribute to perceptual epenthesis.
+Additionally, probabilistic models have accounted for the distribution of auditory realizations.
+Based on the results from both the perceptual experiments and the categorization tasks in this study,
+I suggest that the observed effects in discrimination accuracy and categorization tasks from previous studies
+may not be directly attributed to devoicing,
+but rather to acoustic differences.
+If devoicing and deletion were the primary cause of perceptual epenthesis,
+I would expect Tokyo dialect speakers,
+who commonly devoice or delete vowels,
+to show lower discrimination accuracy compared to Kansai dialect speakers,
+who seldom exhibit these patterns.
+However,
+no significant difference was observed between the two groups in this study.
+Both Kansai and Tokyo dialect speakers perceived illusory vowels at similar rates.
 
-First, the observed effects in discrimination accuracy and categorization tasks from previous studies may not be directly attributed to devoicing, but rather to acoustic differences. If devoicing and deletion were the primary cause of perceptual epenthesis, I would expect Tokyo dialect speakers, who commonly devoice or delete vowels, to show lower discrimination accuracy compared to Kansai dialect speakers, who seldom exhibit these patterns. However, no significant difference was observed between the two groups in this study. Both Kansai and Tokyo dialect speakers perceived illusory vowels at similar rates. However, if both groups consistently perceive illusory vowels due to phonotactic constraints, the comparison becomes difficult because of a ceiling effect. In other words, if Kansai-dialect speakers already perceive illusory vowels nearly 100\% of the time, there is no additional margin for Tokyo-dialect speakers to perceive them at a higher rate.
-
-Second, in terms of how acoustic cues influence speech perception, previous studies \parencite{feldman2009influence, wilson2013bayesian, kishiyama2021influence} have employed inference models based on Equation (\ref{eq:hmmch3}). In this framework, $P(S_{\text{new}}|c)$ represents the distribution of auditory realizations for phonemes or the perceptual likelihood of $S_{\text{new}}$ given phoneme $c$, without requiring a generative model. This is consistent with the findings, as $P$( [\textsubring{\textturnm}] | /u/ ) or $P$( [s] | /su/ ) is not zero, reflecting the exposure of Kansai dialect speakers to the Tokyo dialect, which is widely used across Japan. By applying Bayes' Theorem, the equation can be rewritten as:
-\[
-\hat{c} = \argmax_{c} \frac{P(c | c_{t-1}) P(S_{\text{new}}|c)}{P(c)},
-\]
-which integrates discriminative models rather than relying solely on generative models. This approach opens the possibility of using other discriminative techniques, such as neural networks or multinomial logistic regression, in speech perception modeling.
-
-Given the previous validation of HMMs in explaining behavioral data \parencite{kishiyama2021influence, kishiyama2022onestep}, next chapter will explore how discriminative models can be incorporated into HMMs to further improve the explanation of human speech perception.
+One thing to be considered is that the comparison becomes difficult because of a ceiling effect
+if both groups consistently perceive illusory vowels due to phonotactic constraints.
+In other words, if Kansai-dialect speakers already perceive illusory vowels nearly 100\% of the time,
+there is no additional margin for Tokyo-dialect speakers to perceive them at a higher rate.
+In the next chapter, I examine this aspect using computational models.
 
 % FIXME
 % \section{Acknowledgements}
